@@ -55,8 +55,8 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
 
       {showRightCol && (
         <div class="lg:col-span-5 flex justify-center lg:justify-end">
-          <div class="relative w-full max-w-[320px] lg:max-w-[380px]">
-            {/* Soft elevation under the device */}
+          <div class="relative w-full max-w-[480px] lg:max-w-[540px]">
+            {/* Soft elevation under the image */}
             <div
               class="absolute -inset-6 -z-10 rounded-[40px] opacity-60 blur-2xl"
               style="background: radial-gradient(60% 60% at 50% 50%, #C9C7F4 0%, rgba(201,199,244,0) 70%);"
@@ -67,14 +67,14 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
               <img
                 src={image!.src}
                 alt={image!.alt}
-                class="w-full h-auto rounded-[28px] shadow-[0_20px_60px_-20px_rgba(15,15,30,0.25)]"
+                class="w-full h-auto rounded-[20px] shadow-[0_20px_60px_-20px_rgba(15,15,30,0.25)]"
                 loading="eager"
                 decoding="async"
               />
             ) : (
-              /* Phone-shaped placeholder — auto-replaced when the real image lands. */
+              /* Placeholder — auto-replaced when the real image lands. */
               <div
-                class="aspect-[2/3] w-full rounded-[28px] border border-brand-line bg-gradient-to-b from-brand-subtle to-white shadow-[0_20px_60px_-20px_rgba(15,15,30,0.18)] flex items-center justify-center"
+                class="aspect-[16/9] w-full rounded-[20px] border border-brand-line bg-gradient-to-b from-brand-subtle to-white shadow-[0_20px_60px_-20px_rgba(15,15,30,0.18)] flex items-center justify-center"
                 role="img"
                 aria-label={image!.alt}
               >
@@ -87,8 +87,8 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
                   <p class="text-xs uppercase tracking-[0.18em] text-brand-muted">
                     Product imagery
                   </p>
-                  <p class="text-xs text-brand-muted/80 max-w-[200px]">
-                    Phone mockup lands here once dropped in /public/images/.
+                  <p class="text-xs text-brand-muted/80 max-w-[220px]">
+                    Drop a hero image at /public/images/hero-phone.png.
                   </p>
                 </div>
               </div>
