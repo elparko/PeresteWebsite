@@ -1,0 +1,12 @@
+# Hero / section imagery
+#
+# Drop files in here and the components that expect them will pick them up.
+# Expected slugs (referenced from src/pages/*.astro):
+#
+#   hero-phone.png        portrait phone mockup showing the HearthAI app —
+#                         appears on the right side of the homepage hero
+#
+# Recommended specs for hero-phone.png:
+#   - portrait orientation (~2:3 aspect ratio, e.g. 800x1200 or 1000x1500)
+#   - transparent or white background preferred
+#   - PNG or JPG, ideally under 400KB (run through tinypng.com or similar)

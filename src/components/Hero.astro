@@ -5,9 +5,11 @@ interface Props {
   lede?: string;
   primaryCta?: { href: string; label: string };
   secondaryCta?: { href: string; label: string };
+  /** Optional image rendered to the right of the copy on desktop. */
+  image?: { src: string; alt: string };
 }
 
-const { eyebrow, title, lede, primaryCta, secondaryCta } = Astro.props;
+const { eyebrow, title, lede, primaryCta, secondaryCta, image } = Astro.props;
 ---
 
 <section class="relative overflow-hidden">
@@ -19,19 +21,43 @@ const { eyebrow, title, lede, primaryCta, secondaryCta } = Astro.props;
   ></div>
 
   <div class="container-page pt-24 pb-20 md:pt-32 md:pb-28">
-    {eyebrow && <p class="eyebrow mb-6">{eyebrow}</p>}
-    <h1 class="max-w-4xl tracking-tight-3">{title}</h1>
-    {lede && <p class="lede mt-6">{lede}</p>}
+    <div class={image ? "grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" : ""}>
+      <div class={image ? "lg:col-span-7" : ""}>
+        {eyebrow && <p class="eyebrow mb-6">{eyebrow}</p>}
+        <h1 class={`tracking-tight-3 ${image ? "" : "max-w-4xl"}`}>{title}</h1>
+        {lede && <p class="lede mt-6">{lede}</p>}
 
-    {(primaryCta || secondaryCta) && (
-      <div class="mt-10 flex flex-wrap items-center gap-3">
-        {primaryCta && (
-          <a href={primaryCta.href} class="btn-primary">{primaryCta.label}</a>
-        )}
-        {secondaryCta && (
-          <a href={secondaryCta.href} class="btn-secondary">{secondaryCta.label}</a>
+        {(primaryCta || secondaryCta) && (
+          <div class="mt-10 flex flex-wrap items-center gap-3">
+            {primaryCta && (
+              <a href={primaryCta.href} class="btn-primary">{primaryCta.label}</a>
+            )}
+            {secondaryCta && (
+              <a href={secondaryCta.href} class="btn-secondary">{secondaryCta.label}</a>
+            )}
+          </div>
         )}
       </div>
-    )}
+
+      {image && (
+        <div class="lg:col-span-5 flex justify-center lg:justify-end">
+          <div class="relative w-full max-w-[320px] lg:max-w-[380px]">
+            {/* Soft elevation under the device */}
+            <div
+              class="absolute -inset-6 -z-10 rounded-[40px] opacity-60 blur-2xl"
+              style="background: radial-gradient(60% 60% at 50% 50%, #C9C7F4 0%, rgba(201,199,244,0) 70%);"
+              aria-hidden="true"
+            ></div>
+            <img
+              src={image.src}
+              alt={image.alt}
+              class="w-full h-auto rounded-[28px] shadow-[0_20px_60px_-20px_rgba(15,15,30,0.25)]"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        </div>
+      )}
+    </div>
   </div>
 </section>
