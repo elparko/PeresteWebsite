@@ -55,11 +55,11 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
 
       {showRightCol && (
         <div class="lg:col-span-5 flex justify-center lg:justify-end">
-          <div class="relative w-full max-w-[480px] lg:max-w-[540px]">
-            {/* Soft elevation under the image */}
+          <div class="relative w-full max-w-[420px] lg:max-w-[460px]">
+            {/* Soft elevation under the image — sits behind the phone shape */}
             <div
-              class="absolute -inset-6 -z-10 rounded-[40px] opacity-60 blur-2xl"
-              style="background: radial-gradient(60% 60% at 50% 50%, #C9C7F4 0%, rgba(201,199,244,0) 70%);"
+              class="absolute -inset-8 -z-10 rounded-[40px] opacity-70 blur-3xl"
+              style="background: radial-gradient(55% 55% at 50% 50%, #C9C7F4 0%, rgba(201,199,244,0) 70%);"
               aria-hidden="true"
             ></div>
 
@@ -67,7 +67,7 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
               <img
                 src={image!.src}
                 alt={image!.alt}
-                class="w-full h-auto rounded-[20px] shadow-[0_20px_60px_-20px_rgba(15,15,30,0.25)]"
+                class="w-full h-auto max-h-[640px] object-contain"
                 loading="eager"
                 decoding="async"
               />
