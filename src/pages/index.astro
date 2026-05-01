@@ -1,0 +1,108 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import Card from "../components/Card.astro";
+import CTA from "../components/CTA.astro";
+---
+
+<Base
+  title="Pereste — Healthcare AI, deployed in partnership with institutions."
+  description="Pereste partners with health systems to deploy AI built for the realities of underserved care — starting with rural diabetes, expanding to COPD, CHF, and beyond."
+>
+  <Hero
+    eyebrow="Pereste LLC"
+    title="Healthcare AI that meets patients where they are."
+    lede="Pereste partners with institutions to deploy AI-driven solutions for the patients hardest to reach — starting in rural diabetes care, expanding to COPD, CHF, and beyond."
+    primaryCta={{ href: "/hearthai", label: "See our pilot" }}
+    secondaryCta={{ href: "/about", label: "About Pereste" }}
+  />
+
+  {/* Mission band */}
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">Mission</p>
+      </div>
+      <div class="md:col-span-8">
+        <p class="text-2xl md:text-3xl font-serif tracking-tight-2 leading-snug text-brand-ink">
+          We build clinical AI for the patients health systems struggle to reach,
+          and deploy it inside the institutions that already care for them.
+        </p>
+        <p class="lede mt-6">
+          Pereste develops the underlying models and the implementations that
+          make them work in real care settings — privacy-preserving, designed
+          for clinical reality, and built around the people on the receiving
+          end of the system.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  {/* Approach */}
+  <Section tone="subtle">
+    <p class="eyebrow mb-4">Our approach</p>
+    <h2 class="max-w-3xl mb-12">
+      Three commitments that shape every solution we ship.
+    </h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <Card eyebrow="01" title="Models built for clinical reality">
+        Our models are designed for the messiness of real care — adaptive to
+        each patient, grounded in clinical context, and built to behave well
+        when the stakes are real.
+      </Card>
+      <Card eyebrow="02" title="Deployed in partnership">
+        We work alongside institutions, not around them. Our solutions run
+        where patient data already lives, under the governance the institution
+        already trusts.
+      </Card>
+      <Card eyebrow="03" title="Rural-first by design">
+        We start with the patients most often left out: older adults, rural
+        communities, lower health-literacy populations. If it works for them,
+        it works for everyone.
+      </Card>
+    </div>
+  </Section>
+
+  {/* Pilot card */}
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10 items-start">
+      <div class="md:col-span-4">
+        <p class="eyebrow">Active pilot</p>
+        <h2 class="mt-4">HearthAI</h2>
+      </div>
+      <div class="md:col-span-8">
+        <p class="lede">
+          Our first solution turns the discharge moment — when patients leave
+          the hospital with instructions they often can't parse — into an
+          adaptive, spoken conversation at the patient's own reading level.
+          Aimed at reducing preventable readmissions in diabetes, with COPD
+          and CHF on the roadmap.
+        </p>
+        <div class="mt-8">
+          <a href="/hearthai" class="link-arrow">Read more about HearthAI</a>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  {/* Audience CTAs */}
+  <Section>
+    <div class="grid md:grid-cols-2 gap-6">
+      <CTA
+        eyebrow="For institutions"
+        title="Deploy AI inside the systems that already care for your patients."
+        body="We work with health systems, clinics, and academic care settings to embed Pereste solutions where patient data already lives — no PHI egress, no bolt-on tooling."
+        primaryCta={{ href: "mailto:", label: "Talk to our team" }}
+        tone="ink"
+      />
+      <CTA
+        eyebrow="For investors"
+        title="Building durable IP at the intersection of clinical AI and underserved care."
+        body="Pereste holds the IP behind a stack of clinical AI solutions, starting with HearthAI and expanding into rural-health applications. Investor inquiries welcome."
+        primaryCta={{ href: "mailto:", label: "Request our overview" }}
+        tone="subtle"
+      />
+    </div>
+  </Section>
+</Base>

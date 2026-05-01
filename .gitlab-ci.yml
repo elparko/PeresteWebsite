@@ -1,0 +1,33 @@
+# GitLab Pages — builds and publishes on every push to the default branch.
+#
+# This matches GitLab's suggested Pages template, with two project-specific
+# tweaks for Astro:
+#   1. `rm -rf public` before `mv dist public`: Astro uses `public/` as the
+#      source folder for static assets (favicon, logos), so it already
+#      exists in the runner's working tree. Without removing it first,
+#      `mv` would move `dist` *into* `public/` rather than rename.
+#   2. npm caching keeps warm builds under ~30s.
+#
+# Custom domain (pereste.com) is configured in the project UI:
+#   Deploy → Pages → New domain → add the DNS TXT record at the registrar.
+
+pages:
+  stage: deploy
+  image: node:lts
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+      - node_modules/
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run build
+    - rm -rf public
+    - mv dist public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

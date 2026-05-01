@@ -1,0 +1,51 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+---
+
+<Base
+  title="Careers — Pereste"
+  description="Pereste is building a small, deliberate team at the intersection of clinical AI and underserved care."
+>
+  <Hero
+    eyebrow="Careers"
+    title="Building a small, deliberate team."
+    lede="Pereste is early. We're hiring carefully — clinicians, engineers, and operators who want to work on AI that actually meets patients where they are. If that sounds like you, we'd like to hear from you."
+    primaryCta={{ href: "mailto:", label: "Reach out" }}
+  />
+
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">How we work</p>
+      </div>
+      <div class="md:col-span-8 space-y-5">
+        <p class="lede">
+          Small team, high ownership. We're partnering with real clinical
+          settings and shipping into them, not running pilots in a vacuum.
+        </p>
+        <p class="lede">
+          We hire for judgment, clarity, and a real interest in the patients
+          we're building for — including the ones who don't have a smartphone
+          or a healthcare degree.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="subtle">
+    <p class="eyebrow mb-4">Open roles</p>
+    <h2 class="max-w-3xl mb-8">
+      No public roles right now — but we're always interested in talking.
+    </h2>
+    <p class="lede">
+      If you work at the intersection of healthcare and machine learning, or
+      if you've spent time in rural and community care settings and have
+      thoughts about what's broken, send us a note.
+    </p>
+    <div class="mt-10">
+      <a href="mailto:" class="btn-primary">Email us</a>
+    </div>
+  </Section>
+</Base>

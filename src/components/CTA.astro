@@ -1,0 +1,49 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  body?: string;
+  primaryCta: { href: string; label: string };
+  secondaryCta?: { href: string; label: string };
+  tone?: "ink" | "subtle";
+}
+
+const { eyebrow, title, body, primaryCta, secondaryCta, tone = "ink" } = Astro.props;
+
+const toneClass =
+  tone === "ink"
+    ? "bg-brand-ink text-brand-surface"
+    : "bg-brand-subtle text-brand-ink";
+const eyebrowClass =
+  tone === "ink" ? "text-brand-surface/60" : "text-brand-muted";
+const bodyClass =
+  tone === "ink" ? "text-brand-surface/80" : "text-brand-ink/75";
+const primaryClass =
+  tone === "ink"
+    ? "inline-flex items-center gap-2 rounded-full bg-brand-surface text-brand-ink px-5 py-2.5 text-sm font-medium hover:bg-brand-subtle"
+    : "btn-primary";
+const secondaryClass =
+  tone === "ink"
+    ? "inline-flex items-center gap-2 rounded-full border border-brand-surface/30 px-5 py-2.5 text-sm font-medium text-brand-surface hover:bg-brand-surface/10"
+    : "btn-secondary";
+---
+
+<div class={`${toneClass} rounded-3xl p-10 md:p-14`}>
+  {eyebrow && (
+    <p class={`text-xs uppercase tracking-[0.18em] font-medium mb-4 ${eyebrowClass}`}>
+      {eyebrow}
+    </p>
+  )}
+  <h2 class={`max-w-2xl ${tone === "ink" ? "text-brand-surface" : ""}`}>{title}</h2>
+  {body && (
+    <p class={`mt-5 max-w-prose text-base md:text-lg leading-relaxed ${bodyClass}`}>
+      {body}
+    </p>
+  )}
+  <div class="mt-8 flex flex-wrap items-center gap-3">
+    <a href={primaryCta.href} class={primaryClass}>{primaryCta.label}</a>
+    {secondaryCta && (
+      <a href={secondaryCta.href} class={secondaryClass}>{secondaryCta.label}</a>
+    )}
+  </div>
+</div>

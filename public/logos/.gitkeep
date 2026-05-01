@@ -1,0 +1,14 @@
+# Pereste brand assets
+#
+# Static logos:
+#   logo-primary.png     full lockup (mark + PERESTE) — black on transparent (default)
+#   logo-black.png       full lockup, pure black variant
+#   logo-white.png       full lockup, white — for use on dark backgrounds
+#   logo-inverse.png     full lockup, lavender — for use on white
+#   mark-square.png      mark inside rounded square on lavender (used in header)
+#   brandkit-circle.png  mark inside circle on lavender (alternate)
+#
+# Animated SVGs (not loaded by default — heavy):
+#   anim-intro.svg       wipe-in entrance
+#   anim-loop.svg        looping idle
+#   anim-outro.svg       sweep exit

@@ -1,0 +1,26 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  href?: string;
+}
+
+const { eyebrow, title, href } = Astro.props;
+const Tag = href ? "a" : "div";
+---
+
+<Tag
+  href={href}
+  class={`block rounded-2xl border border-brand-line bg-brand-surface p-6 md:p-8
+          transition-all
+          ${href ? "hover:-translate-y-0.5 hover:border-brand-ink hover:shadow-[0_8px_24px_-12px_rgba(15,20,25,0.18)]" : ""}`}
+>
+  {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
+  <h3 class="font-serif text-2xl tracking-tight-2 mb-3">{title}</h3>
+  <div class="text-brand-ink/75 leading-relaxed">
+    <slot />
+  </div>
+  {href && (
+    <span class="link-arrow mt-5">Learn more</span>
+  )}
+</Tag>

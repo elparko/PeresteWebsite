@@ -1,0 +1,115 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import Card from "../components/Card.astro";
+import CTA from "../components/CTA.astro";
+---
+
+<Base
+  title="HearthAI — Pereste"
+  description="HearthAI is Pereste's first clinical AI solution: an adaptive, voice-based discharge companion for diabetic patients, designed to reduce preventable readmissions."
+>
+  <Hero
+    eyebrow="Solution · HearthAI"
+    title="The discharge moment, made understandable."
+    lede="HearthAI turns a diabetic patient's own discharge information into an adaptive, spoken conversation at their reading level — designed to help them retain what they need to do, and to reduce preventable readmissions."
+    primaryCta={{ href: "mailto:", label: "Talk to our team" }}
+    secondaryCta={{ href: "/about", label: "About Pereste" }}
+  />
+
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">The problem</p>
+      </div>
+      <div class="md:col-span-8 space-y-5">
+        <p class="lede">
+          Older and rural patients leave the hospital with dense PDFs they
+          often cannot parse. Adherence drops, confusion compounds, and
+          preventable readmissions follow.
+        </p>
+        <p class="lede">
+          Existing tools either live in the cloud — making them hard to
+          deploy in clinical settings — or speak at a single, generic
+          reading level that misses the patients most at risk.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="subtle">
+    <p class="eyebrow mb-4">Our approach</p>
+    <h2 class="max-w-3xl mb-12">
+      An adaptive conversation, grounded in the patient's own clinical reality.
+    </h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <Card eyebrow="Adaptive" title="Meets each patient at their reading level.">
+        HearthAI listens to how a patient speaks and adjusts in real time —
+        simpler when needed, more detailed when ready. The same conversation
+        works for an 85-year-old in a rural clinic and a younger caregiver.
+      </Card>
+      <Card eyebrow="Grounded" title="Speaks to their actual discharge, not generic advice.">
+        The system is grounded in the patient's own clinical record, so
+        guidance is specific to their diagnosis, medications, and care plan
+        — not a generic patient-education page.
+      </Card>
+      <Card eyebrow="On-prem" title="Designed for institutional deployment.">
+        HearthAI is built to run inside the institutions that care for the
+        patient. Patient data stays where it belongs, under the governance
+        the institution already trusts.
+      </Card>
+    </div>
+  </Section>
+
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">What it's built for</p>
+      </div>
+      <div class="md:col-span-8 space-y-5">
+        <p class="lede">
+          HearthAI starts with diabetic discharge — a population with both
+          a strong evidence base for readmission cost and a clear improvement
+          loop: better understanding of the discharge plan correlates with
+          better adherence and fewer return visits.
+        </p>
+        <p class="lede">
+          The same underlying approach extends to other conditions where
+          adherence and understanding drive outcomes — COPD and congestive
+          heart failure are next on the roadmap.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">Where it's heading</p>
+      </div>
+      <div class="md:col-span-8 space-y-5">
+        <p class="lede">
+          HearthAI is in active pilot. We're working with care settings ready
+          to validate the approach with real patients, in real clinical
+          workflows.
+        </p>
+        <p class="lede">
+          If your institution serves patients who would benefit from a more
+          adaptive, voice-based handoff at discharge, we'd like to hear
+          from you.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section>
+    <CTA
+      eyebrow="For institutions"
+      title="Bring HearthAI to your patients."
+      body="We partner with health systems and clinical research settings to deploy HearthAI in real care workflows, with no PHI egress and no parallel infrastructure to maintain."
+      primaryCta={{ href: "mailto:", label: "Start the conversation" }}
+      tone="ink"
+    />
+  </Section>
+</Base>

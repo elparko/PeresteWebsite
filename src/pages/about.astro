@@ -1,0 +1,97 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import Card from "../components/Card.astro";
+---
+
+<Base
+  title="About — Pereste"
+  description="Pereste LLC is a Louisiana-based healthcare AI company building and deploying clinical AI solutions in partnership with institutions."
+>
+  <Hero
+    eyebrow="About Pereste"
+    title="A healthcare AI company built around partnership and patient reality."
+    lede="Pereste LLC is a Louisiana-based healthcare AI company. We build the models and the implementations that bring clinical AI into real care settings — and we partner with the institutions that already serve those patients."
+  />
+
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">Why Pereste exists</p>
+      </div>
+      <div class="md:col-span-8 space-y-6">
+        <p class="lede">
+          The patients health systems most struggle to reach — rural, older,
+          lower-literacy — are also the patients most likely to be readmitted,
+          to fall out of care plans, and to be underserved by digital tools
+          built for someone else.
+        </p>
+        <p class="lede">
+          We started Pereste to build clinical AI for those patients
+          specifically: models that adapt to the person in front of them, and
+          deployments that respect the institutions already trying to help.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="subtle">
+    <p class="eyebrow mb-4">What we do</p>
+    <h2 class="max-w-3xl mb-12">
+      Two things, tightly coupled: the model, and the implementation.
+    </h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <Card eyebrow="Model" title="Clinical AI built for the people on the receiving end.">
+        We develop the underlying AI — adaptive to each patient, grounded in
+        clinical context, and trained to behave well when the stakes are real.
+        Our work is protected by pending intellectual property.
+      </Card>
+      <Card eyebrow="Implementation" title="Deployed inside the institutions we partner with.">
+        Our solutions run where patient data already lives, under the
+        governance the institution already trusts. No PHI egress, no parallel
+        infrastructure to maintain.
+      </Card>
+    </div>
+  </Section>
+
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">Where we're going</p>
+      </div>
+      <div class="md:col-span-8 space-y-6">
+        <p class="lede">
+          Our first solution, <a href="/hearthai" class="text-brand-ink underline decoration-brand-line underline-offset-4 hover:decoration-brand-ink">HearthAI</a>,
+          focuses on diabetic patients at hospital discharge. The same
+          underlying approach extends to other rural-health priorities — COPD,
+          congestive heart failure, and conditions where adherence and
+          understanding drive outcomes.
+        </p>
+        <p class="lede">
+          Pereste is the company that holds that IP and brings each solution
+          to the institutions ready to deploy it.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section>
+    <div class="grid md:grid-cols-12 gap-10 items-end">
+      <div class="md:col-span-8">
+        <p class="eyebrow mb-4">Company</p>
+        <h2 class="max-w-2xl">
+          Pereste LLC. Founded and based in Louisiana.
+        </h2>
+      </div>
+      <div class="md:col-span-4">
+        <ul class="space-y-3 text-sm text-brand-ink/80">
+          <li><span class="text-brand-muted">Entity:</span> Pereste LLC</li>
+          <li><span class="text-brand-muted">Headquarters:</span> Louisiana, USA</li>
+          <li><span class="text-brand-muted">Stage:</span> Early — partnering with first deployment sites</li>
+          <li><span class="text-brand-muted">Press / partnerships:</span> <a href="mailto:" class="link-arrow">Contact us</a></li>
+        </ul>
+      </div>
+    </div>
+  </Section>
+</Base>

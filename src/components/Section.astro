@@ -1,0 +1,25 @@
+---
+interface Props {
+  id?: string;
+  tone?: "surface" | "subtle" | "ink";
+  bordered?: boolean;
+  class?: string;
+}
+
+const { id, tone = "surface", bordered = false, class: className = "" } = Astro.props;
+
+const toneMap = {
+  surface: "bg-brand-surface text-brand-ink",
+  subtle: "bg-brand-subtle text-brand-ink",
+  ink: "bg-brand-ink text-brand-surface",
+};
+---
+
+<section
+  id={id}
+  class={`${toneMap[tone]} ${bordered ? "hairline" : ""} ${className}`}
+>
+  <div class="container-page py-20 md:py-28">
+    <slot />
+  </div>
+</section>

@@ -1,0 +1,37 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  primaryCta?: { href: string; label: string };
+  secondaryCta?: { href: string; label: string };
+}
+
+const { eyebrow, title, lede, primaryCta, secondaryCta } = Astro.props;
+---
+
+<section class="relative overflow-hidden">
+  {/* Soft lavender wash — brand accent applied at low opacity */}
+  <div
+    class="absolute inset-0 -z-10"
+    style="background: radial-gradient(70% 55% at 25% 0%, #E8E7FA 0%, rgba(232,231,250,0) 65%), radial-gradient(55% 45% at 100% 15%, #F4F3FB 0%, rgba(244,243,251,0) 70%);"
+    aria-hidden="true"
+  ></div>
+
+  <div class="container-page pt-24 pb-20 md:pt-32 md:pb-28">
+    {eyebrow && <p class="eyebrow mb-6">{eyebrow}</p>}
+    <h1 class="max-w-4xl tracking-tight-3">{title}</h1>
+    {lede && <p class="lede mt-6">{lede}</p>}
+
+    {(primaryCta || secondaryCta) && (
+      <div class="mt-10 flex flex-wrap items-center gap-3">
+        {primaryCta && (
+          <a href={primaryCta.href} class="btn-primary">{primaryCta.label}</a>
+        )}
+        {secondaryCta && (
+          <a href={secondaryCta.href} class="btn-secondary">{secondaryCta.label}</a>
+        )}
+      </div>
+    )}
+  </div>
+</section>

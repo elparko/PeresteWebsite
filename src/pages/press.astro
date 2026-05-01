@@ -1,0 +1,59 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+---
+
+<Base
+  title="Press — Pereste"
+  description="Press inquiries and company information for Pereste LLC."
+>
+  <Hero
+    eyebrow="Press"
+    title="Press and media inquiries."
+    lede="Pereste is a Louisiana-based healthcare AI company building and deploying clinical AI in partnership with institutions. For interviews, briefings, or background, please reach out."
+    primaryCta={{ href: "mailto:", label: "Press inquiries" }}
+  />
+
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">Company snapshot</p>
+      </div>
+      <div class="md:col-span-8">
+        <ul class="divide-y divide-brand-line">
+          <li class="py-4 flex justify-between text-sm md:text-base">
+            <span class="text-brand-muted">Legal name</span>
+            <span class="text-brand-ink">Pereste LLC</span>
+          </li>
+          <li class="py-4 flex justify-between text-sm md:text-base">
+            <span class="text-brand-muted">Headquarters</span>
+            <span class="text-brand-ink">Louisiana, USA</span>
+          </li>
+          <li class="py-4 flex justify-between text-sm md:text-base">
+            <span class="text-brand-muted">Sector</span>
+            <span class="text-brand-ink">Healthcare AI</span>
+          </li>
+          <li class="py-4 flex justify-between text-sm md:text-base">
+            <span class="text-brand-muted">First solution</span>
+            <span class="text-brand-ink"><a href="/hearthai" class="link-arrow">HearthAI</a></span>
+          </li>
+          <li class="py-4 flex justify-between text-sm md:text-base">
+            <span class="text-brand-muted">Roadmap</span>
+            <span class="text-brand-ink text-right">Diabetes → COPD → CHF</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="subtle">
+    <p class="eyebrow mb-4">Boilerplate</p>
+    <p class="lede max-w-3xl">
+      Pereste LLC is a Louisiana-based healthcare AI company building and
+      deploying clinical AI solutions in partnership with institutions.
+      Pereste's first solution, HearthAI, is an adaptive voice-based discharge
+      companion designed to reduce preventable readmissions in diabetic care.
+    </p>
+  </Section>
+</Base>

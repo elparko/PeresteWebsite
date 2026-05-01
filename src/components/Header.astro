@@ -1,0 +1,52 @@
+---
+const nav = [
+  { href: "/about", label: "About" },
+  { href: "/hearthai", label: "HearthAI" },
+  { href: "/careers", label: "Careers" },
+  { href: "/press", label: "Press" },
+];
+
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+---
+
+<header class="sticky top-0 z-40 bg-brand-surface/85 backdrop-blur border-b border-brand-line">
+  <div class="container-page flex h-16 items-center justify-between">
+    <a href="/" class="flex items-center gap-3 group" aria-label="Pereste home">
+      <img
+        src="/logos/mark-square.png"
+        alt=""
+        width="36"
+        height="36"
+        class="h-9 w-9 rounded-lg"
+        loading="eager"
+        decoding="sync"
+      />
+      <span class="font-display text-lg tracking-[0.18em] uppercase text-brand-ink group-hover:text-brand-ink/80 transition-colors">
+        Pereste
+      </span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-8" aria-label="Primary">
+      {nav.map((item) => {
+        const active = path === item.href;
+        return (
+          <a
+            href={item.href}
+            class={`text-sm font-medium transition-colors ${
+              active
+                ? "text-brand-ink"
+                : "text-brand-muted hover:text-brand-ink"
+            }`}
+            aria-current={active ? "page" : undefined}
+          >
+            {item.label}
+          </a>
+        );
+      })}
+    </nav>
+
+    <a href="mailto:" class="btn-primary text-xs md:text-sm" aria-label="Contact Pereste">
+      Contact
+    </a>
+  </div>
+</header>
