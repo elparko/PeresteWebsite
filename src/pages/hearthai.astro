@@ -16,6 +16,7 @@ import CTA from "../components/CTA.astro";
     lede="HearthAI turns a diabetic patient's own discharge information into an adaptive, spoken conversation at their reading level — designed to help them retain what they need to do, and to reduce preventable readmissions."
     primaryCta={{ href: "mailto:peresteai@gmail.com", label: "Talk to our team" }}
     secondaryCta={{ href: "/about", label: "About Pereste" }}
+    image={{ src: "/images/hearthai-phone.png", alt: "HearthAI conversation interface on a phone" }}
   />
 
   <Section bordered>
@@ -44,17 +45,29 @@ import CTA from "../components/CTA.astro";
       An adaptive conversation, grounded in the patient's own clinical reality.
     </h2>
     <div class="grid md:grid-cols-3 gap-6">
-      <Card eyebrow="Adaptive" title="Meets each patient at their reading level.">
+      <Card
+        eyebrow="Adaptive"
+        title="Meets each patient at their reading level."
+        icon={{ src: "/images/icon-adaptive.svg", alt: "Adaptive" }}
+      >
         HearthAI listens to how a patient speaks and adjusts in real time —
         simpler when needed, more detailed when ready. The same conversation
         works for an 85-year-old in a rural clinic and a younger caregiver.
       </Card>
-      <Card eyebrow="Grounded" title="Speaks to their actual discharge, not generic advice.">
+      <Card
+        eyebrow="Grounded"
+        title="Speaks to their actual discharge, not generic advice."
+        icon={{ src: "/images/icon-grounded.svg", alt: "Grounded" }}
+      >
         The system is grounded in the patient's own clinical record, so
         guidance is specific to their diagnosis, medications, and care plan
         — not a generic patient-education page.
       </Card>
-      <Card eyebrow="On-prem" title="Designed for institutional deployment.">
+      <Card
+        eyebrow="On-prem"
+        title="Designed for institutional deployment."
+        icon={{ src: "/images/icon-onprem.svg", alt: "On-prem" }}
+      >
         HearthAI is built to run inside the institutions that care for the
         patient. Patient data stays where it belongs, under the governance
         the institution already trusts.

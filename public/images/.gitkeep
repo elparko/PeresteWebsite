@@ -1,12 +1,28 @@
-# Hero / section imagery
+# Pereste site imagery
 #
-# Drop files in here and the components that expect them will pick them up.
-# Expected slugs (referenced from src/pages/*.astro):
+# Drop files in here with these EXACT slugs and the components auto-pick them
+# up. Until a file lands, a designed placeholder renders in its place — the
+# layout never breaks.
 #
-#   hero-phone.png        portrait phone mockup showing the HearthAI app —
-#                         appears on the right side of the homepage hero
+# ── Hero phone mockups (transparent PNG, ~1800x1014 or similar landscape) ──
+#   hero-phone.png         home page hero — left side mockup, e.g. listening screen
+#   hearthai-phone.png     /hearthai page hero — different screen (Q&A, conversation)
 #
-# Recommended specs for hero-phone.png:
-#   - portrait orientation (~2:3 aspect ratio, e.g. 800x1200 or 1000x1500)
-#   - transparent or white background preferred
-#   - PNG or JPG, ideally under 400KB (run through tinypng.com or similar)
+# ── Three-commitments icons (home page approach cards) ──
+#   icon-models.svg        "Models built for clinical reality"
+#   icon-partnership.svg   "Deployed in partnership"
+#   icon-rural.svg         "Rural-first by design"
+#
+# ── HearthAI approach-card icons (/hearthai page) ──
+#   icon-adaptive.svg      "Adaptive — meets each patient at their reading level"
+#   icon-grounded.svg      "Grounded — speaks to their actual discharge"
+#   icon-onprem.svg        "On-prem — designed for institutional deployment"
+#
+# Specs:
+#   • icons: SVG preferred (scales infinitely, smaller). PNG works too — just
+#     export at 80x80 minimum. Components display them at 40x40.
+#   • phone mockups: transparent background ideal. PNG or JPG. Under 500KB
+#     each (run through tinypng.com if larger).
+#
+# If you ship them with different filenames, just rename them to the above
+# slugs after dropping into this folder.

@@ -47,17 +47,29 @@ import CTA from "../components/CTA.astro";
       Three commitments that shape every solution we ship.
     </h2>
     <div class="grid md:grid-cols-3 gap-6">
-      <Card eyebrow="01" title="Models built for clinical reality">
+      <Card
+        eyebrow="01"
+        title="Models built for clinical reality"
+        icon={{ src: "/images/icon-models.svg", alt: "Models" }}
+      >
         Our models are designed for the messiness of real care — adaptive to
         each patient, grounded in clinical context, and built to behave well
         when the stakes are real.
       </Card>
-      <Card eyebrow="02" title="Deployed in partnership">
+      <Card
+        eyebrow="02"
+        title="Deployed in partnership"
+        icon={{ src: "/images/icon-partnership.svg", alt: "Partnership" }}
+      >
         We work alongside institutions, not around them. Our solutions run
         where patient data already lives, under the governance the institution
         already trusts.
       </Card>
-      <Card eyebrow="03" title="Rural-first by design">
+      <Card
+        eyebrow="03"
+        title="Rural-first by design"
+        icon={{ src: "/images/icon-rural.svg", alt: "Rural-first" }}
+      >
         We start with the patients most often left out: older adults, rural
         communities, lower health-literacy populations. If it works for them,
         it works for everyone.

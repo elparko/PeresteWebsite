@@ -1,12 +1,24 @@
 ---
+import fs from "node:fs";
+import path from "node:path";
+
 interface Props {
   eyebrow?: string;
   title: string;
   href?: string;
+  /** Optional icon shown above the title. Build-time fs check decides
+   *  whether the real icon renders or a placeholder takes its place. */
+  icon?: { src: string; alt?: string };
 }
 
-const { eyebrow, title, href } = Astro.props;
+const { eyebrow, title, href, icon } = Astro.props;
 const Tag = href ? "a" : "div";
+
+let iconReady = false;
+if (icon) {
+  const fsPath = path.join(process.cwd(), "public", icon.src.replace(/^\//, ""));
+  iconReady = fs.existsSync(fsPath);
+}
 ---
 
 <Tag
@@ -15,6 +27,28 @@ const Tag = href ? "a" : "div";
           transition-all
           ${href ? "hover:-translate-y-0.5 hover:border-brand-ink hover:shadow-[0_8px_24px_-12px_rgba(15,20,25,0.18)]" : ""}`}
 >
+  {icon && (
+    <div class="mb-5">
+      {iconReady ? (
+        <img
+          src={icon.src}
+          alt={icon.alt ?? ""}
+          class="h-10 w-10"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        /* Icon placeholder — auto-replaced when the real asset lands. */
+        <div
+          class="h-10 w-10 rounded-lg bg-brand-accent-soft border border-brand-line flex items-center justify-center"
+          aria-hidden="true"
+          title="Icon lands here"
+        >
+          <span class="text-[10px] uppercase tracking-[0.14em] text-brand-muted/80">+</span>
+        </div>
+      )}
+    </div>
+  )}
   {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
   <h3 class="font-serif text-2xl tracking-tight-2 mb-3">{title}</h3>
   <div class="text-brand-ink/75 leading-relaxed">
