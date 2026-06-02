@@ -1,0 +1,42 @@
+---
+import Base from "./Base.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  heading: string;
+  effective: string;
+  updated: string;
+}
+
+const { title, description, heading, effective, updated } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <section class="relative overflow-hidden">
+    <div
+      class="absolute inset-0 -z-10"
+      style="background: radial-gradient(70% 55% at 25% 0%, #E8E7FA 0%, rgba(232,231,250,0) 65%);"
+      aria-hidden="true"
+    >
+    </div>
+    <div class="container-page pt-24 pb-10 md:pt-32 md:pb-14">
+      <p class="eyebrow mb-6">Legal</p>
+      <h1 class="max-w-3xl">{heading}</h1>
+      <div
+        class="mt-8 flex flex-wrap gap-x-8 gap-y-1 text-sm text-brand-ink/80"
+      >
+        <span><span class="text-brand-muted">Effective:</span> {effective}</span>
+        <span
+          ><span class="text-brand-muted">Last updated:</span> {updated}</span
+        >
+      </div>
+    </div>
+  </section>
+
+  <div class="container-page pb-24">
+    <div class="legal-prose">
+      <slot />
+    </div>
+  </div>
+</Base>

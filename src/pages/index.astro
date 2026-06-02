@@ -4,16 +4,17 @@ import Hero from "../components/Hero.astro";
 import Section from "../components/Section.astro";
 import Card from "../components/Card.astro";
 import CTA from "../components/CTA.astro";
+import ConditionChips from "../components/ConditionChips.astro";
 ---
 
 <Base
   title="Pereste — Healthcare AI, deployed in partnership with institutions."
-  description="Pereste partners with health systems to deploy AI built for the realities of underserved care — starting in rural diabetes, with the same approach extending to other chronic conditions."
+  description="Pereste partners with health systems to deploy AI built for the realities of underserved care — now spanning six chronic conditions, from kidney disease and heart failure to type 2 diabetes."
 >
   <Hero
-    eyebrow="Pereste LLC"
+    eyebrow="Pereste Health Inc."
     title="Healthcare AI that meets patients where they are."
-    lede="Pereste partners with institutions to deploy AI-driven solutions for the patients hardest to reach — starting in rural diabetes care, with the same approach extending to other underserved chronic conditions."
+    lede="Pereste partners with institutions to deploy AI-driven solutions for the patients hardest to reach — now across six chronic conditions, built first for rural and underserved communities."
     primaryCta={{ href: "/hearthai", label: "See our pilot" }}
     secondaryCta={{ href: "/about", label: "About Pereste" }}
     image={{ src: "/images/hero-phone.png", alt: "HearthAI running on a phone" }}
@@ -86,13 +87,15 @@ import CTA from "../components/CTA.astro";
       </div>
       <div class="md:col-span-8">
         <p class="lede">
-          Our first solution turns the discharge moment — when patients leave
-          the hospital with instructions they often can't parse — into an
-          adaptive, spoken conversation at the patient's own reading level.
-          Aimed at reducing preventable readmissions in diabetes — with the
-          same approach designed to extend to other chronic conditions where
-          adherence and understanding drive outcomes.
+          HearthAI turns the discharge moment — when patients leave the
+          hospital with instructions they often can't parse — into an adaptive,
+          spoken conversation at the patient's own reading level. It now spans
+          six chronic conditions where adherence and understanding drive
+          readmissions and outcomes:
         </p>
+        <div class="mt-6">
+          <ConditionChips />
+        </div>
         <div class="mt-8">
           <a href="/hearthai" class="link-arrow">Read more about HearthAI</a>
         </div>
@@ -107,14 +110,14 @@ import CTA from "../components/CTA.astro";
         eyebrow="For institutions"
         title="Deploy AI inside the systems that already care for your patients."
         body="We work with health systems, clinics, and academic care settings to embed Pereste solutions where patient data already lives — no PHI egress, no bolt-on tooling."
-        primaryCta={{ href: "mailto:peresteai@gmail.com", label: "Talk to our team" }}
+        primaryCta={{ href: "mailto:parker@pereste.com", label: "Talk to our team" }}
         tone="ink"
       />
       <CTA
         eyebrow="For investors"
         title="Building durable IP at the intersection of clinical AI and underserved care."
         body="Pereste holds the IP behind a stack of clinical AI solutions, starting with HearthAI and expanding into rural-health applications. Investor inquiries welcome."
-        primaryCta={{ href: "mailto:peresteai@gmail.com", label: "Request our overview" }}
+        primaryCta={{ href: "mailto:parker@pereste.com", label: "Request our overview" }}
         tone="subtle"
       />
     </div>

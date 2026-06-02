@@ -1,6 +1,6 @@
 # pereste-site
 
-Static landing site for **Pereste LLC** — `pereste.com`.
+Static landing site for **Pereste Health Inc.** — `pereste.com`.
 
 Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com).
 Hosted on **GitLab Pages**.
@@ -84,4 +84,4 @@ copy until Parker says otherwise.
 
 ## License / repo
 
-Proprietary. Pereste LLC. Louisiana, USA.
+Proprietary. Pereste Health Inc. Louisiana, USA.

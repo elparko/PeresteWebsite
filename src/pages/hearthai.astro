@@ -4,17 +4,18 @@ import Hero from "../components/Hero.astro";
 import Section from "../components/Section.astro";
 import Card from "../components/Card.astro";
 import CTA from "../components/CTA.astro";
+import ConditionChips from "../components/ConditionChips.astro";
 ---
 
 <Base
   title="HearthAI — Pereste"
-  description="HearthAI is Pereste's first clinical AI solution: an adaptive, voice-based discharge companion for diabetic patients, designed to reduce preventable readmissions."
+  description="HearthAI is Pereste's clinical AI companion: an adaptive, voice-based discharge guide for patients across six chronic conditions, designed to reduce preventable readmissions."
 >
   <Hero
     eyebrow="Solution · HearthAI"
     title="The discharge moment, made understandable."
-    lede="HearthAI turns a diabetic patient's own discharge information into an adaptive, spoken conversation at their reading level — designed to help them retain what they need to do, and to reduce preventable readmissions."
-    primaryCta={{ href: "mailto:peresteai@gmail.com", label: "Talk to our team" }}
+    lede="HearthAI turns a patient's own discharge information into an adaptive, spoken conversation at their reading level — designed to help them retain what they need to do, and to reduce preventable readmissions."
+    primaryCta={{ href: "mailto:parker@pereste.com", label: "Talk to our team" }}
     secondaryCta={{ href: "/about", label: "About Pereste" }}
     image={{ src: "/images/hearthai-phone.png", alt: "HearthAI conversation interface on a phone" }}
   />
@@ -77,9 +78,14 @@ import CTA from "../components/CTA.astro";
 
   <Section bordered>
     <p class="eyebrow mb-4">How a session unfolds</p>
-    <h2 class="max-w-3xl mb-12">
+    <h2 class="max-w-3xl mb-4">
       Three moments from a HearthAI conversation.
     </h2>
+    <p class="lede max-w-2xl mb-12">
+      The walkthrough below follows a diabetes check-in — one of the six
+      conditions HearthAI supports. The same adaptive conversation works across
+      every one.
+    </p>
     <div class="grid md:grid-cols-3 gap-8 lg:gap-10">
       {[
         {
@@ -132,17 +138,17 @@ import CTA from "../components/CTA.astro";
       <div class="md:col-span-4">
         <p class="eyebrow">What it's built for</p>
       </div>
-      <div class="md:col-span-8 space-y-5">
+      <div class="md:col-span-8 space-y-6">
         <p class="lede">
-          HearthAI starts with diabetic discharge — a population with both
-          a strong evidence base for readmission cost and a clear improvement
-          loop: better understanding of the discharge plan correlates with
-          better adherence and fewer return visits.
+          HearthAI supports six chronic conditions — the ones where a
+          misunderstood discharge plan turns into a preventable readmission:
         </p>
+        <ConditionChips />
         <p class="lede">
-          The same underlying approach extends to other chronic conditions
-          where adherence and understanding drive outcomes — the patient
-          population stays the same, the diagnoses change.
+          These conditions share a population — older, rural, lower-health-literacy
+          patients — and a failure mode: a care plan that's never fully
+          understood. HearthAI meets each patient at their own reading level,
+          whatever the diagnosis.
         </p>
       </div>
     </div>
@@ -173,7 +179,7 @@ import CTA from "../components/CTA.astro";
       eyebrow="For institutions"
       title="Bring HearthAI to your patients."
       body="We partner with health systems and clinical research settings to deploy HearthAI in real care workflows, with no PHI egress and no parallel infrastructure to maintain."
-      primaryCta={{ href: "mailto:peresteai@gmail.com", label: "Start the conversation" }}
+      primaryCta={{ href: "mailto:parker@pereste.com", label: "Start the conversation" }}
       tone="ink"
     />
   </Section>

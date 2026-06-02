@@ -1,0 +1,497 @@
+---
+import Legal from "../layouts/Legal.astro";
+---
+
+<Legal
+  title="Privacy Policy — Hearth by Pereste Health"
+  description="How the Hearth iOS app and Pereste Health Inc. collect, use, protect, and share your information."
+  heading="Hearth Privacy Policy"
+  effective="June 1, 2026"
+  updated="June 1, 2026"
+>
+  <p>
+    <strong>Applies to:</strong> The Hearth iOS application (bundle id
+    <code>com.peresteai.hearth</code>) and related services operated by Pereste
+    Health Inc.
+  </p>
+
+  <h2>1. Who We Are</h2>
+  <p>
+    Pereste Health Inc. (“<strong>Pereste</strong>,” “<strong>we</strong>,” “<strong
+      >us</strong
+    >,” “<strong>our</strong>”) is a Louisiana corporation that builds the
+    Hearth mobile application (“<strong>Hearth</strong>” or the “<strong
+      >App</strong
+    >”). Hearth is a patient-companion app that partner healthcare clinics (“<strong
+      >Clinics</strong
+    >”) offer to their patients to support chronic-condition care, education, and
+    visit preparation.
+  </p>
+  <p>
+    <strong>Contact:</strong><br />
+    Pereste Health Inc., Louisiana, USA<br />
+    Email: <a href="mailto:parker@pereste.com">parker@pereste.com</a>
+  </p>
+
+  <h2>2. Important Framing — How Hearth Fits in Your Care</h2>
+  <p>
+    Hearth is offered to you <strong>through your Clinic</strong>, not directly
+    by Pereste to the public. Your Clinic is a HIPAA Covered Entity. <strong
+      >Pereste is a HIPAA Business Associate of your Clinic</strong
+    > under a Business Associate Agreement (“BAA”).
+  </p>
+  <p>This means:</p>
+  <ul>
+    <li>
+      <strong>For your Protected Health Information (“PHI”)</strong> — including
+      information about your conditions, medications, lab and vital-sign
+      readings, allergies, and conversations with the App’s voice
+      assistant — your Clinic’s <strong>Notice of Privacy Practices</strong> governs
+      how that information may be used and disclosed. Pereste handles that PHI on
+      your Clinic’s behalf, only as permitted by the BAA and this Privacy Policy.
+    </li>
+    <li>
+      <strong>For non-PHI information</strong> — such as App usage analytics,
+      device crash signals, and account-management data — this Privacy Policy
+      describes Pereste’s own practices.
+    </li>
+  </ul>
+  <p>
+    If you have questions about how your Clinic uses your health information,
+    contact your Clinic directly. If you have questions about Hearth itself,
+    contact Pereste at <a href="mailto:parker@pereste.com">parker@pereste.com</a
+    >.
+  </p>
+
+  <h2>3. Who Can Use Hearth</h2>
+  <p>
+    Hearth is intended for <strong>adults aged 18 or older</strong> who have been
+    enrolled by a participating Clinic. Hearth is not directed to children under
+    18, and we do not knowingly collect information from anyone under 18 through
+    the App. If you believe a person under 18 has used Hearth, contact us at <a
+      href="mailto:parker@pereste.com">parker@pereste.com</a
+    > and we will work with the relevant Clinic to address it.
+  </p>
+
+  <h2>4. Information We Collect</h2>
+
+  <h3>4.1 Information you provide directly</h3>
+  <ul>
+    <li>
+      <strong>Enrollment code.</strong> A short, single-use code issued to you by
+      your Clinic. Used once to register your device.
+    </li>
+    <li>
+      <strong>Patient profile.</strong> Your first name, last name, age,
+      pronouns, list of conditions, list of allergies. Your Clinic may provide
+      some of this information; you may edit it in the App.
+    </li>
+    <li>
+      <strong>Health readings and check-ins you enter.</strong> Lab and
+      vital-sign readings relevant to your conditions (for example, blood sugar,
+      blood pressure, weight, oxygen level, and kidney-function values), symptom
+      and mood check-ins, and medications you record or mark as taken.
+    </li>
+    <li>
+      <strong>Voice input.</strong> When you speak to the App, audio is captured
+      to power the voice assistant.
+    </li>
+    <li>
+      <strong>Settings and preferences.</strong> Auto-lock interval, voice persona,
+      language, accessibility settings.
+    </li>
+    <li>
+      <strong>Apple Health data you choose to connect (optional).</strong> If you
+      turn on the Apple Health connection, Hearth reads only the specific health
+      readings you authorize — such as blood glucose, blood pressure, weight,
+      oxygen level, and peak flow — so they appear alongside the rest of your
+      information. Hearth reads these only from your device, does not write
+      anything back to Apple Health, and never uses this data for advertising.
+      You can turn the connection off at any time in iOS Settings or in the App.
+    </li>
+  </ul>
+
+  <h3>4.2 Information we receive from your Clinic and connected systems</h3>
+  <ul>
+    <li>
+      <strong>Clinical record (FHIR Bundle).</strong> Your Clinic’s electronic
+      medical record system (“EMR”) provides an HL7 FHIR R4 bundle representing
+      portions of your clinical record — conditions, medications, lab results,
+      demographics, visit history, care team — so the App can show it to you and
+      personalize content.
+    </li>
+  </ul>
+
+  <h3>4.3 Information collected automatically</h3>
+  <ul>
+    <li>
+      <strong>Device-paired authentication keys.</strong> When you enroll, the
+      App generates a P-256 cryptographic key pair inside your iPhone’s <strong
+        >Secure Enclave</strong
+      >. The private key never leaves your device. The public key is sent to our
+      servers so we can verify that requests come from your device.
+    </li>
+    <li>
+      <strong>Apple App Attest assertion.</strong> During enrollment, the App
+      requests an attestation from Apple’s App Attest service to prove that an
+      unmodified copy of Hearth is running on a genuine Apple device. The
+      assertion is sent to our servers.
+    </li>
+    <li>
+      <strong>Session bearer token.</strong> After enrollment, our servers issue
+      a bearer token stored in the iOS Keychain on your device (configured so it
+      cannot sync to iCloud or to another device).
+    </li>
+    <li>
+      <strong>App analytics events.</strong> Pereste’s first-party analytics
+      layer records de-identified, aggregate events — for example, “screen
+      viewed,” “lesson started,” “medication reminder scheduled” — to operate,
+      debug, and improve the App. These events are filtered through a strict
+      allow-list so that no PHI (such as raw A1C values, blood-sugar values,
+      names, or conversation text) is attached to them.
+    </li>
+    <li>
+      <strong>Diagnostic information.</strong> Anonymous error counts and
+      performance timings (no transcript or PHI text content).
+    </li>
+  </ul>
+
+  <h3>4.4 Information we do <em>not</em> collect</h3>
+  <ul>
+    <li>
+      We do <strong>not</strong> include third-party advertising SDKs, advertising
+      identifiers, Firebase, or third-party analytics services such as Google Analytics,
+      Amplitude, Mixpanel, or similar.
+    </li>
+    <li>
+      We do <strong>not</strong> include third-party crash-reporting services such
+      as Crashlytics, Sentry, or Bugsnag.
+    </li>
+    <li>
+      We do <strong>not</strong> track you across other companies’ apps or websites
+      for advertising purposes.
+    </li>
+    <li>We do <strong>not</strong> sell your personal information.</li>
+  </ul>
+
+  <h2>5. iOS Permissions Hearth Requests</h2>
+  <p>
+    When you use specific features, iOS will prompt you for permission. You can
+    change these in <strong>Settings → Hearth</strong> at any time.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Permission</th><th>Why Hearth uses it</th></tr>
+    </thead>
+    <tbody>
+      <tr
+        ><td>Microphone</td><td>Capture your voice when you tap the voice button.</td
+        ></tr
+      >
+      <tr
+        ><td>Speech Recognition</td><td
+          >Convert your speech to text so the App can understand what you said.</td
+        ></tr
+      >
+      <tr
+        ><td>Face ID</td><td
+          >Unlock the App after auto-lock. Hearth never sees your face data; iOS
+          handles the match locally.</td
+        ></tr
+      >
+      <tr
+        ><td>Notifications</td><td
+          >Deliver medication reminders and visit reminders you’ve enabled.</td
+        ></tr
+      >
+      <tr
+        ><td>Apple Health</td><td
+          >Read the health readings you choose to share (such as glucose, blood
+          pressure, weight, and oxygen level) so they appear in Hearth. Hearth
+          does not write to Apple Health.</td
+        ></tr
+      >
+    </tbody>
+  </table>
+  <p>
+    You may use Hearth without granting Microphone or Speech Recognition; you
+    will not be able to use the voice assistant in that case.
+  </p>
+
+  <h2>6. How Speech-to-Text Works</h2>
+  <p>
+    Hearth uses Apple’s <strong>Speech Recognition</strong> framework to convert
+    your spoken words into text. On a supported iPhone, Hearth requires <strong
+      >on-device recognition</strong
+    >, so your audio is processed entirely on your device and is <strong
+      >not sent to Apple’s servers</strong
+    >. If on-device recognition is not available on your device, Hearth will not
+    fall back to cloud recognition for that request.
+  </p>
+  <p>The resulting transcript text is treated as PHI and follows Section 7.</p>
+
+  <h2>7. How We Use Your Information</h2>
+  <p>We use the information described in Section 4 to:</p>
+  <ol>
+    <li>
+      <strong>Provide the App.</strong> Authenticate your device, show you your clinical
+      record, run the voice assistant, deliver lessons and reminders, and let you
+      record check-ins.
+    </li>
+    <li>
+      <strong>Personalize content.</strong> Tailor lessons, prompts, and reminders
+      to your conditions, medications, and prior interactions.
+    </li>
+    <li>
+      <strong>Operate the voice assistant.</strong> Convert your speech to text,
+      generate a response using Pereste’s self-hosted language model, and play the
+      response back through Pereste’s self-hosted text-to-speech engine.
+    </li>
+    <li>
+      <strong>Communicate with your Clinic</strong> as permitted by your Clinic’s
+      BAA and Notice of Privacy Practices — for example, surfacing a Clinic-authored
+      care plan or returning summary data to the EMR.
+    </li>
+    <li>
+      <strong>Maintain security.</strong> Detect device tampering, rate-limit abuse,
+      sign requests, verify device identity, and respond to incidents.
+    </li>
+    <li>
+      <strong>Improve Hearth.</strong> Analyze de-identified, aggregate analytics
+      to find bugs and improve usability.
+    </li>
+    <li>
+      <strong>Comply with law.</strong> Respond to lawful requests and meet HIPAA,
+      state, and other legal obligations.
+    </li>
+  </ol>
+
+  <h2>8. Where Your Information Goes</h2>
+
+  <h3>8.1 On-premises processing</h3>
+  <p>
+    A defining design choice for Hearth: <strong
+      >PHI does not leave Pereste’s on-premises stack</strong
+    > for processing by external cloud providers. Our backend services, language
+    model, and text-to-speech engine are operated by Pereste on infrastructure we
+    control.
+  </p>
+
+  <h3>8.2 Service providers we do use</h3>
+  <ul>
+    <li>
+      <strong>Apple Inc.</strong> — App distribution through the App Store, push
+      notifications via APNs, App Attest attestation, on-device Speech
+      Recognition framework, Face ID. Apple’s own privacy policy applies to
+      these services.
+    </li>
+    <li>
+      <strong>Your Clinic and its EMR vendor</strong> — receive and may store information
+      we send back on your Clinic’s behalf, per your Clinic’s Notice of Privacy Practices.
+    </li>
+    <li>
+      <strong>Our infrastructure providers</strong> — for example, the
+      data-center / colocation and network providers that host Pereste’s stack —
+      under written contracts that include HIPAA Business-Associate terms where
+      they may access PHI.
+    </li>
+  </ul>
+  <p>
+    We do <strong>not</strong> transfer your PHI to advertising networks, marketing
+    platforms, or generative-AI cloud providers.
+  </p>
+
+  <h3>8.3 Disclosures permitted by law</h3>
+  <p>
+    We may disclose information if required by subpoena, court order, or other
+    legal process; to investigate fraud or security threats; to protect the
+    rights, property, or safety of Pereste, our users, or others; or in
+    connection with a corporate transaction such as a merger or acquisition (in
+    which case, the acquirer will be bound by terms no less protective than this
+    Privacy Policy with respect to your information).
+  </p>
+
+  <h3>8.4 Location of processing</h3>
+  <p>
+    Hearth is operated from the United States and intended for use in the United
+    States.
+  </p>
+
+  <h2>9. How We Protect Your Information</h2>
+  <p>
+    Hearth applies the technical safeguards required by the HIPAA Security Rule
+    (45 C.F.R. § 164.312) and a layered set of additional controls:
+  </p>
+  <ul>
+    <li>
+      <strong>Encryption in transit.</strong> All authenticated traffic uses TLS
+      with certificate pinning in release builds.
+    </li>
+    <li>
+      <strong>Encryption at rest on your device.</strong> Sensitive fields stored
+      on your iPhone — including your patient profile and the cached copy of your
+      clinical record (FHIR bundle) — are encrypted with ChaChaPoly, and the symmetric
+      key is wrapped against a per-install key held in the Secure Enclave.
+    </li>
+    <li>
+      <strong>Device-bound authentication.</strong> P-256 keys in the Secure Enclave
+      sign every request; bearer tokens are stored in the iOS Keychain with the strictest
+      accessibility class (<code>WhenUnlockedThisDeviceOnly</code>) and do not sync
+      to iCloud.
+    </li>
+    <li>
+      <strong>App integrity.</strong> Apple App Attest is used to verify the App at
+      enrollment.
+    </li>
+    <li>
+      <strong>Access controls.</strong> Face ID gate on launch and after idle timeout.
+      App-switcher PHI screen-shield. Screen-recording overlay.
+    </li>
+    <li>
+      <strong>Administrative safeguards.</strong> Workforce training, least-privilege
+      access, written policies, incident response, and BAAs with subcontractors who
+      may handle PHI.
+    </li>
+  </ul>
+  <p>
+    No system is perfectly secure. If we learn of a breach of unsecured PHI, we
+    will notify your Clinic, and your Clinic will notify you, in accordance with
+    the HIPAA Breach Notification Rule (45 C.F.R. §§ 164.400–414) and applicable
+    state law.
+  </p>
+
+  <h2>10. How Long We Keep Your Information</h2>
+  <ul>
+    <li>
+      <strong>PHI</strong> is retained per the retention schedule in your Clinic’s
+      BAA and Notice of Privacy Practices.
+    </li>
+    <li>
+      <strong>Bearer tokens and device keys</strong> are retained until you sign out
+      from a device, your Clinic revokes your access, or you uninstall the App.
+    </li>
+    <li>
+      <strong>Analytics</strong> are retained only on a de-identified, aggregate basis.
+      We do not attach identifiers to analytics events.
+    </li>
+    <li>
+      When the BAA between Pereste and your Clinic ends, Pereste will return or
+      destroy PHI as required by 45 C.F.R. § 164.504(e)(2)(ii)(J), and as further
+      specified in the BAA.
+    </li>
+  </ul>
+
+  <h2>11. Your Rights</h2>
+  <p>
+    Because your Clinic is the Covered Entity for your PHI, the HIPAA-based
+    rights below run primarily through your Clinic. Pereste will support your
+    Clinic in fulfilling them.
+  </p>
+  <ul>
+    <li>
+      <strong>Access</strong> the PHI your Clinic holds about you (45 C.F.R. § 164.524).
+    </li>
+    <li>
+      <strong>Amend</strong> PHI you believe is inaccurate (45 C.F.R. § 164.526).
+    </li>
+    <li>
+      <strong>Receive an accounting of disclosures</strong> as required by HIPAA
+      (45 C.F.R. § 164.528).
+    </li>
+    <li>
+      <strong>Request restrictions</strong> on certain uses and disclosures (45 C.F.R.
+      § 164.522).
+    </li>
+    <li><strong>Receive notice of a breach</strong> of unsecured PHI.</li>
+    <li>
+      <strong>File a complaint</strong> with your Clinic, with Pereste at <a
+        href="mailto:parker@pereste.com">parker@pereste.com</a
+      >, or with the U.S. Department of Health and Human Services Office for
+      Civil Rights.
+    </li>
+  </ul>
+  <p>
+    To exercise rights regarding PHI, <strong>contact your Clinic first.</strong>
+    To exercise rights regarding non-PHI information held by Pereste, contact <a
+      href="mailto:parker@pereste.com">parker@pereste.com</a
+    >.
+  </p>
+  <h3>State privacy laws</h3>
+  <p>
+    Most state comprehensive privacy laws exempt PHI processed under HIPAA.
+    Hearth’s current patients are enrolled by Louisiana clinics, and Louisiana
+    has not enacted a comprehensive consumer-privacy law. If Hearth becomes
+    available to patients in states with applicable consumer-privacy laws, we
+    will update this section with the disclosures and rights those laws require.
+  </p>
+
+  <h2>12. Children’s Privacy</h2>
+  <p>
+    Hearth is not intended for and is not directed to children under 18. We do
+    not knowingly collect personal information from children under 13, and we do
+    not knowingly collect personal information from minors between 13 and 17.
+  </p>
+  <p>
+    If you believe we have collected information from someone under 18, contact <a
+      href="mailto:parker@pereste.com">parker@pereste.com</a
+    > and we will work with the relevant Clinic to delete it.
+  </p>
+
+  <h2>13. Cookies and Similar Technologies</h2>
+  <p>
+    Hearth is a native iOS app and does not use cookies. The App stores small
+    amounts of operational data — a bearer token, settings, encrypted PHI cache
+    — locally on your device using the iOS Keychain and the App’s sandboxed
+    storage. You can clear this data by signing out (in Settings) or by
+    uninstalling the App.
+  </p>
+  <p>
+    Pereste’s informational website (pereste.com), where this policy is
+    published, is a static site and does not set advertising or tracking
+    cookies.
+  </p>
+
+  <h2>14. Changes to This Policy</h2>
+  <p>
+    We may update this Privacy Policy from time to time. When we make material
+    changes, we will:
+  </p>
+  <ol>
+    <li>Update the “Last Updated” date at the top.</li>
+    <li>
+      Notify you through an in-App notice and, where required, by other
+      reasonable means.
+    </li>
+    <li>
+      Where required by law, obtain your renewed consent before the change
+      applies to you.
+    </li>
+  </ol>
+  <p>
+    You can always find the current version inside the App and at <a
+      href="https://pereste.com/privacy">pereste.com/privacy</a
+    >.
+  </p>
+
+  <h2>15. How to Contact Us</h2>
+  <p>
+    <strong>Pereste Health Inc.</strong><br />
+    Attn: Privacy<br />
+    Louisiana, USA<br />
+    Email: <a href="mailto:parker@pereste.com">parker@pereste.com</a>
+  </p>
+  <p>
+    For complaints about HIPAA practices, you may also contact the U.S.
+    Department of Health and Human Services, Office for Civil Rights: <a
+      href="https://www.hhs.gov/hipaa/filing-a-complaint"
+      >https://www.hhs.gov/hipaa/filing-a-complaint</a
+    >.
+  </p>
+
+  <hr />
+  <p class="text-sm text-brand-muted">
+    Hearth is a patient-education and companion tool, not a medical device, and
+    does not provide medical advice. In an emergency, call 911 or your local
+    emergency number.
+  </p>
+</Legal>
