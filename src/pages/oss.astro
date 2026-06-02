@@ -1,0 +1,75 @@
+---
+import Legal from "../layouts/Legal.astro";
+---
+
+<Legal
+  title="Open-Source Notices — Hearth by Pereste Health"
+  description="Open-source software components used in the Hearth server software and their licenses."
+  heading="Open-Source Notices"
+  effective="June 1, 2026"
+  updated="June 1, 2026"
+>
+  <p>
+    Hearth&rsquo;s server software incorporates the open-source components listed
+    below. The Hearth iOS app itself bundles no third-party open-source
+    components. This list reflects the backend&rsquo;s runtime dependencies;
+    development and test tooling is excluded.
+  </p>
+  <p>
+    All components are distributed under permissive licenses (MIT, BSD-2-Clause,
+    BSD-3-Clause, Apache-2.0, ISC, PSF-2.0). <code>certifi</code> is distributed
+    under MPL-2.0. No strong-copyleft licenses (GPL, LGPL, or AGPL) are present.
+    Full license texts are available from each project or on request to
+    <a href="mailto:hello@pereste.com">hello@pereste.com</a>.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Version</th><th>License</th></tr>
+    </thead>
+    <tbody>
+        <tr><td><a href="https://alembic.sqlalchemy.org">alembic</a></td><td>1.18.4</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/fastapi/annotated-doc">annotated-doc</a></td><td>0.0.4</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/annotated-types/annotated-types">annotated-types</a></td><td>0.7.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://anyio.readthedocs.io/en/latest/">anyio</a></td><td>4.13.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://cbor2.readthedocs.io/en/latest/versionhistory.html">cbor2</a></td><td>6.1.1</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/certifi/python-certifi">certifi</a></td><td>2026.4.22</td><td>MPL-2.0</td></tr>
+        <tr><td><a href="https://cffi.readthedocs.io/">cffi</a></td><td>2.0.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://click.palletsprojects.com/page/changes/">click</a></td><td>8.3.3</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://cryptography.io/en/latest/changelog/">cryptography</a></td><td>48.0.0</td><td>Apache-2.0 OR BSD-3-Clause</td></tr>
+        <tr><td><a href="http://github.com/tlsfuzzer/python-ecdsa">ecdsa</a></td><td>0.19.2</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/fastapi/fastapi">fastapi</a></td><td>0.136.1</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/python-hyper/h11">h11</a></td><td>0.16.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://www.encode.io/httpcore">httpcore</a></td><td>1.0.9</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://github.com/MagicStack/httptools">httptools</a></td><td>0.7.1</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/encode/httpx/blob/master/CHANGELOG.md">httpx</a></td><td>0.28.1</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://github.com/kjd/idna/blob/master/HISTORY.md">idna</a></td><td>3.15</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://www.makotemplates.org/">Mako</a></td><td>1.3.12</td><td>MIT</td></tr>
+        <tr><td><a href="https://markdown-it-py.readthedocs.io">markdown-it-py</a></td><td>4.2.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://palletsprojects.com/donate">MarkupSafe</a></td><td>3.0.3</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://github.com/executablebooks/mdurl">mdurl</a></td><td>0.1.2</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/pyasn1/pyasn1">pyasn1</a></td><td>0.6.3</td><td>BSD-2-Clause</td></tr>
+        <tr><td><a href="https://github.com/eliben/pycparser">pycparser</a></td><td>3.0</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://github.com/pydantic/pydantic">pydantic</a></td><td>2.13.4</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/pydantic/pydantic-settings">pydantic-settings</a></td><td>2.14.1</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/pydantic/pydantic">pydantic_core</a></td><td>2.46.4</td><td>MIT</td></tr>
+        <tr><td><a href="https://pygments.org">Pygments</a></td><td>2.20.0</td><td>BSD-2-Clause</td></tr>
+        <tr><td><a href="https://github.com/theskumar/python-dotenv">python-dotenv</a></td><td>1.2.2</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="http://github.com/mpdavis/python-jose">python-jose</a></td><td>3.5.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://pyyaml.org/">PyYAML</a></td><td>6.0.3</td><td>MIT</td></tr>
+        <tr><td><a href="https://rich.readthedocs.io/en/latest/">rich</a></td><td>15.0.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://stuvel.eu/rsa">rsa</a></td><td>4.9.1</td><td>Apache-2.0</td></tr>
+        <tr><td><a href="https://github.com/sarugaku/shellingham">shellingham</a></td><td>1.5.4</td><td>ISC</td></tr>
+        <tr><td><a href="https://github.com/benjaminp/six">six</a></td><td>1.17.0</td><td>MIT</td></tr>
+        <tr><td><a href="https://www.sqlalchemy.org">SQLAlchemy</a></td><td>2.0.49</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/Kludex/starlette">starlette</a></td><td>1.0.0</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://github.com/fastapi/typer">typer</a></td><td>0.25.1</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/pydantic/typing-inspection">typing-inspection</a></td><td>0.4.2</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/python/typing_extensions/issues">typing_extensions</a></td><td>4.15.0</td><td>PSF-2.0</td></tr>
+        <tr><td><a href="https://uvicorn.dev/release-notes">uvicorn</a></td><td>0.47.0</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://github.com/MagicStack/uvloop">uvloop</a></td><td>0.22.1</td><td>MIT OR Apache-2.0</td></tr>
+        <tr><td><a href="https://github.com/samuelcolvin/watchfiles">watchfiles</a></td><td>1.1.1</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/python-websockets/websockets">websockets</a></td><td>16.0</td><td>BSD-3-Clause</td></tr>
+    </tbody>
+  </table>
+</Legal>
