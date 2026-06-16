@@ -10,9 +10,9 @@ const cols = [
     ],
   },
   {
-    heading: "Solutions",
+    heading: "Product",
     links: [
-      { href: "/hearthai", label: "HearthAI" },
+      { href: "/guide", label: "Guide" },
     ],
   },
   {
@@ -38,17 +38,23 @@ const cols = [
   <div class="container-page py-14">
     <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
       <div>
-        <img
-          src="/logos/logo-primary.png"
-          alt="Pereste"
-          width="180"
-          height="84"
-          class="h-16 w-auto"
-          loading="lazy"
-          decoding="async"
-        />
-        <p class="mt-4 text-sm text-brand-muted max-w-xs leading-relaxed">
-          Healthcare AI, deployed in partnership with institutions.
+        <a href="/" class="inline-flex items-center gap-3" aria-label="Pereste Health home">
+          <img
+            src="/logos/pereste-mark.svg"
+            alt=""
+            width="40"
+            height="42"
+            class="h-11 w-auto"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="leading-none">
+            <span class="block font-display text-xl font-semibold tracking-[0.18em] uppercase text-brand-indigo">Pereste</span>
+            <span class="mt-1 block font-display text-[0.68rem] font-medium tracking-[0.3em] uppercase text-brand-accent">Health</span>
+          </span>
+        </a>
+        <p class="mt-5 text-sm text-brand-muted max-w-xs leading-relaxed">
+          Better understanding, better outcomes.
         </p>
       </div>
 

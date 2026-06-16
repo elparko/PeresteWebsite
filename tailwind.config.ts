@@ -1,19 +1,23 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Pereste brand tokens.
+ * Pereste Health brand tokens.
  *
- * Brandmark is monochromatic black on white, with periwinkle/lavender
- * as the single accent color (used in the brandkit templates and the
- * inverse logo variant).
+ * The brand is the lighthouse mark — deep navy and teal, with an indigo
+ * mid-tone — over clean white and a cool light-gray wash. Typeface is
+ * Montserrat throughout (medium for the wordmark, semibold/bold for
+ * headings, regular for body).
  *
- *   ink         true black, matches the logo strokes
- *   surface     clean white, matches the lockup background
- *   subtle      very faint lavender wash for alternating sections
- *   accent      brand lavender (the periwinkle from the brandkit)
- *   accent-soft lighter lavender, for chips, hovers, gradient washes
- *   muted       cool gray for secondary text
- *   line        lavender-tinted hairline border
+ *   ink          deep navy — primary text and dark sections (logo navy)
+ *   indigo       brand blue mid-tone — the wordmark color, secondary accent
+ *   surface      clean white
+ *   subtle       cool light-gray wash for alternating sections
+ *   muted        cool slate-gray for secondary text
+ *   line         faint cool hairline border
+ *   accent       teal — primary accent (the beam / path color)
+ *   accent-soft  pale teal wash for chips, hovers, gradient glows
+ *   teal-light   lighter teal, for gradients and highlights
+ *   teal-pale    palest teal, for beams and soft fills
  */
 const config: Config = {
   content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
@@ -21,18 +25,22 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          ink: "#0A0A0A",
+          ink: "#232C54",
+          navy: "#232C54",
+          indigo: "#3F518F",
           surface: "#FFFFFF",
-          subtle: "#F7F6FC",
-          muted: "#6B6B7A",
-          line: "#E8E6F2",
-          accent: "#C9C7F4",
-          "accent-soft": "#E8E7FA",
+          subtle: "#F1F4F7",
+          muted: "#5A6472",
+          line: "#E3E8EF",
+          accent: "#0F9BA8",
+          "accent-soft": "#E6F4F6",
+          "teal-light": "#4FC3D0",
+          "teal-pale": "#8CCFDB",
         },
       },
       fontFamily: {
         sans: [
-          "Inter",
+          "Montserrat",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
@@ -40,17 +48,17 @@ const config: Config = {
           "Roboto",
           "sans-serif",
         ],
-        serif: [
-          "Newsreader",
-          "ui-serif",
-          "Georgia",
-          "Cambria",
-          "Times New Roman",
-          "serif",
-        ],
+        // Headings use the same Montserrat stack at heavier weights.
         display: [
-          "Outfit",
-          "Inter",
+          "Montserrat",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
+        // Kept as an alias so any lingering `font-serif` utilities still
+        // resolve to the brand typeface rather than a system serif.
+        serif: [
+          "Montserrat",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",

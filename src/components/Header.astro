@@ -1,7 +1,7 @@
 ---
 const nav = [
   { href: "/about", label: "About" },
-  { href: "/hearthai", label: "HearthAI" },
+  { href: "/guide", label: "Guide" },
   { href: "/careers", label: "Careers" },
   { href: "/press", label: "Press" },
 ];
@@ -11,17 +11,17 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 <header class="sticky top-0 z-40 bg-brand-surface/85 backdrop-blur border-b border-brand-line">
   <div class="container-page flex h-16 items-center justify-between">
-    <a href="/" class="flex items-center gap-3 group" aria-label="Pereste home">
+    <a href="/" class="flex items-center gap-2.5 group" aria-label="Pereste Health home">
       <img
-        src="/logos/mark-square.png"
+        src="/logos/pereste-mark.svg"
         alt=""
-        width="36"
+        width="34"
         height="36"
-        class="h-9 w-9 rounded-lg"
+        class="h-9 w-auto"
         loading="eager"
         decoding="sync"
       />
-      <span class="font-display text-lg tracking-[0.18em] uppercase text-brand-ink group-hover:text-brand-ink/80 transition-colors">
+      <span class="font-display text-lg font-semibold tracking-[0.2em] uppercase text-brand-ink group-hover:text-brand-accent transition-colors">
         Pereste
       </span>
     </a>

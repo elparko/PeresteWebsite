@@ -3,17 +3,35 @@ import Base from "../layouts/Base.astro";
 import Hero from "../components/Hero.astro";
 import Section from "../components/Section.astro";
 import Card from "../components/Card.astro";
+
+// Hero taglines. One renders by default (for no-JS and SEO); a small inline
+// script swaps in a random one per visit.
+const taglines = [
+  "A healthcare AI company built around partnership and patient reality.",
+  "Clinical AI for the patients the health system reaches last.",
+  "Healthcare AI that meets patients where they actually are.",
+  "Clinical AI, built for real patients and deployed in real care.",
+  "Healthcare AI for the people most health tech is never designed for.",
+];
 ---
 
 <Base
-  title="About — Pereste"
+  title="About · Pereste"
   description="Pereste Health Inc. is a Louisiana-based healthcare AI company building and deploying clinical AI solutions in partnership with institutions."
 >
   <Hero
     eyebrow="About Pereste"
     title="A healthcare AI company built around partnership and patient reality."
-    lede="Pereste is a Louisiana-based healthcare AI company. We design clinical AI for the patients hardest to reach — and partner with the institutions already serving them to deploy it."
+    lede="Pereste is a Louisiana-based healthcare AI company. We design clinical AI for the patients hardest to reach, and partner with the institutions already serving them to deploy it."
   />
+
+  <script is:inline define:vars={{ taglines }}>
+    const heading = document.querySelector("h1");
+    if (heading && taglines.length) {
+      heading.textContent =
+        taglines[Math.floor(Math.random() * taglines.length)];
+    }
+  </script>
 
   <Section bordered>
     <div class="grid md:grid-cols-12 gap-10">
@@ -22,15 +40,16 @@ import Card from "../components/Card.astro";
       </div>
       <div class="md:col-span-8 space-y-6">
         <p class="lede">
-          The patients that health systems most struggle to reach — rural, older,
-          lower-literacy — are also the patients most likely to be readmitted,
-          to fall out of care plans, and to be underserved by digital tools
-          built for someone else.
+          Across rural America, the patients who need follow-through the most
+          are the ones the system reaches the least. Between visits, care plans
+          go unread and questions go unanswered, and people end up back in the
+          hospital, not for lack of effort, but for lack of anything built for
+          them.
         </p>
         <p class="lede">
-          We started Pereste to build clinical AI for those patients
-          specifically: models that adapt to the person in front of them, and
-          deployments that respect the institutions already trying to help.
+          We started Pereste to close that gap: clinical AI that adapts to the
+          person in front of it, deployed inside the institutions already doing
+          the work.
         </p>
       </div>
     </div>
@@ -38,12 +57,21 @@ import Card from "../components/Card.astro";
 
   <Section tone="subtle">
     <p class="eyebrow mb-4">What we do</p>
-    <h2 class="max-w-3xl mb-12">
-      Two things, tightly coupled: the model, and the implementation.
+    <h2 class="max-w-3xl mb-6">
+      We build the AI, and we deploy it where patients already get care.
     </h2>
+    <p class="lede max-w-2xl mb-12">
+      Our first product, Guide, is a voice-first companion that turns a
+      patient's own discharge papers, lab results, and care plan into a calm,
+      plain-language conversation at their own reading level. Building it takes
+      two things, tightly coupled: we develop the adaptive clinical AI behind
+      Guide, and we deploy it inside the hospitals and clinics already caring
+      for patients, running on their systems, under their governance, with no
+      patient data sent to outside AI services.
+    </p>
     <div class="grid md:grid-cols-2 gap-6">
-      <Card eyebrow="Model" title="Clinical AI built for the people on the receiving end.">
-        We develop the underlying AI — adaptive to each patient, grounded in
+      <Card eyebrow="Model" title="AI that adapts to the patient, not the other way around.">
+        We develop the underlying AI: adaptive to each patient, grounded in
         clinical context, and trained to behave well when the stakes are real.
         Our work is protected by pending intellectual property.
       </Card>
@@ -62,15 +90,15 @@ import Card from "../components/Card.astro";
       </div>
       <div class="md:col-span-8 space-y-6">
         <p class="lede">
-          Our product, <a href="/hearthai" class="text-brand-ink underline decoration-brand-line underline-offset-4 hover:decoration-brand-ink">HearthAI</a>,
-          supports patients across six chronic conditions at hospital discharge
-          — chronic kidney disease, type 2 diabetes, COPD, heart failure,
-          obesity, and hypertension. The same patients, the same gap: a care
-          plan that's never fully understood.
+          Our product, <a href="/guide" class="text-brand-ink underline decoration-brand-line underline-offset-4 hover:decoration-brand-ink">Guide</a>,
+          covers six of the most common chronic conditions (type 2 diabetes,
+          heart failure, chronic kidney disease, COPD, high blood pressure, and
+          obesity), supporting patients between visits, when a care plan is
+          most often misunderstood. The same patients, the same gap.
         </p>
         <p class="lede">
-          Pereste is the company that holds that IP and brings each solution
-          to the institutions ready to deploy it.
+          Pereste is the company that holds that IP and brings Guide to the
+          institutions ready to deploy it.
         </p>
       </div>
     </div>
@@ -88,7 +116,7 @@ import Card from "../components/Card.astro";
         <ul class="space-y-3 text-sm text-brand-ink/80">
           <li><span class="text-brand-muted">Entity:</span> Pereste Health Inc.</li>
           <li><span class="text-brand-muted">Headquarters:</span> Louisiana, USA</li>
-          <li><span class="text-brand-muted">Stage:</span> Early — partnering with first deployment sites</li>
+          <li><span class="text-brand-muted">Stage:</span> Early, partnering with first deployment sites</li>
           <li><span class="text-brand-muted">Press / partnerships:</span> <a href="mailto:parker@pereste.com" class="link-arrow">Contact us</a></li>
         </ul>
       </div>

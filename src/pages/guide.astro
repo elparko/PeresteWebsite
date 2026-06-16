@@ -1,0 +1,230 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import Card from "../components/Card.astro";
+import CTA from "../components/CTA.astro";
+import ConditionChips from "../components/ConditionChips.astro";
+
+const screens = [
+  {
+    src: "/images/app-medicines.png",
+    alt: "Guide medicines screen: each medicine explained in plain words",
+    eyebrow: "Medicines",
+    title: "Plain-word explainers.",
+    body: "What each medicine is for and when to take it, in everyday language, not the label's.",
+  },
+  {
+    src: "/images/app-labs.png",
+    alt: "Guide labs screen: what each number means, in context",
+    eyebrow: "Labs",
+    title: "What your numbers mean.",
+    body: "A1C, blood pressure, and the rest, shown in context with a plain-language read on each.",
+  },
+  {
+    src: "/images/app-visits.png",
+    alt: "Guide visits screen: prepare for the next appointment",
+    eyebrow: "Visits",
+    title: "Walk in prepared.",
+    body: "What's coming up, why it matters, and the questions the patient meant to ask.",
+  },
+];
+
+const routing = [
+  {
+    label: "Educates",
+    body: "Answers questions in plain language, at the patient's own reading level.",
+  },
+  {
+    label: "Declines",
+    body: "Never makes an individual medical decision. That stays with the care team.",
+  },
+  {
+    label: "Escalates",
+    body: "Flags red-flag symptoms to care, and routes anything urgent to a real person.",
+  },
+];
+---
+
+<Base
+  title="Guide — Pereste Health"
+  description="Guide is Pereste Health's patient app: a voice-first, plain-language companion that turns a patient's own records into an adaptive conversation across six chronic conditions. HIPAA-secured, grounded in clinical reality."
+>
+  <Hero
+    eyebrow="Product · Guide"
+    title="Your care, explained out loud."
+    lede="Guide turns a patient's own discharge papers, lab results, and care plan into a calm, spoken conversation at their reading level. And it knows which symptoms are urgent and need a real person, fast."
+    primaryCta={{ href: "mailto:parker@pereste.com", label: "Talk to our team" }}
+    secondaryCta={{ href: "/about", label: "About Pereste" }}
+    image={{ src: "/images/app-home.png", alt: "Guide app home screen on a phone" }}
+  />
+
+  {/* The problem */}
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">The problem</p>
+      </div>
+      <div class="md:col-span-8 space-y-5">
+        <p class="lede">
+          Aging and rural patients leave the hospital with dense paperwork
+          that's hard to make sense of. Understanding drops, confusion
+          compounds, and preventable readmissions follow.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  {/* What Guide does */}
+  <Section tone="subtle">
+    <p class="eyebrow mb-4">What Guide does</p>
+    <h2 class="max-w-3xl mb-12">
+      A conversation that meets every patient where they are.
+    </h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <Card
+        eyebrow="Plain language"
+        title="Records become a conversation."
+        icon={{ src: "/images/icon-grounded.svg", alt: "" }}
+      >
+        Discharge papers and lab results become a calm, personal conversation,
+        not a form to decipher. Guide explains what's already in the patient's
+        record in plain words: their diagnosis, medications, and care plan. It
+        never gives medical advice.
+      </Card>
+      <Card
+        eyebrow="Adaptive"
+        title="Adapts in real time."
+        icon={{ src: "/images/icon-adaptive.svg", alt: "" }}
+      >
+        Guide senses how much medical language each person is comfortable with
+        and rewrites depth, vocabulary, and pace as the conversation unfolds.
+        It's the same app for an 85-year-old and a younger caregiver.
+      </Card>
+      <Card
+        eyebrow="Private"
+        title="Built for institutional trust."
+        icon={{ src: "/images/icon-onprem.svg", alt: "" }}
+      >
+        A voice-first app for aging adults, on a HIPAA-secured system Pereste
+        runs itself. Personal health information never leaves a protected
+        environment, and no patient data is sent to outside AI services.
+      </Card>
+    </div>
+  </Section>
+
+  {/* Inside the app */}
+  <Section bordered>
+    <p class="eyebrow mb-4">Inside the app</p>
+    <h2 class="max-w-3xl mb-4">Large type, voice-first, no jargon.</h2>
+    <p class="lede max-w-2xl mb-14">
+      Designed for an aging, rural population and available on iOS and Android. The
+      screens below follow Type 2 diabetes, the lead condition. The same adaptive
+      conversation works across every one Guide covers.
+    </p>
+    <div class="grid md:grid-cols-3 gap-10 lg:gap-12">
+      {screens.map((s) => (
+        <div class="flex flex-col">
+          <div class="relative mx-auto w-full max-w-[224px]">
+            <div
+              class="absolute -inset-6 -z-10 rounded-[42px] opacity-60 blur-3xl"
+              style="background: radial-gradient(58% 58% at 50% 42%, #8CCFDB 0%, rgba(140,207,219,0) 70%);"
+              aria-hidden="true"
+            ></div>
+            <div class="rounded-[2.2rem] border border-brand-line bg-white p-1.5 shadow-[0_28px_64px_-30px_rgba(35,44,84,0.45)]">
+              <img
+                src={s.src}
+                alt={s.alt}
+                class="w-full h-auto rounded-[1.8rem]"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+          <p class="eyebrow mt-8 mb-2">{s.eyebrow}</p>
+          <h3 class="text-xl tracking-tight-2 mb-2">{s.title}</h3>
+          <p class="text-brand-ink/75 leading-relaxed">{s.body}</p>
+        </div>
+      ))}
+    </div>
+  </Section>
+
+  {/* Conditions */}
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">What it covers</p>
+      </div>
+      <div class="md:col-span-8 space-y-6">
+        <p class="lede">
+          Guide covers six of the most common chronic conditions, the ones
+          where a misunderstood care plan turns into a preventable readmission:
+        </p>
+        <ConditionChips />
+        <p class="lede">
+          They share a population, an aging one in rural and underserved
+          communities, and a failure mode: a care plan that's never fully
+          understood. These conditions rarely travel alone, and Guide meets each
+          patient where they are, whatever the diagnosis.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  {/* Accurate and honest — trust */}
+  <Section tone="subtle">
+    <p class="eyebrow mb-4">Accurate and honest</p>
+    <h2 class="max-w-3xl mb-6">Safe by architecture, not by hope.</h2>
+    <p class="lede max-w-2xl mb-12">
+      Guide is grounded in the patient's own record, so there's nothing to make
+      up. And it's trained to route, not advise.
+    </p>
+    <div class="grid md:grid-cols-3 gap-6 mb-10">
+      {routing.map((r) => (
+        <div class="rounded-2xl border border-brand-line bg-brand-surface p-7">
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent mb-3">
+            {r.label}
+          </p>
+          <p class="text-brand-ink/80 leading-relaxed">{r.body}</p>
+        </div>
+      ))}
+    </div>
+    <ul class="grid sm:grid-cols-2 gap-x-10 gap-y-3 max-w-3xl text-brand-ink/80">
+      <li class="flex gap-3"><span class="text-brand-accent">—</span> An independent safety check reviews every answer before it's spoken.</li>
+      <li class="flex gap-3"><span class="text-brand-accent">—</span> Anything uncertain defaults to "let's ask your care team."</li>
+      <li class="flex gap-3"><span class="text-brand-accent">—</span> Runs on a HIPAA-secured system; no patient data leaves a protected environment.</li>
+      <li class="flex gap-3"><span class="text-brand-accent">—</span> Reads the patient's record; it never changes it.</li>
+    </ul>
+  </Section>
+
+  {/* Where it's heading */}
+  <Section bordered>
+    <div class="grid md:grid-cols-12 gap-10">
+      <div class="md:col-span-4">
+        <p class="eyebrow">Where it's heading</p>
+      </div>
+      <div class="md:col-span-8 space-y-5">
+        <p class="lede">
+          Guide is deploying with rural clinics and the academic partners who
+          serve the patients it's built for, with the patient and clinician apps
+          already live on iOS and Android.
+        </p>
+        <p class="lede">
+          If your institution serves patients who would benefit from a more
+          adaptive, voice-based handoff between visits, we'd like to hear from
+          you.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section>
+    <CTA
+      eyebrow="For institutions"
+      title="Bring Guide to your patients."
+      body="We partner with clinics, health systems, and academic care settings to deploy Guide in real care workflows, under the governance and security they already trust, with no patient data sent to outside AI services."
+      primaryCta={{ href: "mailto:parker@pereste.com", label: "Start the conversation" }}
+      tone="ink"
+    />
+  </Section>
+</Base>

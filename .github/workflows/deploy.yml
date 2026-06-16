@@ -27,6 +27,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history so the sitemap can read each page's last-commit date
+          # for <lastmod>. A shallow clone would date every page identically.
+          fetch-depth: 0
       - name: Build with Astro
         uses: withastro/action@v3
         # withastro/action runs `npm ci` + `npm run build` and uploads

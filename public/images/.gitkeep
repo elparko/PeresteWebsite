@@ -4,24 +4,26 @@
 # up. Until a file lands, a designed placeholder renders in its place — the
 # layout never breaks.
 #
-# ── Hero phone mockups (transparent PNG, ~1800x1014 or similar landscape) ──
-#   hero-phone.png         home page hero — left side mockup, e.g. listening screen
-#   hearthai-phone.png     /hearthai page hero — different screen (Q&A, conversation)
+# ── Guide app screenshots (transparent PNG, phone-shaped) ──
+#   app-home.png       home-page hero + /guide hero — app home screen
+#   app-medicines.png  /guide — each medicine explained in plain words
+#   app-labs.png       /guide — what each lab number means, in context
+#   app-visits.png     /guide — prepare for the next appointment
 #
 # ── Three-commitments icons (home page approach cards) ──
 #   icon-models.svg        "Models built for clinical reality"
 #   icon-partnership.svg   "Deployed in partnership"
 #   icon-rural.svg         "Rural-first by design"
 #
-# ── HearthAI approach-card icons (/hearthai page) ──
-#   icon-adaptive.svg      "Adaptive — meets each patient at their reading level"
-#   icon-grounded.svg      "Grounded — speaks to their actual discharge"
-#   icon-onprem.svg        "On-prem — designed for institutional deployment"
+# ── Guide approach-card icons (/guide page) ──
+#   icon-grounded.svg   "Records become a conversation."
+#   icon-adaptive.svg   "Adapts in real time."
+#   icon-onprem.svg     "Built for institutional trust."
 #
 # Specs:
 #   • icons: SVG preferred (scales infinitely, smaller). PNG works too — just
 #     export at 80x80 minimum. Components display them at 40x40.
-#   • phone mockups: transparent background ideal. PNG or JPG. Under 500KB
+#   • app screenshots: transparent background ideal. PNG or JPG. Under 500KB
 #     each (run through tinypng.com if larger).
 #
 # If you ship them with different filenames, just rename them to the above

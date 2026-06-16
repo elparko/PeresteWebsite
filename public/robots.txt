@@ -1,0 +1,5 @@
+# https://pereste.com
+User-agent: *
+Allow: /
+
+Sitemap: https://pereste.com/sitemap-index.xml
