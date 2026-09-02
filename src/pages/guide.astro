@@ -61,7 +61,7 @@ const routing = [
 
   {/* The problem */}
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10">
+    <div class="grid md:grid-cols-12 gap-10" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">The problem</p>
       </div>
@@ -77,8 +77,8 @@ const routing = [
 
   {/* What Guide does */}
   <Section tone="subtle">
-    <p class="eyebrow mb-4">What Guide does</p>
-    <h2 class="max-w-3xl mb-12">
+    <p class="eyebrow mb-4" data-reveal>What Guide does</p>
+    <h2 class="max-w-3xl mb-12" data-reveal style="--reveal-delay:60ms">
       A conversation that meets every patient where they are.
     </h2>
     <div class="grid md:grid-cols-3 gap-6">
@@ -86,6 +86,7 @@ const routing = [
         eyebrow="Plain language"
         title="Records become a conversation."
         icon={{ src: "/images/icon-grounded.svg", alt: "" }}
+        data-reveal
       >
         Discharge papers and lab results become a calm, personal conversation,
         not a form to decipher. Guide explains what's already in the patient's
@@ -96,6 +97,8 @@ const routing = [
         eyebrow="Adaptive"
         title="Adapts in real time."
         icon={{ src: "/images/icon-adaptive.svg", alt: "" }}
+        data-reveal
+        style="--reveal-delay:70ms"
       >
         Guide senses how much medical language each person is comfortable with
         and rewrites depth, vocabulary, and pace as the conversation unfolds.
@@ -105,6 +108,8 @@ const routing = [
         eyebrow="Private"
         title="Built for institutional trust."
         icon={{ src: "/images/icon-onprem.svg", alt: "" }}
+        data-reveal
+        style="--reveal-delay:140ms"
       >
         A voice-first app for aging adults, on a HIPAA-secured system Pereste
         runs itself. Personal health information never leaves a protected
@@ -115,29 +120,30 @@ const routing = [
 
   {/* Inside the app */}
   <Section bordered>
-    <p class="eyebrow mb-4">Inside the app</p>
-    <h2 class="max-w-3xl mb-4">
+    <p class="eyebrow mb-4" data-reveal>Inside the app</p>
+    <h2 class="max-w-3xl mb-4" data-reveal style="--reveal-delay:60ms">
       Designed for an aging, rural population — large type, voice-first, no jargon.
     </h2>
-    <p class="lede max-w-2xl mb-14">
+    <p class="lede max-w-2xl mb-14" data-reveal style="--reveal-delay:120ms">
       Live on iOS and Android today, not a concept. The screens below follow Type 2
       diabetes, the lead condition; the same adaptive conversation works across
       every one Guide covers.
     </p>
     <div class="grid md:grid-cols-3 gap-10 lg:gap-12">
-      {screens.map((s) => (
-        <div class="flex flex-col">
-          <div class="relative mx-auto w-full max-w-[224px]">
+      {screens.map((s, i) => (
+        <div class="flex flex-col" data-reveal style={`--reveal-delay:${i * 90}ms`}>
+          <div class="relative mx-auto w-full max-w-[228px]">
             <div
-              class="absolute -inset-6 -z-10 rounded-[42px] opacity-60 blur-3xl"
+              class="absolute -inset-8 -z-10 rounded-[48px] opacity-70 blur-3xl"
               style="background: radial-gradient(58% 58% at 50% 42%, #8CCFDB 0%, rgba(140,207,219,0) 70%);"
               aria-hidden="true"
             ></div>
-            <div class="rounded-[2.2rem] border border-brand-line bg-white p-1.5 shadow-[0_28px_64px_-30px_rgba(35,44,84,0.45)]">
+            <div class="device device-sm">
               <img
                 src={s.src}
                 alt={s.alt}
-                class="w-full h-auto rounded-[1.8rem]"
+                width="720"
+                height="1558"
                 loading="lazy"
                 decoding="async"
               />
@@ -153,7 +159,7 @@ const routing = [
 
   {/* Conditions */}
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10">
+    <div class="grid md:grid-cols-12 gap-10" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">What it covers</p>
       </div>
@@ -176,15 +182,15 @@ const routing = [
 
   {/* Accurate and honest — trust */}
   <Section tone="subtle">
-    <p class="eyebrow mb-4">Accurate and honest</p>
-    <h2 class="max-w-3xl mb-6">Safe by architecture, not by hope.</h2>
-    <p class="lede max-w-2xl mb-12">
+    <p class="eyebrow mb-4" data-reveal>Accurate and honest</p>
+    <h2 class="max-w-3xl mb-6" data-reveal style="--reveal-delay:60ms">Safe by architecture, not by hope.</h2>
+    <p class="lede max-w-2xl mb-12" data-reveal style="--reveal-delay:120ms">
       Guide is grounded in the patient's own record, so there's nothing to make
       up. And it's trained to route, not advise.
     </p>
     <div class="grid md:grid-cols-3 gap-6 mb-10">
-      {routing.map((r) => (
-        <div class="rounded-2xl border border-brand-line bg-brand-surface p-7">
+      {routing.map((r, i) => (
+        <div class="card p-7 md:p-8" data-reveal style={`--reveal-delay:${i * 70}ms`}>
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent mb-3">
             {r.label}
           </p>
@@ -192,7 +198,7 @@ const routing = [
         </div>
       ))}
     </div>
-    <ul class="grid sm:grid-cols-2 gap-x-10 gap-y-3 max-w-3xl text-brand-ink/80">
+    <ul class="grid sm:grid-cols-2 gap-x-10 gap-y-3 max-w-3xl text-brand-ink/80" data-reveal>
       <li class="flex gap-3"><span class="text-brand-accent">—</span> An independent safety check reviews every answer before it's spoken.</li>
       <li class="flex gap-3"><span class="text-brand-accent">—</span> Anything uncertain defaults to "let's ask your care team."</li>
       <li class="flex gap-3"><span class="text-brand-accent">—</span> Runs on a HIPAA-secured system; no patient data leaves a protected environment.</li>
@@ -202,7 +208,7 @@ const routing = [
 
   {/* Where it's heading */}
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10">
+    <div class="grid md:grid-cols-12 gap-10" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">Where it's heading</p>
       </div>
@@ -228,6 +234,7 @@ const routing = [
       body="We partner with clinics, health systems, and academic care settings to deploy Guide in real care workflows, under the governance and security they already trust, with no patient data sent to outside AI services."
       primaryCta={{ href: "mailto:parker@pereste.com", label: "Start the conversation" }}
       tone="ink"
+      data-reveal
     />
   </Section>
 </Base>

@@ -27,22 +27,18 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
 ---
 
 <section class="relative overflow-hidden">
-  {/* Soft brand wash — teal beam fading into a cool gray horizon */}
-  <div
-    class="absolute inset-0 -z-10"
-    style="background: radial-gradient(70% 55% at 25% 0%, #E6F4F6 0%, rgba(230,244,246,0) 65%), radial-gradient(55% 45% at 100% 12%, #EDF1F7 0%, rgba(237,241,247,0) 70%);"
-    aria-hidden="true"
-  ></div>
+  {/* Soft brand wash — teal beam fading into a cool horizon */}
+  <div class="hero-bg absolute inset-0 -z-10" aria-hidden="true"></div>
 
-  <div class="container-page pt-12 pb-16 md:pt-20 md:pb-24">
-    <div class={showRightCol ? "grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" : ""}>
+  <div class="container-page pt-14 pb-20 md:pt-24 md:pb-28">
+    <div class={showRightCol ? "grid lg:grid-cols-12 gap-14 lg:gap-16 items-center" : ""}>
       <div class={showRightCol ? "lg:col-span-7" : ""}>
-        {eyebrow && <p class="eyebrow mb-6">{eyebrow}</p>}
-        <h1 class={`tracking-tight-3 ${showRightCol ? "" : "max-w-4xl"}`}>{title}</h1>
-        {lede && <p class="lede mt-6">{lede}</p>}
+        {eyebrow && <p class="eyebrow mb-6 hero-in" style="--i:0">{eyebrow}</p>}
+        <h1 class={`hero-in ${showRightCol ? "" : "max-w-4xl"}`} style="--i:1">{title}</h1>
+        {lede && <p class="lede mt-7 hero-in" style="--i:2">{lede}</p>}
 
         {(primaryCta || secondaryCta) && (
-          <div class="mt-10 flex flex-wrap items-center gap-3">
+          <div class="mt-10 flex flex-wrap items-center gap-3 hero-in" style="--i:3">
             {primaryCta && (
               <a href={primaryCta.href} class="btn-primary">{primaryCta.label}</a>
             )}
@@ -55,29 +51,31 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
 
       {showRightCol && (
         <div class="lg:col-span-5 flex justify-center lg:justify-end">
-          <div class="relative w-full max-w-[244px] lg:max-w-[268px]">
+          <div class="relative w-full max-w-[248px] lg:max-w-[272px] hero-in-device">
             {/* Soft teal beam glow behind the device */}
             <div
-              class="absolute -inset-8 -z-10 rounded-[48px] opacity-70 blur-3xl"
+              class="absolute -inset-10 -z-10 rounded-[56px] opacity-80 blur-3xl"
               style="background: radial-gradient(58% 58% at 50% 42%, #8CCFDB 0%, rgba(140,207,219,0) 70%);"
               aria-hidden="true"
             ></div>
 
             {imageReady ? (
-              /* Clean app screen presented in a simple device frame. */
-              <div class="rounded-[2.6rem] border border-brand-line bg-white p-2 shadow-[0_34px_80px_-30px_rgba(35,44,84,0.45)]">
+              /* App screen presented in a device frame. */
+              <div class="device">
                 <img
                   src={image!.src}
                   alt={image!.alt}
-                  class="w-full h-auto rounded-[2.1rem]"
+                  width="720"
+                  height="1558"
                   loading="eager"
                   decoding="async"
+                  fetchpriority="high"
                 />
               </div>
             ) : (
               /* Placeholder — auto-replaced when the real image lands. */
               <div
-                class="aspect-[9/19] w-full rounded-[2.6rem] border border-brand-line bg-gradient-to-b from-brand-subtle to-white shadow-[0_20px_60px_-20px_rgba(35,44,84,0.25)] flex items-center justify-center"
+                class="aspect-[9/19] w-full rounded-[2.75rem] border border-brand-line bg-gradient-to-b from-brand-subtle to-white shadow-[0_20px_60px_-20px_rgba(35,44,84,0.25)] flex items-center justify-center"
                 role="img"
                 aria-label={image!.alt}
               >
@@ -99,3 +97,23 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
     </div>
   </div>
 </section>
+
+<style>
+  .hero-bg {
+    background:
+      radial-gradient(56% 50% at 14% -6%, rgba(15, 155, 168, 0.2) 0%, rgba(15, 155, 168, 0) 62%),
+      radial-gradient(42% 38% at 94% 4%, rgba(63, 81, 143, 0.14) 0%, rgba(63, 81, 143, 0) 62%),
+      linear-gradient(180deg, #f6f8fb 0%, #ffffff 100%);
+  }
+  /* Twin beams, echoing the lighthouse mark. */
+  .hero-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(118deg, rgba(15, 155, 168, 0) 22%, rgba(15, 155, 168, 0.07) 34%, rgba(15, 155, 168, 0) 44%),
+      linear-gradient(62deg, rgba(15, 155, 168, 0) 30%, rgba(15, 155, 168, 0.05) 40%, rgba(15, 155, 168, 0) 48%);
+    mask-image: linear-gradient(180deg, #000 0%, transparent 85%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 85%);
+  }
+</style>

@@ -9,9 +9,12 @@ interface Props {
   /** Optional icon shown above the title. Build-time fs check decides
    *  whether the real icon renders or a placeholder takes its place. */
   icon?: { src: string; alt?: string };
+  class?: string;
+  style?: string;
+  "data-reveal"?: boolean | string;
 }
 
-const { eyebrow, title, href, icon } = Astro.props;
+const { eyebrow, title, href, icon, class: className = "", ...rest } = Astro.props;
 const Tag = href ? "a" : "div";
 
 let iconReady = false;
@@ -21,36 +24,29 @@ if (icon) {
 }
 ---
 
-<Tag
-  href={href}
-  class={`block rounded-2xl border border-brand-line bg-brand-surface p-6 md:p-8
-          transition-all
-          ${href ? "hover:-translate-y-0.5 hover:border-brand-ink hover:shadow-[0_8px_24px_-12px_rgba(15,20,25,0.18)]" : ""}`}
->
+<Tag href={href} class={`card block p-7 md:p-8 ${className}`} {...rest}>
   {icon && (
-    <div class="mb-5">
+    <div class="mb-6">
       {iconReady ? (
-        <img
-          src={icon.src}
-          alt={icon.alt ?? ""}
-          class="h-10 w-10"
-          loading="lazy"
-          decoding="async"
-        />
+        <span class="icon-tile">
+          <img
+            src={icon.src}
+            alt={icon.alt ?? ""}
+            class="h-6 w-6"
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
       ) : (
         /* Icon placeholder — auto-replaced when the real asset lands. */
-        <div
-          class="h-10 w-10 rounded-lg bg-brand-accent-soft border border-brand-line flex items-center justify-center"
-          aria-hidden="true"
-          title="Icon lands here"
-        >
+        <span class="icon-tile" aria-hidden="true" title="Icon lands here">
           <span class="text-[10px] uppercase tracking-[0.14em] text-brand-muted/80">+</span>
-        </div>
+        </span>
       )}
     </div>
   )}
   {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
-  <h3 class="font-serif text-2xl tracking-tight-2 mb-3">{title}</h3>
+  <h3 class="font-display mb-3">{title}</h3>
   <div class="text-brand-ink/75 leading-relaxed">
     <slot />
   </div>

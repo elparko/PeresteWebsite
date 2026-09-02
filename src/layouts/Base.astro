@@ -26,9 +26,14 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).toString
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#FFFFFF" />
     <link rel="canonical" href={canonicalHref} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* Marks the document as script-capable before first paint, so reveal
+        styles only hide content when the observer that shows it will run. */}
+    <script is:inline>document.documentElement.classList.add("js");</script>
 
     {/* Brand typeface — Montserrat (per Pereste Health brand guidelines) */}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -53,5 +58,46 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).toString
       <slot />
     </main>
     <Footer />
+
+    <script>
+      const targets = document.querySelectorAll<HTMLElement>("[data-reveal]");
+
+      // Once revealed, drop the reveal hooks so the element's own transitions
+      // (card hover, press feedback) are no longer overridden.
+      const reveal = (el: HTMLElement) => {
+        el.setAttribute("data-visible", "");
+        const cleanup = () => {
+          el.removeAttribute("data-reveal");
+          el.removeAttribute("data-visible");
+          el.style.removeProperty("--reveal-delay");
+        };
+        const timer = window.setTimeout(cleanup, 1400);
+        el.addEventListener(
+          "transitionend",
+          (event) => {
+            if (event.target !== el) return;
+            window.clearTimeout(timer);
+            cleanup();
+          },
+          { once: true },
+        );
+      };
+
+      if (!("IntersectionObserver" in window)) {
+        targets.forEach((el) => reveal(el));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              io.unobserve(entry.target);
+              reveal(entry.target as HTMLElement);
+            }
+          },
+          { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
+        );
+        targets.forEach((el) => io.observe(el));
+      }
+    </script>
   </body>
 </html>

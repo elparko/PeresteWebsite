@@ -34,7 +34,7 @@ const taglines = [
   </script>
 
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10">
+    <div class="grid md:grid-cols-12 gap-10" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">Why Pereste exists</p>
       </div>
@@ -58,11 +58,11 @@ const taglines = [
   </Section>
 
   <Section tone="subtle">
-    <p class="eyebrow mb-4">What we do</p>
-    <h2 class="max-w-3xl mb-6">
+    <p class="eyebrow mb-4" data-reveal>What we do</p>
+    <h2 class="max-w-3xl mb-6" data-reveal style="--reveal-delay:60ms">
       We build the AI, and we deploy it where patients already get care.
     </h2>
-    <p class="lede max-w-2xl mb-12">
+    <p class="lede max-w-2xl mb-12" data-reveal style="--reveal-delay:120ms">
       Our first product, Guide, is a voice-first companion that turns a
       patient's own discharge papers, lab results, and care plan into a calm,
       plain-language conversation at their own reading level. Building it takes
@@ -72,12 +72,12 @@ const taglines = [
       patient data sent to outside AI services.
     </p>
     <div class="grid md:grid-cols-2 gap-6">
-      <Card eyebrow="Model" title="AI that adapts to the patient, not the other way around.">
+      <Card eyebrow="Model" title="AI that adapts to the patient, not the other way around." data-reveal>
         We develop the underlying AI: adaptive to each patient, grounded in
         clinical context, and trained to behave well when the stakes are real.
         Our work is protected by pending intellectual property.
       </Card>
-      <Card eyebrow="Implementation" title="Deployed inside the institutions we partner with.">
+      <Card eyebrow="Implementation" title="Deployed inside the institutions we partner with." data-reveal style="--reveal-delay:70ms">
         Our solutions run where patient data already lives, under the
         governance the institution already trusts. No PHI egress, no parallel
         infrastructure to maintain.
@@ -86,7 +86,7 @@ const taglines = [
   </Section>
 
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10">
+    <div class="grid md:grid-cols-12 gap-10" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">Where we're going</p>
       </div>
@@ -107,7 +107,7 @@ const taglines = [
   </Section>
 
   <Section>
-    <div class="grid md:grid-cols-12 gap-10 items-end">
+    <div class="grid md:grid-cols-12 gap-10 items-end" data-reveal>
       <div class="md:col-span-8">
         <p class="eyebrow mb-4">Company</p>
         <h2 class="max-w-2xl">

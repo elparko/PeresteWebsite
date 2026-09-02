@@ -34,7 +34,7 @@ const cols = [
 ];
 ---
 
-<footer class="hairline mt-24">
+<footer class="hairline mt-28">
   <div class="container-page py-14">
     <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
       <div>
@@ -68,7 +68,7 @@ const cols = [
               <li>
                 <a
                   href={link.href}
-                  class="text-sm text-brand-ink hover:text-brand-ink/60"
+                  class="footer-link text-sm text-brand-ink"
                 >
                   {link.label}
                 </a>
@@ -89,3 +89,14 @@ const cols = [
     </div>
   </div>
 </footer>
+
+<style>
+  .footer-link {
+    transition: color var(--dur-hover) ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .footer-link:hover {
+      color: theme("colors.brand.accent");
+    }
+  }
+</style>

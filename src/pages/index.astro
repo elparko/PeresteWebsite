@@ -40,7 +40,7 @@ const stats = [
 
   {/* Mission band */}
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10">
+    <div class="grid md:grid-cols-12 gap-10" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">Mission</p>
       </div>
@@ -62,14 +62,14 @@ const stats = [
 
   {/* The literacy gap — public, cited research */}
   <Section tone="subtle">
-    <p class="eyebrow mb-4">The literacy gap</p>
-    <h2 class="max-w-3xl mb-12">
+    <p class="eyebrow mb-4" data-reveal>The literacy gap</p>
+    <h2 class="max-w-3xl mb-12" data-reveal style="--reveal-delay:60ms">
       Rural patients get left behind by today's healthcare communication.
     </h2>
     <div class="grid md:grid-cols-3 gap-6">
-      {stats.map((s) => (
-        <div class="rounded-2xl border border-brand-line bg-brand-surface p-7 flex flex-col">
-          <p class="font-display text-4xl md:text-5xl font-bold tracking-tight-2 text-brand-ink">
+      {stats.map((s, i) => (
+        <div class="card p-7 md:p-8 flex flex-col" data-reveal style={`--reveal-delay:${i * 70}ms`}>
+          <p class="font-display text-4xl md:text-5xl font-bold tracking-tight-3 text-brand-ink">
             {s.figure}
           </p>
           <p class="mt-4 text-brand-ink/80 leading-relaxed flex-1">{s.body}</p>
@@ -83,8 +83,8 @@ const stats = [
 
   {/* Approach — the three commitments */}
   <Section bordered>
-    <p class="eyebrow mb-4">Our approach</p>
-    <h2 class="max-w-3xl mb-12">
+    <p class="eyebrow mb-4" data-reveal>Our approach</p>
+    <h2 class="max-w-3xl mb-12" data-reveal style="--reveal-delay:60ms">
       Built for patients the health system struggles most to reach.
     </h2>
     <div class="grid md:grid-cols-3 gap-6">
@@ -92,6 +92,7 @@ const stats = [
         eyebrow="01"
         title="Built for clinical reality"
         icon={{ src: "/images/icon-models.svg", alt: "" }}
+        data-reveal
       >
         Adaptive to each patient, grounded in their own clinical record, and
         designed to behave safely when the stakes are real, not a generic
@@ -101,6 +102,8 @@ const stats = [
         eyebrow="02"
         title="Deployed in partnership"
         icon={{ src: "/images/icon-partnership.svg", alt: "" }}
+        data-reveal
+        style="--reveal-delay:70ms"
       >
         Guide runs under the institution's existing governance and security,
         delivered with health systems and academic partners, never
@@ -110,6 +113,8 @@ const stats = [
         eyebrow="03"
         title="Rural-first by design"
         icon={{ src: "/images/icon-rural.svg", alt: "" }}
+        data-reveal
+        style="--reveal-delay:140ms"
       >
         We design for an aging, rural population managing chronic conditions,
         where comprehension, pace, and trust decide whether care actually works.
@@ -120,7 +125,7 @@ const stats = [
 
   {/* Product — Guide */}
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10 items-start">
+    <div class="grid md:grid-cols-12 gap-10 items-start" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">Our product</p>
         <h2 class="mt-4">Guide</h2>
@@ -151,6 +156,7 @@ const stats = [
         body="We partner with clinics, health systems, and academic care settings to run Guide under the governance and security they already trust, with no patient data sent to outside AI services."
         primaryCta={{ href: "mailto:parker@pereste.com", label: "Talk to our team" }}
         tone="ink"
+        data-reveal
       />
       <CTA
         eyebrow="For investors"
@@ -158,6 +164,8 @@ const stats = [
         body="Pereste holds the methods and proprietary IP behind Guide, built for an aging, rural population. Investor and partnership inquiries welcome."
         primaryCta={{ href: "mailto:parker@pereste.com", label: "Request our overview" }}
         tone="subtle"
+        data-reveal
+        style="--reveal-delay:80ms"
       />
     </div>
   </Section>

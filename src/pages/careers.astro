@@ -16,7 +16,7 @@ import Section from "../components/Section.astro";
   />
 
   <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10">
+    <div class="grid md:grid-cols-12 gap-10" data-reveal>
       <div class="md:col-span-4">
         <p class="eyebrow">How we work</p>
       </div>
@@ -35,16 +35,16 @@ import Section from "../components/Section.astro";
   </Section>
 
   <Section tone="subtle">
-    <p class="eyebrow mb-4">Open roles</p>
-    <h2 class="max-w-3xl mb-8">
+    <p class="eyebrow mb-4" data-reveal>Open roles</p>
+    <h2 class="max-w-3xl mb-8" data-reveal style="--reveal-delay:60ms">
       No public roles right now, but we're always interested in talking.
     </h2>
-    <p class="lede">
+    <p class="lede" data-reveal style="--reveal-delay:120ms">
       If you work at the intersection of healthcare and machine learning, or
       if you've spent time in rural and community care settings and have
       thoughts about what's broken, send us a note.
     </p>
-    <div class="mt-10">
+    <div class="mt-10" data-reveal style="--reveal-delay:180ms">
       <a href="mailto:parker@pereste.com" class="btn-primary">Email us</a>
     </div>
   </Section>

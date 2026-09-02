@@ -9,9 +9,9 @@ const nav = [
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 ---
 
-<header class="sticky top-0 z-40 bg-brand-surface/85 backdrop-blur border-b border-brand-line">
-  <div class="container-page flex h-16 items-center justify-between">
-    <a href="/" class="flex items-center gap-2.5 group" aria-label="Pereste Health home">
+<header id="site-header" class="site-header sticky top-0 z-40" data-scrolled="false">
+  <div class="container-page relative flex h-16 items-center justify-between gap-4">
+    <a href="/" class="brand-link flex items-center gap-2.5" aria-label="Pereste Health home">
       <img
         src="/logos/pereste-mark.svg"
         alt=""
@@ -21,7 +21,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
         loading="eager"
         decoding="sync"
       />
-      <span class="font-display text-lg font-semibold tracking-[0.2em] uppercase text-brand-ink group-hover:text-brand-accent transition-colors">
+      <span class="font-display text-lg font-semibold tracking-[0.2em] uppercase text-brand-ink">
         Pereste
       </span>
     </a>
@@ -32,11 +32,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
         return (
           <a
             href={item.href}
-            class={`text-sm font-medium transition-colors ${
-              active
-                ? "text-brand-ink"
-                : "text-brand-muted hover:text-brand-ink"
-            }`}
+            class={`nav-link text-sm font-medium ${active ? "text-brand-ink" : "text-brand-muted"}`}
             aria-current={active ? "page" : undefined}
           >
             {item.label}
@@ -45,8 +41,251 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
       })}
     </nav>
 
-    <a href="mailto:parker@pereste.com" class="btn-primary text-xs md:text-sm" aria-label="Contact Pereste">
-      Contact
-    </a>
+    <div class="flex items-center gap-1.5">
+      <a href="mailto:parker@pereste.com" class="btn-primary text-xs md:text-sm" aria-label="Contact Pereste">
+        Contact
+      </a>
+      <button
+        id="menu-btn"
+        type="button"
+        class="menu-btn inline-flex md:hidden text-brand-ink"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        aria-label="Open menu"
+      >
+        <span class="menu-bar" aria-hidden="true"></span>
+        <span class="menu-bar" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-nav" class="mobile-nav md:hidden" data-open="false">
+    <nav class="container-page py-3" aria-label="Primary">
+      <ul class="flex flex-col">
+        {nav.map((item, i) => {
+          const active = path === item.href;
+          return (
+            <li class="mobile-nav-item" style={`--i:${i}`}>
+              <a
+                href={item.href}
+                class={`pressable flex items-center justify-between rounded-2xl px-3 py-3.5 text-lg font-medium ${
+                  active ? "text-brand-ink" : "text-brand-ink/80"
+                }`}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.label}
+                {active && <span class="h-1.5 w-1.5 rounded-full bg-brand-accent" aria-hidden="true"></span>}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   </div>
 </header>
+
+<style>
+  /* Translucent material with content scrolling underneath. The edge is a
+     scroll effect, not a permanent divider: it appears once content is under
+     the bar. */
+  .site-header {
+    background: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+  .site-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: theme("colors.brand.line");
+    box-shadow: 0 8px 24px -12px rgba(35, 44, 84, 0.18);
+    opacity: 0;
+    transition: opacity 200ms ease;
+    pointer-events: none;
+  }
+  .site-header[data-scrolled="true"]::after {
+    opacity: 1;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .site-header {
+      background: #ffffff;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  .brand-link span {
+    transition: color var(--dur-hover) ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .brand-link:hover span {
+      color: theme("colors.brand.accent");
+    }
+  }
+
+  .nav-link {
+    position: relative;
+    transition: color var(--dur-hover) ease;
+  }
+  .nav-link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 9999px;
+    background: theme("colors.brand.accent");
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-link:hover {
+      color: theme("colors.brand.ink");
+    }
+  }
+
+  /* Menu button: two bars that morph into a cross. On-screen morph, so ease-in-out. */
+  .menu-btn {
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      background-color var(--dur-hover) ease;
+  }
+  .menu-btn:active {
+    transform: scale(0.94);
+    background-color: theme("colors.brand.subtle");
+  }
+  .menu-bar {
+    position: absolute;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform var(--dur-menu) var(--ease-in-out);
+  }
+  .menu-bar:nth-child(1) {
+    transform: translateY(-3.5px);
+  }
+  .menu-bar:nth-child(2) {
+    transform: translateY(3.5px);
+  }
+  .menu-btn[aria-expanded="true"] .menu-bar:nth-child(1) {
+    transform: rotate(45deg);
+  }
+  .menu-btn[aria-expanded="true"] .menu-bar:nth-child(2) {
+    transform: rotate(-45deg);
+  }
+
+  /* Panel grows out of the bar it belongs to. Solid surface: never stack a
+     light translucent layer on another. Exit is faster than enter. */
+  .mobile-nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid theme("colors.brand.line");
+    border-radius: 0 0 1.5rem 1.5rem;
+    box-shadow: 0 24px 48px -24px rgba(35, 44, 84, 0.35);
+    transform-origin: top center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(0.98);
+    transition:
+      opacity 150ms var(--ease-out),
+      transform 150ms var(--ease-out),
+      visibility 0s linear 150ms;
+  }
+  .mobile-nav[data-open="true"] {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    transition:
+      opacity var(--dur-menu) var(--ease-out),
+      transform var(--dur-menu) var(--ease-out),
+      visibility 0s;
+  }
+  .mobile-nav-item {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+  .mobile-nav[data-open="true"] .mobile-nav-item {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: calc(40ms + var(--i, 0) * 40ms);
+  }
+  .mobile-nav a:active {
+    background-color: theme("colors.brand.subtle");
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-bar {
+      transition: none;
+    }
+    .mobile-nav,
+    .mobile-nav[data-open="true"] {
+      transform: none;
+      transition:
+        opacity 150ms ease,
+        visibility 0s;
+    }
+    .mobile-nav-item,
+    .mobile-nav[data-open="true"] .mobile-nav-item {
+      transform: none;
+      transition: none;
+      transition-delay: 0ms;
+    }
+    .menu-btn:active {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const header = document.getElementById("site-header")!;
+  const button = document.getElementById("menu-btn")!;
+  const panel = document.getElementById("mobile-nav")!;
+
+  let scrolled = false;
+  const syncEdge = () => {
+    const next = window.scrollY > 8;
+    if (next === scrolled) return;
+    scrolled = next;
+    header.dataset.scrolled = String(next);
+  };
+  syncEdge();
+  window.addEventListener("scroll", syncEdge, { passive: true });
+
+  const setOpen = (open: boolean) => {
+    button.setAttribute("aria-expanded", String(open));
+    button.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    panel.dataset.open = String(open);
+  };
+
+  button.addEventListener("click", () => {
+    setOpen(button.getAttribute("aria-expanded") !== "true");
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setOpen(false);
+  });
+  document.addEventListener("click", (event) => {
+    if (!header.contains(event.target as Node)) setOpen(false);
+  });
+  panel.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => setOpen(false));
+  });
+  window.matchMedia("(min-width: 768px)").addEventListener("change", (event) => {
+    if (event.matches) setOpen(false);
+  });
+</script>

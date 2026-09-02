@@ -6,9 +6,21 @@ interface Props {
   primaryCta: { href: string; label: string };
   secondaryCta?: { href: string; label: string };
   tone?: "ink" | "subtle";
+  class?: string;
+  style?: string;
+  "data-reveal"?: boolean | string;
 }
 
-const { eyebrow, title, body, primaryCta, secondaryCta, tone = "ink" } = Astro.props;
+const {
+  eyebrow,
+  title,
+  body,
+  primaryCta,
+  secondaryCta,
+  tone = "ink",
+  class: className = "",
+  ...rest
+} = Astro.props;
 
 const toneClass =
   tone === "ink"
@@ -18,32 +30,35 @@ const eyebrowClass =
   tone === "ink" ? "text-brand-surface/60" : "text-brand-muted";
 const bodyClass =
   tone === "ink" ? "text-brand-surface/80" : "text-brand-ink/75";
-const primaryClass =
-  tone === "ink"
-    ? "inline-flex items-center gap-2 rounded-full bg-brand-surface text-brand-ink px-5 py-2.5 text-sm font-medium hover:bg-brand-subtle"
-    : "btn-primary";
-const secondaryClass =
-  tone === "ink"
-    ? "inline-flex items-center gap-2 rounded-full border border-brand-surface/30 px-5 py-2.5 text-sm font-medium text-brand-surface hover:bg-brand-surface/10"
-    : "btn-secondary";
+const primaryClass = tone === "ink" ? "btn-inverse" : "btn-primary";
+const secondaryClass = tone === "ink" ? "btn-ghost-inverse" : "btn-secondary";
 ---
 
-<div class={`${toneClass} rounded-3xl p-10 md:p-14`}>
-  {eyebrow && (
-    <p class={`text-xs uppercase tracking-[0.18em] font-medium mb-4 ${eyebrowClass}`}>
-      {eyebrow}
-    </p>
+<div class={`cta relative overflow-hidden rounded-[2rem] p-9 md:p-14 ${toneClass} ${className}`} {...rest}>
+  {tone === "ink" && (
+    <div
+      class="absolute inset-0 pointer-events-none"
+      style="background: radial-gradient(60% 70% at 100% 0%, rgba(15,155,168,0.28) 0%, rgba(15,155,168,0) 60%), radial-gradient(50% 60% at 0% 100%, rgba(63,81,143,0.35) 0%, rgba(63,81,143,0) 60%);"
+      aria-hidden="true"
+    ></div>
   )}
-  <h2 class={`max-w-2xl ${tone === "ink" ? "text-brand-surface" : ""}`}>{title}</h2>
-  {body && (
-    <p class={`mt-5 max-w-prose text-base md:text-lg leading-relaxed ${bodyClass}`}>
-      {body}
-    </p>
-  )}
-  <div class="mt-8 flex flex-wrap items-center gap-3">
-    <a href={primaryCta.href} class={primaryClass}>{primaryCta.label}</a>
-    {secondaryCta && (
-      <a href={secondaryCta.href} class={secondaryClass}>{secondaryCta.label}</a>
+  <div class="relative">
+    {eyebrow && (
+      <p class={`text-xs uppercase tracking-[0.18em] font-semibold mb-4 ${eyebrowClass}`}>
+        {eyebrow}
+      </p>
     )}
+    <h2 class={`max-w-2xl ${tone === "ink" ? "text-brand-surface" : ""}`}>{title}</h2>
+    {body && (
+      <p class={`mt-5 max-w-prose text-base md:text-lg leading-relaxed ${bodyClass}`}>
+        {body}
+      </p>
+    )}
+    <div class="mt-8 flex flex-wrap items-center gap-3">
+      <a href={primaryCta.href} class={primaryClass}>{primaryCta.label}</a>
+      {secondaryCta && (
+        <a href={secondaryCta.href} class={secondaryClass}>{secondaryCta.label}</a>
+      )}
+    </div>
   </div>
 </div>
