@@ -28,17 +28,22 @@ for (const file of readdirSync(pagesDir)) {
   }
 }
 
-// Blog posts are dated by their Markdown source; the index by its newest post.
-const blogDir = fileURLToPath(new URL("./src/content/blog", import.meta.url));
-for (const file of existsSync(blogDir) ? readdirSync(blogDir) : []) {
-  if (!/\.mdx?$/.test(file)) continue;
+// Research posts and pages are dated by their source; the index by its newest entry.
+const researchDir = fileURLToPath(new URL("./src/content/research", import.meta.url));
+const researchFiles = [
+  ...(existsSync(researchDir) ? readdirSync(researchDir) : []).map((f) => `src/content/research/${f}`),
+  ...readdirSync(`${pagesDir}/research`).map((f) => `src/pages/research/${f}`),
+];
+for (const source of researchFiles) {
+  const file = source.split("/").pop();
+  if (!/\.(mdx?|astro)$/.test(file) || file.startsWith("[") || file === "index.astro") continue;
   try {
-    const iso = execSync(`git log -1 --format=%cI -- "src/content/blog/${file}"`, {
+    const iso = execSync(`git log -1 --format=%cI -- "${source}"`, {
       encoding: "utf8",
     }).trim();
     if (!iso) continue;
-    lastmodByPath[`/blog/${file.replace(/\.mdx?$/, "")}`] = iso;
-    if (!lastmodByPath["/blog"] || iso > lastmodByPath["/blog"]) lastmodByPath["/blog"] = iso;
+    lastmodByPath[`/research/${file.replace(/\.(mdx?|astro)$/, "")}`] = iso;
+    if (!lastmodByPath["/research"] || iso > lastmodByPath["/research"]) lastmodByPath["/research"] = iso;
   } catch {
     // same fallback as above
   }
@@ -61,6 +66,8 @@ export default defineConfig({
   // The product was renamed HearthAI → Guide; keep the old URL working.
   redirects: {
     "/hearthai": "/guide",
+    "/blog": "/research",
+    "/blog/advice-vs-education": "/research/advice-vs-education",
   },
   build: {
     format: "directory",

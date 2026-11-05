@@ -25,7 +25,7 @@ const { title, description, date, updated, author, tag } = Astro.props;
       </div>
       <div class="container-page pt-24 pb-10 md:pt-32 md:pb-14">
         <div class="mx-auto max-w-prose">
-        <a href="/blog" class="eyebrow mb-6 inline-block hover:text-brand-accent">Blog · {tag}</a>
+        <a href="/research" class="eyebrow mb-6 inline-block hover:text-brand-accent">Research · {tag}</a>
         <h1>{title}</h1>
         <p class="lede mt-7">{description}</p>
         <div class="mt-8 flex flex-wrap gap-x-8 gap-y-1 text-sm text-brand-ink/80">
@@ -47,7 +47,7 @@ const { title, description, date, updated, author, tag } = Astro.props;
         <slot />
       </div>
       <div class="hairline mx-auto mt-16 pt-8 max-w-prose">
-        <a href="/blog" class="link-arrow">All posts</a>
+        <a href="/research" class="link-arrow">All research</a>
       </div>
     </div>
   </article>
