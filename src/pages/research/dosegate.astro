@@ -1,0 +1,80 @@
+---
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import Base from "../../layouts/Base.astro";
+
+const title =
+  "A model-agnostic, formally verified output layer that keeps language model medication instructions faithful to medication orders";
+const codeUrl = "https://github.com/Pereste-Health/dosegate";
+const pdfPath = "/research/dosegate.pdf";
+const hasPdf = existsSync(join(process.cwd(), "public", pdfPath));
+
+const abstract =
+  "Language models that explain medications to patients reproduce doses and compute daily totals by generating tokens, so a correct order in the prompt does not guarantee a correct number in the output. We describe a layer, written in the Lean 4 theorem prover, that sits between any language model and the reader. The model writes each instruction as references to fields of a Fast Healthcare Interoperability Resources (FHIR) MedicationRequest, and the layer fills every reference from the orders or blocks the output. In 198 machine-checked theorems, released text states each drug name, dose, route, frequency, and daily total exactly as the active order named, only inside a complete instruction for that order, gives an instruction for every active order, and contains no other medication content. The code that reads FHIR records is tested, not proved. An earlier version released one misstatement in 44 outputs during red-team development, then 41 in 74 on a held-out round. A redesigned version released 9 misstatements in 86 outputs on a second held-out round of 138 attacks, against 22 in 128 for a filter that filled the same slots but blocked only digits and unit words; the final version blocks all nine. It cannot tell a brand name from its generic name: replayed on that round, 17 of its 50 releases instruct the patient to take one ingredient under two names. With three open models on 120 test cases, the layer released 98.3%, 83.3%, and 1.7% of slot outputs after rewrites; a scoring script found no misstated dose, daily total, or frequency in any of the 867 released texts, and two readers found none in a random sample of 60. Asked for daily totals in free text, MedGemma 4B and Llama 3.2 3B misstated an amount in at least 69 and 19 of 120 outputs.";
+
+const bibtex = `@misc{smith2026dosegate,
+  title  = {A model-agnostic, formally verified output layer that keeps
+            language model medication instructions faithful to
+            medication orders},
+  author = {Smith, Parker},
+  year   = {2026},
+  note   = {Pereste Health},
+  url    = {https://pereste.com/research/dosegate}
+}`;
+---
+
+<Base
+  title="DoseGate · Pereste Health research"
+  description="A Lean 4 output layer that fills every medication reference in a language model's instructions from the patient's medication orders or blocks the output. Paper by Parker Smith, Pereste Health."
+  type="article"
+>
+  <article>
+    <header class="relative overflow-hidden">
+      <div
+        class="absolute inset-0 -z-10"
+        style="background: radial-gradient(70% 55% at 50% 0%, #E6F4F6 0%, rgba(230,244,246,0) 65%);"
+        aria-hidden="true"
+      >
+      </div>
+      <div class="container-page pt-24 pb-10 md:pt-32 md:pb-14">
+        <div class="mx-auto max-w-prose">
+          <p class="eyebrow mb-6">Research paper · DoseGate</p>
+          <h1 class="paper-title">{title}</h1>
+          <p class="mt-8 text-brand-ink/80">Parker Smith, Pereste Health</p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href={codeUrl} class="btn-primary">Code on GitHub</a>
+            {hasPdf && (
+              <a href={pdfPath} class="btn-secondary">PDF</a>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container-page pb-24">
+      <div class="prose-page mx-auto">
+        <h2>Abstract</h2>
+        <p>{abstract}</p>
+
+        <h2>Code</h2>
+        <p>
+          The Lean development, the command-line tool, the tests, and the evaluation
+          scripts and data are at{" "}
+          <a href={codeUrl}>github.com/Pereste-Health/dosegate</a> under the Apache
+          License 2.0.
+        </p>
+
+        <h2>Citation</h2>
+        <pre><code>{bibtex}</code></pre>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .paper-title {
+    font-size: clamp(1.9rem, 1.3rem + 2vw, 2.75rem);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+  }
+</style>
