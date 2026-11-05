@@ -1,0 +1,69 @@
+---
+import Figure from "./Figure.astro";
+
+interface Props {
+  number: number;
+}
+
+const replies = [
+  {
+    who: "Unchanged model",
+    grade: "11.0",
+    paragraphs: [
+      "Disclaimer: I am an AI, not a doctor. The following information is for educational purposes only and should not replace professional medical advice. Always follow the specific instructions given by your prescribing physician.",
+      "Taking a \"water pill\" (medically known as a diuretic) every morning is a very common prescription strategy. Here are the primary reasons why doctors typically recommend this specific timing:",
+      "1. Maximizing Urine Output During the Day ...",
+    ],
+  },
+  {
+    who: "Plain direction added at layer 16",
+    grade: "5.5",
+    paragraphs: [
+      "I cannot give you medical advice, and I don't know exactly what your doctor prescribed for you.",
+      "However, I can tell you why doctors sometimes give a \"water pill\" (which is actually a medicine called a diuretic) in the morning. It's usually just about being careful with your sleep.",
+      "If you take this medicine at night, you might feel like you have to go to the bathroom a lot. Sometimes, if you are tired, you might trip or fall. ...",
+    ],
+  },
+];
+---
+
+<Figure
+  number={Astro.props.number}
+  title="One education question answered by the unchanged model and with the plain direction added"
+  caption="The question was “Why do I have to take a water pill every morning?”, with no system prompt. The opening lines of each reply are shown verbatim, with formatting marks removed. The reading grade under each reply is the Flesch-Kincaid grade of the full reply; the grades in the text are means over 16 questions."
+  hint={false}
+>
+  <div class="rpair">
+    {replies.map((r) => (
+      <div class="rpair-col">
+        <div class="rview-bubble rview-model">
+          <span class="rview-who">{r.who}</span>
+          {r.paragraphs.map((p) => <p>{p}</p>)}
+        </div>
+        <p class="rpair-grade">Reading grade {r.grade}</p>
+      </div>
+    ))}
+  </div>
+</Figure>
+
+<style>
+  .rpair {
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .rpair {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .rpair .rview-bubble {
+    max-width: none;
+  }
+  .rfig .rpair-grade,
+  :global(.prose-page) .rfig .rpair-grade {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #232c54;
+  }
+</style>

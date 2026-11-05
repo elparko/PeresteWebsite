@@ -1,0 +1,279 @@
+---
+import Figure from "./Figure.astro";
+
+interface Props {
+  number: number;
+}
+---
+
+<Figure
+  number={Astro.props.number}
+  title="Replies from the base and edited model, side by side"
+  caption="Replies use greedy decoding, are cut at 160 tokens, and are shown as generated, including their errors. They come from the research model described in this post and are not medical advice."
+  hint={false}
+>
+  <div class="rview" data-rview data-src="/blog/advice-vs-education/replies.json">
+    <div class="rview-controls">
+      <div class="rfig-tabs" role="group" aria-label="Prompt set" style="margin-bottom:0">
+        <button type="button" class="rfig-tab" data-set="study" aria-pressed="true">Study prompts</button>
+        <button type="button" class="rfig-tab" data-set="redteam" aria-pressed="false">Prompts written to break the gates</button>
+      </div>
+      <label class="sr-only" for="rview-message">Prompt</label>
+      <select id="rview-message" class="rview-select" data-message></select>
+      <div class="rfig-tabs" role="group" aria-label="Edited version" data-versions style="margin-bottom:0"></div>
+      <p class="rfig-about" data-version-about style="margin-bottom:0"></p>
+    </div>
+    <div class="rview-thread" data-thread>
+      <p>Loading the replies.</p>
+    </div>
+    <p class="rview-codes" data-codes aria-live="polite"></p>
+  </div>
+</Figure>
+
+<script>
+  type Reply = { reply: string; fire: boolean; stance: string[]; first: string[]; false: string[] };
+  type Item = {
+    id: string;
+    cls?: string;
+    family?: string;
+    label: string;
+    prompt: string | { role: string; content: string }[];
+    replies: Record<string, Reply>;
+  };
+  type Data = {
+    classes: Record<string, string>;
+    items: Item[];
+    redteam: { items: Item[] };
+  };
+
+  const PREFILL =
+    "This is general information, not advice about your own case; a clinician who can examine you should decide what applies to you.";
+  const VERSION: Record<string, string> = {
+    gated_shift_L16_a1_prefill: "Gated edit with a fixed first sentence",
+    gated_shift_L16_a1: "Gated edit",
+    removal_L16_a1: "Permanent removal",
+    shift_prefill: "Gated edit with a fixed first sentence",
+  };
+  const ABOUT: Record<string, string> = {
+    gated_shift_L16_a1:
+      "Gated edit: the advice direction is subtracted inside the model only on prompts that the gates read as an advice request and not as an emergency. On every other prompt the model runs unchanged.",
+    gated_shift_L16_a1_prefill:
+      "Gated edit with a fixed first sentence: the same gated edit, and every edited reply begins with one fixed sentence that we wrote, highlighted below, placed before the model writes anything. The sentence is not the model's words and is not scored. The section on why the edit removes the referral explains it.",
+    shift_prefill:
+      "Gated edit with a fixed first sentence: the advice direction is subtracted only where the gates allow it, and every edited reply begins with one fixed sentence that we wrote, highlighted below, placed before the model writes anything. The sentence is not the model's words and is not scored.",
+    removal_L16_a1:
+      "Permanent removal: the advice direction is deleted from the model's weights, so it affects every prompt, including emergencies. There are no gates.",
+  };
+  const CLASS: Record<string, string> = {
+    advice_general: "General advice requests",
+    advice_routine: "Advice requests, routine cases",
+    advice_urgent: "Advice requests, same-day cases",
+    advice_emergency: "Emergencies",
+    advice_emergency_fresh: "Emergencies, new wording",
+    education_mixed: "Education with personal context",
+    education: "Education questions",
+    education_bank: "Patient question bank",
+    nonmedical: "Non-medical questions",
+  };
+  const FAMILY: Record<string, string> = {
+    disguised_advice: "Advice disguised as a general question",
+    third_person_proxy: "Advice for another person",
+    advice_inside_education: "Advice embedded in an education question",
+    student_framing: "A student asks about a patient",
+    calm_emergency: "An emergency described calmly",
+    emergency_in_education: "An emergency embedded in an education question",
+    two_turn: "The request in a second turn",
+    sloppy_advice: "Typos, run-on text, no question mark",
+    cued_emergency: "An emergency preceded by a sentence about insurance or transport",
+    education_with_dose: "Education questions about doses",
+  };
+  const FIRST: Record<string, string> = {
+    ems_now: "call 911",
+    go_to_er_yourself: "go to the emergency room yourself",
+    clinic_today_or_urgent_care: "be seen at a clinic today",
+    clinic_routine_or_call_doctor: "call the doctor",
+    home_care_or_wait: "home care or wait",
+    unclear: "unclear",
+  };
+  const STANCE: Record<string, string> = {
+    education_only: "education only",
+    individualized_advice: "individualized advice",
+    emergency_redirect: "emergency redirect",
+    refusal_only: "refusal only",
+    unclear: "unclear",
+  };
+
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  };
+
+  function inline(parent: HTMLElement, text: string) {
+    text.split(/(\*\*[^*]+\*\*)/g).forEach((part) => {
+      if (part.startsWith("**") && part.endsWith("**")) parent.append(el("strong", undefined, part.slice(2, -2)));
+      else if (part) parent.append(part.replace(/\*/g, ""));
+    });
+  }
+
+  function renderReply(box: HTMLElement, raw: string) {
+    let text = raw.replace(/\r/g, "").replace(/\*+\s*$/, "").replace(/\n\s*([*\-•]|\d+\.)\s*$/, "");
+    if (text.startsWith(PREFILL)) {
+      const p = el("p");
+      p.append(el("span", "rview-mark", PREFILL));
+      box.append(p);
+      text = text.slice(PREFILL.length);
+    }
+    const lines = text.split("\n").map((l) => l.replace(/^#+\s*/, "").trimEnd()).filter((l) => l.trim());
+    const cut = !/[.!?)]\s*$/.test(text.trim());
+    lines.forEach((line, i) => {
+      const tail = cut && i === lines.length - 1 ? " …" : "";
+      const m = line.match(/^\s*([*\-•]|\d+\.)\s+(.*)$/);
+      if (m) {
+        const row = el("div", "rview-li");
+        row.append(el("span", undefined, /\d/.test(m[1]) ? m[1] : "•"));
+        const body = el("span");
+        inline(body, m[2] + tail);
+        row.append(body);
+        box.append(row);
+      } else {
+        const p = el("p");
+        inline(p, line + tail);
+        box.append(p);
+      }
+    });
+  }
+
+  function bubble(kind: string, who: string) {
+    const box = el("div", `rview-bubble ${kind}`);
+    box.append(el("span", "rview-who", who));
+    return box;
+  }
+
+  function codes(r: Reply | undefined) {
+    if (!r || !r.stance.length) return "";
+    const both = (codes: string[], names: Record<string, string>) => [...new Set(codes.map((c) => names[c] ?? c))].join(" and ");
+    const first = r.first.length ? ` First instruction: ${both(r.first, FIRST)}.` : "";
+    const falseNote = r.false.length ? ` A reader noted a false statement: ${r.false.join("; ")}.` : "";
+    return `readers coded ${both(r.stance, STANCE)}.${first}${falseNote}`;
+  }
+
+  function init(root: HTMLElement) {
+    const select = root.querySelector<HTMLSelectElement>("[data-message]")!;
+    const versionsBox = root.querySelector<HTMLElement>("[data-versions]")!;
+    const aboutBox = root.querySelector<HTMLElement>("[data-version-about]")!;
+    const thread = root.querySelector<HTMLElement>("[data-thread]")!;
+    const codesBox = root.querySelector<HTMLElement>("[data-codes]")!;
+    const setButtons = root.querySelectorAll<HTMLButtonElement>("[data-set]");
+    let data: Data;
+    let set = "study";
+    let version = "gated_shift_L16_a1";
+
+    const items = () => (set === "study" ? data.items : data.redteam.items);
+
+    function fillSelect(preferred?: string) {
+      select.replaceChildren();
+      const groups = new Map<string, HTMLOptGroupElement>();
+      items().forEach((item) => {
+        const name = set === "study" ? CLASS[item.cls!] : FAMILY[item.family!];
+        if (!groups.has(name)) {
+          const g = el("optgroup");
+          g.label = name;
+          groups.set(name, g);
+          select.append(g);
+        }
+        const o = el("option", undefined, item.label);
+        o.value = item.id;
+        groups.get(name)!.append(o);
+      });
+      if (preferred && items().some((i) => i.id === preferred)) select.value = preferred;
+    }
+
+    function render() {
+      const item = items().find((i) => i.id === select.value) ?? items()[0];
+      const available = Object.keys(item.replies).filter((k) => k !== "none" && VERSION[k]);
+      const shown = available.includes(version) ? version : available[0];
+
+      versionsBox.replaceChildren(
+        ...available.map((k) => {
+          const b = el("button", "rfig-tab", VERSION[k]);
+          b.type = "button";
+          b.setAttribute("aria-pressed", String(k === shown));
+          b.addEventListener("click", () => {
+            version = k;
+            render();
+          });
+          return b;
+        }),
+      );
+
+      aboutBox.textContent = ABOUT[shown] ?? "";
+      thread.replaceChildren();
+      const turns = Array.isArray(item.prompt) ? item.prompt : [{ role: "user", content: item.prompt }];
+      turns.forEach((t, i) => {
+        const box =
+          t.role === "user"
+            ? bubble("rview-person", turns.length > 1 ? `Person, turn ${Math.floor(i / 2) + 1}` : "Person")
+            : bubble("rview-model", "Model, earlier turn written for the test");
+        box.append(el("p", undefined, t.content));
+        thread.append(box);
+      });
+
+      const base = item.replies.none;
+      const edited = item.replies[shown];
+      const baseBox = bubble("rview-model", "Base model");
+      renderReply(baseBox, base.reply);
+      thread.append(baseBox);
+
+      const applied = edited.fire || shown === "removal_L16_a1";
+      const same = edited.reply === base.reply;
+      const editedBox = bubble(applied ? "rview-model rview-edited" : "rview-model", VERSION[shown]);
+      if (!applied && same) {
+        editedBox.append(el("p", undefined, "A gate blocked the edit on this prompt, so the edited model gives the base model's reply, word for word."));
+      } else {
+        if (!applied) editedBox.append(el("p", undefined, "A gate blocked the edit on this prompt. This reply differs slightly from the base model's because of how prompts were batched at the model's numerical precision."));
+        renderReply(editedBox, edited.reply);
+      }
+      thread.append(editedBox);
+
+      const notes = [codes(base) && `Base model: ${codes(base)}`, !same && codes(edited) && `${VERSION[shown]}: ${codes(edited)}`].filter(Boolean);
+      codesBox.textContent = notes.join(" ");
+    }
+
+    setButtons.forEach((b) =>
+      b.addEventListener("click", () => {
+        set = b.dataset.set!;
+        setButtons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        version = set === "study" ? "gated_shift_L16_a1_prefill" : "shift_prefill";
+        fillSelect(set === "study" ? "main_r03" : undefined);
+        render();
+      }),
+    );
+    select.addEventListener("change", render);
+
+    fetch(root.dataset.src!)
+      .then((r) => r.json())
+      .then((d: Data) => {
+        data = d;
+        fillSelect("main_r03");
+        render();
+      })
+      .catch(() => {
+        thread.replaceChildren(el("p", undefined, "The replies did not load."));
+      });
+  }
+
+  const roots = document.querySelectorAll<HTMLElement>("[data-rview]");
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        init(e.target as HTMLElement);
+      });
+    },
+    { rootMargin: "400px 0px" },
+  );
+  roots.forEach((r) => io.observe(r));
+</script>

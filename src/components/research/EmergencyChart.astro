@@ -1,0 +1,44 @@
+---
+import Figure from "./Figure.astro";
+import { CLASSES, VERSION, edu } from "../../data/research/edu";
+
+interface Props {
+  number: number;
+}
+
+const classes = ["advice_emergency", "advice_emergency_fresh"];
+const versions = edu.conds.map((c) => c.key);
+const color = (v: string) => (v === "removal_L16_a1" ? "#C46A1B" : "#3F518F");
+---
+
+<Figure
+  number={Astro.props.number}
+  title="Emergency replies that name 911 or emergency services on the first line, by version of the model"
+  caption="The gated edit and the gated random direction never open on these prompts, so their replies match the base model. The permanent removal has no gate and acts on every prompt."
+>
+  {classes.map((cls) => (
+    <div class="mb-6 last:mb-0">
+      <p class="rfig-about">{CLASSES[cls].label}, {edu.stance[cls].none.n} prompts</p>
+      <div class="rfig-rows">
+        {versions.map((v) => {
+          const b = edu.stance[cls][v];
+          const value = `${b.ems_first_line} of ${b.n}`;
+          return (
+            <div
+              class="rfig-row rfig-hit"
+              tabindex="0"
+              data-tip={`${VERSION[v]} · ${CLASSES[cls].label}\n911 or emergency services on the first line in ${value} replies.`}
+              aria-label={`${VERSION[v]}: 911 or emergency services on the first line in ${value} replies.`}
+            >
+              <span class="rfig-label">{VERSION[v]}</span>
+              <span class="rfig-track">
+                <span class="rfig-seg" style={`width:${(b.ems_first_line! / b.n) * 100}%;background:${color(v)}`}></span>
+              </span>
+              <span class="rfig-value">{value}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  ))}
+</Figure>

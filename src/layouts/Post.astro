@@ -1,0 +1,54 @@
+---
+import Base from "./Base.astro";
+import { formatDate } from "../data/posts";
+
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  updated?: Date;
+  author: string;
+  tag: string;
+}
+
+const { title, description, date, updated, author, tag } = Astro.props;
+---
+
+<Base title={`${title} · Pereste`} description={description} type="article">
+  <article>
+    <header class="relative overflow-hidden">
+      <div
+        class="absolute inset-0 -z-10"
+        style="background: radial-gradient(70% 55% at 50% 0%, #E6F4F6 0%, rgba(230,244,246,0) 65%);"
+        aria-hidden="true"
+      >
+      </div>
+      <div class="container-page pt-24 pb-10 md:pt-32 md:pb-14">
+        <div class="mx-auto max-w-prose">
+        <a href="/blog" class="eyebrow mb-6 inline-block hover:text-brand-accent">Blog · {tag}</a>
+        <h1>{title}</h1>
+        <p class="lede mt-7">{description}</p>
+        <div class="mt-8 flex flex-wrap gap-x-8 gap-y-1 text-sm text-brand-ink/80">
+          <span>{author}</span>
+          <time datetime={date.toISOString()}>{formatDate(date)}</time>
+          {updated && (
+            <span>
+              <span class="text-brand-muted">Updated</span>{" "}
+              <time datetime={updated.toISOString()}>{formatDate(updated)}</time>
+            </span>
+          )}
+        </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container-page pb-24">
+      <div class="prose-page mx-auto">
+        <slot />
+      </div>
+      <div class="hairline mx-auto mt-16 pt-8 max-w-prose">
+        <a href="/blog" class="link-arrow">All posts</a>
+      </div>
+    </div>
+  </article>
+</Base>

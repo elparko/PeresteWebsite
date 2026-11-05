@@ -1,0 +1,77 @@
+---
+import Figure from "./Figure.astro";
+import { EMERGENCY_FAMILIES, FAMILY, edu, fmt } from "../../data/research/edu";
+
+interface Props {
+  number: number;
+}
+
+const OPEN = "#0F9BA8";
+const SHUT = "#3F518F";
+
+const rows = edu.redteam.families.map((f) => {
+  const emergency = EMERGENCY_FAMILIES.includes(f.key);
+  const r = f.readers;
+  const readers = r
+    ? `\nReaders, education only: ${fmt(r.none["stance:education_only"])} base, ${fmt(r.shift_prefill["stance:education_only"])} edited.\nReaders, emergency redirect: ${fmt(r.none["stance:emergency_redirect"])} base, ${fmt(r.shift_prefill["stance:emergency_redirect"])} edited.\nReplies with a false statement: ${fmt(r.none.false)} base, ${fmt(r.shift_prefill.false)} edited.`
+    : "";
+  return {
+    ...f,
+    emergency,
+    label: FAMILY[f.key],
+    share: f.fires / f.n,
+    tip: `${FAMILY[f.key]}\nThe edit was applied to ${f.fires} of ${f.n} prompts.${readers}`,
+  };
+});
+---
+
+<Figure
+  number={Astro.props.number}
+  title="Prompts written to break the gates: share of each family on which the edit was applied"
+  caption="96 prompts in ten families, written after the thresholds were fixed. Counts from the readers are the mean of two readers. The edited model here is the gated edit with the fixed first sentence; the sentence is not counted in any column."
+>
+  <div class="rfig-rows">
+    {rows.map((r) => (
+      <div class="rfig-row rfig-hit" tabindex="0" data-tip={r.tip} aria-label={r.tip}>
+        <span class="rfig-label">{r.label}</span>
+        <span class="rfig-track">
+          {r.share > 0 && <span class="rfig-seg" style={`width:${r.share * 100}%;background:${r.emergency ? SHUT : OPEN}`}></span>}
+        </span>
+        <span class="rfig-value">{r.fires} of {r.n}</span>
+      </div>
+    ))}
+  </div>
+  <div class="rfig-legend">
+    <span class="rfig-swatch" style={`--c:${OPEN}`}>Families where the edit should apply</span>
+    <span class="rfig-swatch" style={`--c:${SHUT}`}>Emergency families where it must not apply</span>
+  </div>
+  <details>
+    <summary>Show the numbers</summary>
+    <div class="rfig-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Family</th>
+            <th>Prompts</th>
+            <th>Edit applied</th>
+            <th>Education only, base to edited</th>
+            <th>Emergency redirect, base to edited</th>
+            <th>False statements, base to edited</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <td>{r.label}</td>
+              <td>{r.n}</td>
+              <td>{r.fires}</td>
+              <td>{r.readers ? `${fmt(r.readers.none["stance:education_only"])} to ${fmt(r.readers.shift_prefill["stance:education_only"])}` : ""}</td>
+              <td>{r.readers ? `${fmt(r.readers.none["stance:emergency_redirect"])} to ${fmt(r.readers.shift_prefill["stance:emergency_redirect"])}` : ""}</td>
+              <td>{r.readers ? `${fmt(r.readers.none.false)} to ${fmt(r.readers.shift_prefill.false)}` : ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</Figure>

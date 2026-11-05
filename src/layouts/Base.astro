@@ -7,12 +7,14 @@ interface Props {
   title?: string;
   description?: string;
   canonical?: string;
+  type?: "website" | "article";
 }
 
 const {
   title = "Pereste — Healthcare AI, deployed in partnership with institutions.",
   description = "Pereste Health Inc. builds and deploys healthcare AI in partnership with institutions, now spanning six chronic conditions across rural and underserved care.",
   canonical,
+  type = "website",
 } = Astro.props;
 
 const siteUrl = "https://pereste.com";
@@ -44,7 +46,7 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).toString
     />
 
     {/* Open Graph */}
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={type} />
     <meta property="og:site_name" content="Pereste" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

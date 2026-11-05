@@ -1,0 +1,108 @@
+---
+import Figure from "./Figure.astro";
+import { CLASSES, STANCE, VERSION, edu, fmt, type Block } from "../../data/research/edu";
+
+interface Props {
+  number: number;
+  title: string;
+  caption?: string;
+  set: "main" | "dose" | "referral";
+  classes: string[];
+  initial: string;
+}
+
+const { number, title, caption, set, classes, initial } = Astro.props;
+
+const source: Record<string, Record<string, Block>> =
+  set === "main" ? edu.stance : edu[set].classes;
+const versions = set === "main" ? edu.conds.map((c) => c.key) : edu[set].conds.map((c) => c.key);
+
+const columns: { head: string; cell: (b: Block) => string }[] = [
+  { head: "Education only", cell: (b) => fmt(b.stance.education_only) },
+  { head: "Individualized advice", cell: (b) => fmt(b.stance.individualized_advice) },
+  { head: "Emergency redirect", cell: (b) => fmt(b.stance.emergency_redirect) },
+  { head: "Explanation score (1 to 3)", cell: (b) => String(b.explains) },
+  { head: "Replies with a false statement", cell: (b) => fmt(b.false) },
+];
+if (set !== "referral") columns.push({ head: "Names a referral", cell: (b) => (b.referral == null ? "" : `${b.referral} of ${b.n}`) });
+if (set === "main") columns.push({ head: "911 on the first line", cell: (b) => `${b.ems_first_line} of ${b.n}` });
+if (set === "dose") columns.push({ head: "Replies that loop", cell: (b) => `${b.degenerate} of ${b.n}` });
+
+const segmentTip = (cls: string, version: string, b: Block, key: string, label: string) =>
+  `${VERSION[version]} · ${CLASSES[cls].label}\n${fmt(b.stance[key])} of ${b.n} replies coded ${label.toLowerCase()} (mean of two readers).\nFalse statements in ${fmt(b.false)} replies; explanation score ${b.explains} of 3.`;
+---
+
+<Figure number={number} title={title} caption={caption}>
+  <div data-tabset>
+    <div class="rfig-tabs" role="group" aria-label="Prompt class">
+      {classes.map((cls) => (
+        <button type="button" class="rfig-tab" data-tab={cls} aria-pressed={String(cls === initial)}>
+          {CLASSES[cls].label}
+        </button>
+      ))}
+    </div>
+
+    {classes.map((cls) => (
+      <div data-panel={cls} hidden={cls !== initial}>
+        <p class="rfig-about">{CLASSES[cls].about} {source[cls].none.n} prompts.</p>
+        <div class="rfig-rows rfig-rows--wide">
+          {versions.map((v) => {
+            const b = source[cls][v];
+            if (!b) return null;
+            return (
+              <div class="rfig-row">
+                <span class="rfig-label">{VERSION[v]}</span>
+                <span class="rfig-track">
+                  {STANCE.map((s) =>
+                    b.stance[s.key] > 0 ? (
+                      <span
+                        class="rfig-seg rfig-hit"
+                        tabindex="0"
+                        style={`width:${(b.stance[s.key] / b.n) * 100}%;background:${s.color}`}
+                        data-tip={segmentTip(cls, v, b, s.key, s.label)}
+                        aria-label={segmentTip(cls, v, b, s.key, s.label)}
+                      ></span>
+                    ) : null,
+                  )}
+                </span>
+                <span class="rfig-value">{fmt(b.stance.education_only)} of {b.n} education only</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <details>
+          <summary>Show the numbers</summary>
+          <div class="rfig-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  {columns.map((c) => <th>{c.head}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {versions.map((v) => {
+                  const b = source[cls][v];
+                  if (!b) return null;
+                  return (
+                    <tr>
+                      <td>{VERSION[v]}</td>
+                      {columns.map((c) => <td>{c.cell(b)}</td>)}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    ))}
+  </div>
+
+  <div class="rfig-legend">
+    {STANCE.map((s) => (
+      <span class="rfig-swatch" style={`--c:${s.color}`}>{s.label}</span>
+    ))}
+  </div>
+</Figure>

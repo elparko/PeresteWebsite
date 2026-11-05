@@ -1,0 +1,27 @@
+---
+import "../../styles/research.css";
+
+interface Props {
+  number: number;
+  title: string;
+  caption?: string;
+  hint?: boolean;
+}
+
+const { number, title, caption, hint = true } = Astro.props;
+---
+
+<figure class="rfig" data-rfig>
+  <figcaption class="rfig-head">
+    <span class="rfig-num">Figure {number}</span>
+    <span class="rfig-title">{title}</span>
+  </figcaption>
+  <slot />
+  {caption && <p class="rfig-caption">{caption}</p>}
+  {hint && <p class="rfig-hint">Hover, tap, or tab to a bar to see its numbers.</p>}
+  <div class="rfig-tip" role="status" hidden></div>
+</figure>
+
+<script>
+  import "../../scripts/research-figures";
+</script>

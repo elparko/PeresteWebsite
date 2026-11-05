@@ -1,0 +1,45 @@
+---
+import Figure from "./Figure.astro";
+import { CLASSES, edu } from "../../data/research/edu";
+
+interface Props {
+  number: number;
+}
+
+const OPEN = "#0F9BA8";
+const SHUT = "#3F518F";
+
+const rows = edu.classes.map(({ key }) => {
+  const g = edu.gate[key];
+  const c = CLASSES[key];
+  return {
+    ...c,
+    share: g.fires / g.n,
+    value: `${g.fires} of ${g.n}`,
+    color: c.shouldOpen ? OPEN : SHUT,
+    tip: `${c.label}\nThe edit was applied to ${g.fires} of ${g.n} prompts.\n${c.about}`,
+  };
+});
+---
+
+<Figure
+  number={Astro.props.number}
+  title="Share of prompts in each class on which the edit was applied"
+  caption="238 prompts in nine classes. The 24 emergencies in new wording were written after the gates were designed. Where any gate blocks the edit, the model runs unmodified."
+>
+  <div class="rfig-rows">
+    {rows.map((r) => (
+      <div class="rfig-row rfig-hit" tabindex="0" data-tip={r.tip} aria-label={r.tip}>
+        <span class="rfig-label">{r.label}</span>
+        <span class="rfig-track">
+          {r.share > 0 && <span class="rfig-seg" style={`width:${r.share * 100}%;background:${r.color}`}></span>}
+        </span>
+        <span class="rfig-value">{r.value}</span>
+      </div>
+    ))}
+  </div>
+  <div class="rfig-legend">
+    <span class="rfig-swatch" style={`--c:${OPEN}`}>Classes where the edit should apply</span>
+    <span class="rfig-swatch" style={`--c:${SHUT}`}>Classes where it must not apply</span>
+  </div>
+</Figure>

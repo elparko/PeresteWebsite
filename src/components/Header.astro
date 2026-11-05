@@ -2,6 +2,7 @@
 const nav = [
   { href: "/about", label: "About" },
   { href: "/guide", label: "Guide" },
+  { href: "/blog", label: "Blog" },
   { href: "/careers", label: "Careers" },
   { href: "/press", label: "Press" },
 ];
@@ -28,7 +29,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 
     <nav class="hidden md:flex items-center gap-8" aria-label="Primary">
       {nav.map((item) => {
-        const active = path === item.href;
+        const active = path === item.href || path.startsWith(`${item.href}/`);
         return (
           <a
             href={item.href}
@@ -63,7 +64,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
     <nav class="container-page py-3" aria-label="Primary">
       <ul class="flex flex-col">
         {nav.map((item, i) => {
-          const active = path === item.href;
+          const active = path === item.href || path.startsWith(`${item.href}/`);
           return (
             <li class="mobile-nav-item" style={`--i:${i}`}>
               <a
