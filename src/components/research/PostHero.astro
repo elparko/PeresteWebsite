@@ -1,0 +1,114 @@
+---
+import type { MarkdownHeading } from "astro";
+import PostContents from "./PostContents.astro";
+import { formatDate } from "../../data/posts";
+
+interface Props {
+  post: { title: string; description: string; date: Date; updated?: Date; author: string; tag: string };
+  headings?: MarkdownHeading[];
+}
+
+const { post, headings = [] } = Astro.props;
+const sections = headings.filter((h) => h.depth === 2);
+---
+
+<header class="post-hero">
+  <div class="ph-head">
+    <a href="/research" class="eyebrow mb-6 inline-block hover:text-brand-accent"><span aria-hidden="true">←&nbsp;</span>Research</a>
+    <h1>{post.title}</h1>
+  </div>
+  <div class="ph-figure"><slot /></div>
+  <div class="ph-links"><slot name="links" /></div>
+  <div class="ph-meta">
+    <p class="lede">{post.description}</p>
+    <div class="ph-byline">
+      <span>{post.author}</span>
+      <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>
+      {post.updated && (
+        <span>
+          <span class="text-brand-muted">Updated</span>{" "}
+          <time datetime={post.updated.toISOString()}>{formatDate(post.updated)}</time>
+        </span>
+      )}
+    </div>
+  </div>
+</header>
+
+{sections.length >= 3 && <PostContents headings={sections} rail={false} />}
+
+<style is:global>
+  .post-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 1.75rem;
+    margin-bottom: 3rem;
+  }
+  .prose-page .post-hero .ph-figure > figure {
+    margin: 0;
+  }
+  .ph-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.75rem;
+  }
+  .prose-page .post-hero .ph-head a,
+  .prose-page .ph-links a {
+    text-decoration: none;
+  }
+  .prose-page .ph-links a.btn-primary {
+    color: theme("colors.brand.surface");
+    padding: 0.8rem 1.75rem;
+    font-size: 1rem;
+  }
+  .prose-page .post-hero .lede {
+    margin: 0;
+    color: rgb(35 44 84 / 0.8);
+  }
+  .ph-byline {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 2rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: rgb(35 44 84 / 0.8);
+  }
+
+  @media (min-width: 1152px) {
+    .post-wide > .prose-page > .post-hero {
+      --post-full: min(71rem, 100vw - 8rem);
+      width: var(--post-full);
+      margin-inline: calc((100% - var(--post-full)) / 2);
+      margin-bottom: 4.5rem;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      grid-template-rows: auto auto auto 1fr;
+      column-gap: 3.5rem;
+      row-gap: 0;
+      align-items: start;
+    }
+    .post-hero .ph-head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .post-hero .ph-head h1 {
+      font-size: clamp(2.5rem, 1rem + 2.6vw, 3.5rem);
+      line-height: 1.05;
+    }
+    .post-hero .ph-meta {
+      grid-column: 1;
+      grid-row: 2;
+      margin-top: 1.75rem;
+    }
+    .post-hero .ph-links {
+      grid-column: 1;
+      grid-row: 3;
+      margin-top: 2rem;
+    }
+    .post-hero .ph-figure {
+      grid-column: 2;
+      grid-row: 1 / span 4;
+      align-self: center;
+    }
+  }
+</style>

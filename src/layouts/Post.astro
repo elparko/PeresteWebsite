@@ -13,15 +13,25 @@ interface Props {
   tag: string;
   toc?: boolean;
   headings?: MarkdownHeading[];
+  hero?: boolean;
 }
 
-const { title, description, date, updated, author, tag, toc = false, headings = [] } = Astro.props;
+const { title, description, date, updated, author, tag, toc = false, headings = [], hero = false } = Astro.props;
 const sections = toc ? headings.filter((h) => h.depth === 2) : [];
 const showContents = sections.length >= 3;
+const ownHero = hero && showContents;
 ---
 
 <Base title={`${title} · Pereste`} description={description} type="article">
-  <article>
+  <article class:list={[ownHero && "relative"]}>
+    {ownHero ? (
+      <div
+        class="absolute inset-x-0 top-0 -z-10 h-[40rem]"
+        style="background: radial-gradient(70% 55% at 50% 0%, #E6F4F6 0%, rgba(230,244,246,0) 65%);"
+        aria-hidden="true"
+      >
+      </div>
+    ) : (
     <header class="relative overflow-hidden">
       <div
         class="absolute inset-0 -z-10"
@@ -30,7 +40,7 @@ const showContents = sections.length >= 3;
       >
       </div>
       <div class="container-page pt-24 pb-10 md:pt-32 md:pb-14">
-        <div class="mx-auto max-w-prose">
+        <div class:list={["mx-auto", showContents ? "post-measure" : "max-w-prose"]}>
         <a href="/research" class="eyebrow mb-6 inline-block hover:text-brand-accent">Research · {tag}</a>
         <h1>{title}</h1>
         <p class="lede mt-7">{description}</p>
@@ -47,11 +57,12 @@ const showContents = sections.length >= 3;
         </div>
       </div>
     </header>
+    )}
 
-    <div class="container-page pb-24">
+    <div class:list={["container-page pb-24", ownHero && "pt-24 md:pt-32"]}>
       {showContents ? (
-        <div class="post-with-contents">
-          <PostContents headings={sections} />
+        <div class="post-with-contents post-wide">
+          <PostContents headings={sections} top={!ownHero} />
           <div class="prose-page mx-auto">
             <slot />
           </div>
@@ -61,7 +72,7 @@ const showContents = sections.length >= 3;
           <slot />
         </div>
       )}
-      <div class="hairline mx-auto mt-16 pt-8 max-w-prose">
+      <div class:list={["hairline mx-auto mt-16 pt-8", showContents ? "post-measure" : "max-w-prose"]}>
         <a href="/research" class="link-arrow">All research</a>
       </div>
     </div>

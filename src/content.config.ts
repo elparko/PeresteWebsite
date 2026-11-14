@@ -12,6 +12,7 @@ const research = defineCollection({
     tag: z.string().default("Research"),
     draft: z.boolean().default(false),
     toc: z.boolean().default(false),
+    hero: z.boolean().default(false),
   }),
 });
 

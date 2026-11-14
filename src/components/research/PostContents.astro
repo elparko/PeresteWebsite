@@ -3,40 +3,49 @@ import type { MarkdownHeading } from "astro";
 
 interface Props {
   headings: MarkdownHeading[];
+  rail?: boolean;
+  top?: boolean;
 }
 
-const { headings } = Astro.props;
+const { headings, rail = true, top = true } = Astro.props;
 ---
 
-<aside class="post-contents-side" data-post-contents>
-  <nav aria-label="Contents">
-    <p class="post-contents-title" aria-hidden="true">Contents</p>
-    <ol>
-      {headings.map((h) => (
-        <li><a href={`#${h.slug}`} data-slug={h.slug}>{h.text}</a></li>
-      ))}
-    </ol>
-  </nav>
-</aside>
+{rail && (
+  <aside class="pc-rail" data-post-contents data-pc-rail>
+    <nav aria-label="Contents">
+      <div class="pc-track" aria-hidden="true">
+        {headings.map((h) => (
+          <span class="pc-seg" data-seg={h.slug}><i></i></span>
+        ))}
+      </div>
+      <div class="pc-panel">
+        <p class="pc-title" aria-hidden="true">Contents</p>
+        <ol>
+          {headings.map((h) => (
+            <li><a href={`#${h.slug}`} data-slug={h.slug}>{h.text}</a></li>
+          ))}
+        </ol>
+      </div>
+    </nav>
+  </aside>
+)}
 
-<details class="post-contents-top" data-post-contents>
-  <summary>Contents</summary>
-  <nav aria-label="Contents">
-    <ol>
-      {headings.map((h) => (
-        <li><a href={`#${h.slug}`} data-slug={h.slug}>{h.text}</a></li>
-      ))}
-    </ol>
-  </nav>
-</details>
+{top && (
+  <details class="post-contents-top" data-post-contents>
+    <summary>Contents</summary>
+    <nav aria-label="Contents">
+      <ol>
+        {headings.map((h) => (
+          <li><a href={`#${h.slug}`} data-slug={h.slug}>{h.text}</a></li>
+        ))}
+      </ol>
+    </nav>
+  </details>
+)}
 
 <style is:global>
   .post-with-contents {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .post-with-contents > .prose-page {
-    width: 100%;
+    position: relative;
   }
   .post-with-contents .prose-page h2[id] {
     scroll-margin-top: 6rem;
@@ -45,7 +54,31 @@ const { headings } = Astro.props;
     outline: none;
   }
 
-  .post-contents-side {
+  .post-measure {
+    max-width: 68ch;
+  }
+  @media (min-width: 1280px) {
+    .post-measure,
+    .post-wide > .prose-page {
+      max-width: 49rem;
+    }
+    .post-wide > .prose-page > p:not([class]),
+    .post-wide > .prose-page > ul > li,
+    .post-wide > .prose-page > ol > li {
+      font-size: 1.1875rem;
+      line-height: 1.875rem;
+    }
+  }
+  @media (min-width: 1152px) {
+    .post-wide > .prose-page > figure {
+      --post-wide: min(64rem, 100vw - 8rem);
+      width: var(--post-wide);
+      max-width: none;
+      margin-inline: calc((100% - var(--post-wide)) / 2);
+    }
+  }
+
+  .pc-rail {
     display: none;
   }
 
@@ -101,50 +134,103 @@ const { headings } = Astro.props;
     color: theme("colors.brand.accent");
   }
 
-  @media (min-width: 1280px) {
-    .post-with-contents {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 68ch) minmax(0, 1fr);
-      column-gap: 2rem;
-    }
-    .post-with-contents > .prose-page {
-      grid-column: 2;
-      grid-row: 1;
-    }
+  @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
     .post-contents-top {
       display: none;
     }
-    .post-contents-side {
+    .pc-rail {
       display: block;
-      grid-column: 1;
-      grid-row: 1;
-      min-width: 0;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: min(-2.25rem, calc(1.25rem - (100vw - 100%) / 2));
+      width: 1.75rem;
+      z-index: 20;
     }
-    .post-contents-side nav {
+    .pc-rail nav {
       position: sticky;
-      top: 6rem;
-      max-height: calc(100vh - 7.5rem);
-      overflow-y: auto;
-      padding-bottom: 1rem;
+      top: 7rem;
+      padding: 0.5rem 0;
     }
-    .post-contents-title {
-      margin: 0 0 0.75rem;
-      font-size: 0.75rem;
+    .pc-track {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      height: min(17rem, 42vh);
+      cursor: pointer;
+    }
+    .pc-seg {
+      position: relative;
+      flex: 1 1 0;
+      min-height: 5px;
+      width: 3px;
+      border-radius: 2px;
+      overflow: hidden;
+      background: theme("colors.brand.line");
+      transition: width var(--dur-hover) ease;
+    }
+    .pc-seg i {
+      position: absolute;
+      inset: 0;
+      background: theme("colors.brand.accent");
+      transform: scaleY(var(--f, 0));
+      transform-origin: top;
+    }
+    .pc-seg.is-current {
+      width: 6px;
+    }
+    .pc-panel {
+      position: absolute;
+      top: -0.25rem;
+      left: calc(100% - 0.25rem);
+      width: 17.5rem;
+      max-height: calc(100vh - 9rem);
+      overflow-y: auto;
+      padding: 1rem 1rem 0.75rem;
+      border: 1px solid theme("colors.brand.line");
+      border-radius: 0.875rem;
+      background: #ffffff;
+      box-shadow:
+        0 1px 2px rgba(35, 44, 84, 0.06),
+        0 16px 40px -16px rgba(35, 44, 84, 0.22);
+      opacity: 0;
+      transform: translateX(-6px);
+      pointer-events: none;
+      transition:
+        opacity var(--dur-menu) var(--ease-out),
+        transform var(--dur-menu) var(--ease-out);
+    }
+    .pc-rail nav:hover .pc-panel,
+    .pc-rail nav:focus-within .pc-panel {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+    .pc-rail nav.is-dismissed .pc-panel {
+      opacity: 0;
+      transform: translateX(-6px);
+      pointer-events: none;
+    }
+    .pc-title {
+      margin: 0 0 0.625rem;
+      font-size: 0.6875rem;
       line-height: 1rem;
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: theme("colors.brand.muted");
     }
-    .post-contents-side ol {
+    .pc-panel ol {
       margin: 0;
       padding: 0;
       list-style: none;
       border-left: 1px solid theme("colors.brand.line");
     }
-    .post-contents-side a {
+    .pc-panel a {
       display: block;
       margin-left: -1px;
-      padding: 0.375rem 0 0.375rem 0.875rem;
+      padding: 0.3125rem 0 0.3125rem 0.75rem;
       border-left: 2px solid transparent;
       font-size: 0.8125rem;
       line-height: 1.35;
@@ -153,13 +239,13 @@ const { headings } = Astro.props;
         color var(--dur-hover) ease,
         border-color var(--dur-hover) ease;
     }
-    .post-contents-side a:hover {
+    .pc-panel a:hover {
       color: theme("colors.brand.ink");
     }
-    .post-contents-side a:focus-visible {
+    .pc-panel a:focus-visible {
       outline-offset: -2px;
     }
-    .post-contents-side a[aria-current="location"] {
+    .pc-panel a[aria-current="location"] {
       color: theme("colors.brand.ink");
       border-left-color: theme("colors.brand.accent");
     }
@@ -167,7 +253,9 @@ const { headings } = Astro.props;
 
   @media (prefers-reduced-motion: reduce) {
     .post-contents-top summary::after,
-    .post-contents-side a {
+    .pc-seg,
+    .pc-panel,
+    .pc-panel a {
       transition: none;
     }
   }
@@ -180,10 +268,15 @@ const { headings } = Astro.props;
     .map((s) => document.getElementById(s))
     .filter((h): h is HTMLElement => h !== null);
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const sideNav = document.querySelector<HTMLElement>(".post-contents-side nav");
+  const railNav = document.querySelector<HTMLElement>("[data-pc-rail] nav");
+  const panel = railNav?.querySelector<HTMLElement>(".pc-panel") ?? null;
+  const segs = [...document.querySelectorAll<HTMLElement>("[data-pc-rail] .pc-seg")];
+  const prose = headings[0]?.closest<HTMLElement>(".prose-page") ?? null;
 
   let current: string | null | undefined;
   let pinned: string | null = null;
+  let tops: number[] = [];
+  let ends: number[] = [];
 
   const setActive = (slug: string | null) => {
     if (slug === current) return;
@@ -192,20 +285,40 @@ const { headings } = Astro.props;
       if (a.dataset.slug === slug) a.setAttribute("aria-current", "location");
       else a.removeAttribute("aria-current");
     }
-    const link = sideNav?.querySelector<HTMLElement>(`a[data-slug="${slug}"]`);
-    if (sideNav && link && sideNav.scrollHeight > sideNav.clientHeight) {
-      const box = sideNav.getBoundingClientRect();
+    for (const s of segs) s.classList.toggle("is-current", s.dataset.seg === slug);
+    const link = panel?.querySelector<HTMLElement>(`a[data-slug="${slug}"]`);
+    if (panel && link && panel.scrollHeight > panel.clientHeight) {
+      const box = panel.getBoundingClientRect();
       const r = link.getBoundingClientRect();
-      if (r.top < box.top) sideNav.scrollTop -= box.top - r.top;
-      else if (r.bottom > box.bottom) sideNav.scrollTop += r.bottom - box.bottom;
+      if (r.top < box.top) panel.scrollTop -= box.top - r.top;
+      else if (r.bottom > box.bottom) panel.scrollTop += r.bottom - box.bottom;
     }
   };
 
   const atBottom = () => window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+  const readingLine = () => window.innerHeight * (atBottom() ? 1 : 0.35);
+
+  const measure = () => {
+    if (!segs.length || !prose) return;
+    tops = headings.map((h) => h.getBoundingClientRect().top + window.scrollY);
+    const bottom = prose.getBoundingClientRect().bottom + window.scrollY;
+    ends = tops.map((_, i) => tops[i + 1] ?? bottom);
+    segs.forEach((s, i) => (s.style.flexGrow = String(Math.max(ends[i] - tops[i], 1))));
+  };
+
+  const paint = () => {
+    if (!segs.length) return;
+    const line = window.scrollY + readingLine();
+    segs.forEach((s, i) => {
+      const f = Math.min(1, Math.max(0, (line - tops[i]) / (ends[i] - tops[i])));
+      s.style.setProperty("--f", f.toFixed(3));
+    });
+  };
 
   const update = () => {
+    paint();
     if (pinned) return setActive(pinned);
-    const line = window.innerHeight * (atBottom() ? 1 : 0.35);
+    const line = readingLine();
     let slug: string | null = null;
     for (const h of headings) {
       if (h.getBoundingClientRect().top <= line) slug = h.id;
@@ -226,8 +339,14 @@ const { headings } = Astro.props;
   const lineObserver = new IntersectionObserver(schedule, { rootMargin: "0px 0px -65% 0px" });
   headings.forEach((h) => lineObserver.observe(h));
   const jumpObserver = new IntersectionObserver(schedule);
-  const prose = headings[0]?.closest(".prose-page");
   if (prose) [...prose.children].forEach((el) => jumpObserver.observe(el));
+  if (segs.length && prose) {
+    new ResizeObserver(() => {
+      measure();
+      schedule();
+    }).observe(prose);
+  }
+  measure();
   update();
 
   let clickScrolling = false;
@@ -243,6 +362,7 @@ const { headings } = Astro.props;
   };
   window.addEventListener("scrollend", settle);
   window.addEventListener("scroll", () => {
+    if (segs.length) schedule();
     if (clickScrolling) {
       clearTimeout(settleTimer);
       settleTimer = window.setTimeout(settle, 150);
@@ -254,6 +374,14 @@ const { headings } = Astro.props;
     settle();
     unpin();
   });
+
+  if (railNav) {
+    railNav.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") railNav.classList.add("is-dismissed");
+    });
+    railNav.addEventListener("focusin", () => railNav.classList.remove("is-dismissed"));
+    railNav.addEventListener("mouseleave", () => railNav.classList.remove("is-dismissed"));
+  }
 
   for (const a of links) {
     a.addEventListener("click", (event) => {

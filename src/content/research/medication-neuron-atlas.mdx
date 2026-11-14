@@ -6,18 +6,21 @@ author: "Parker Smith"
 tag: "Resource"
 draft: false
 toc: true
+hero: true
 ---
 
 import UnitCard from "../../components/research/atlas/UnitCard.astro";
 import LayerExplorer from "../../components/research/atlas/LayerExplorer.astro";
 import AtlasExplainer from "../../components/research/atlas/AtlasExplainer.astro";
+import PostHero from "../../components/research/PostHero.astro";
 
 export const ATLAS_URL = "/research/medication-neuron-atlas/browse/";
 export const PDF_URL = "/research/medication-neuron-atlas/medication-neuron-atlas.pdf";
 
+<PostHero post={props.post} headings={props.headings}>
 <AtlasExplainer title="Each part of a dose has its own units, at its own depth in the model" />
-
-<p class="atl-cta"><a href={ATLAS_URL} class="btn-primary">Open the atlas<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></p>
+<Fragment slot="links"><a href={ATLAS_URL} class="btn-primary">Open the atlas<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a><a href={PDF_URL} class="link-arrow">Technical report (PDF)</a></Fragment>
+</PostHero>
 
 <p class="atl-lead">Methotrexate taken weekly and methotrexate taken daily differ by one word on a label.</p>
 
