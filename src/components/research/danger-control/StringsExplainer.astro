@@ -18,7 +18,7 @@ const summary = "Two strings and a bank of 200 fine strings. The upper string is
 
 <style is:global>
   .ss { --bg: #ffffff; --ink: #232c54; --muted: #5a6472; --danger: #b4532a; --harmless: #0f8794; --font: "Montserrat", ui-sans-serif, system-ui, sans-serif; margin: 2.5rem 0; }
-  .ss-stage { position: relative; touch-action: pan-y; }
+  .ss-stage { position: relative; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
   .ss-canvas { display: block; width: 100%; }
   .ss .ss-btn { position: absolute; font: 500 11px/1.2 var(--font); letter-spacing: 0.02em; color: var(--ink); background: none; border: 0; padding: 4px 2px; cursor: pointer; text-align: left; text-decoration: underline dotted; text-underline-offset: 4px; text-decoration-color: var(--muted); }
   .ss .ss-btn small { display: block; font-size: 9px; font-weight: 400; color: var(--muted); letter-spacing: 0.04em; margin-top: 3px; }
@@ -35,7 +35,7 @@ const summary = "Two strings and a bank of 200 fine strings. The upper string is
 
 const D = JSON.parse(fig.querySelector("[data-ss-data]").textContent);
 const LINES = {
-  rest: "Touch the <strong>200</strong> fine strings to still them. Then exchange the two small pieces marked attention.",
+  rest: "Touch the <strong>200</strong> fine strings to still them. Then exchange the two small pieces marked attention. Drag to turn it.",
   silenced: "All 200 units silenced. The readings hold: <strong>4.44</strong> and <strong>0.14</strong>.",
   attention: "Attention exchanged within each pair, at the point where the reply begins: <strong>3.89</strong> and <strong>1.43</strong>. Exploratory test.",
 };
@@ -43,11 +43,13 @@ const NUM = { rest: ["4.46", "0.13"], silenced: ["4.44", "0.14"], attention: ["3
 const stage = fig.querySelector(".ss-stage"), canvas = fig.querySelector(".ss-canvas"), ctx = canvas.getContext("2d");
 const bUnits = fig.querySelector(".ss-units"), bAtt = fig.querySelector(".ss-att"), bSound = fig.querySelector(".ss-sound"), line = fig.querySelector(".ss-line");
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const N = 30, TW = 650;
+const N = 30, TW = 650, DEEP = 0.24, TILT = 0.42, YAW0 = -0.3;
 let state = "rest", from = "rest", t0 = -1e9;
-let W = 0, H = 0, dpr = 1, s = 11, x0, x1, yA, yB, bankTop, bankLen, cx, cy, ry;
+let W = 0, H = 0, dpr = 1, s = 11, x0, x1, cx, scale, yA, yB, bankTop, bankLen;
+let yaw = YAW0, yawTo = YAW0, swayT = 0, co = Math.cos(YAW0), si = Math.sin(YAW0), drag = false, lastX = 0, down = null, inside = false;
 let col = {}, colDirty = true;
-const units = D.units.map((u, i) => ({ step: u[0] + 1, f: u[1] / D.neurons, ring: 0, to: 0, pluck: 0, ph: (i * 2.399) % 6.283 }));
+const units = D.units.map((u, i) => { const h = Math.sin(u[1] * 12.9898 + u[0] * 78.233) * 43758.5453, k = h - Math.floor(h);
+  return { step: u[0] + 1, wx: -1 + 2 * (u[0] + 0.08 + k * 0.84) / D.steps, wz: (u[1] / D.neurons - 0.5) * 2 * DEEP, sx: 0, sy: 0, ring: 0, to: 0, pluck: 0, ph: (i * 2.399) % 6.283 }; });
 let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
 const pickSet = () => { const p = (17 + Math.floor(rnd() * 5)) / units.length; units.forEach(u => (u.to = rnd() < p ? 1 : 0)); let c = units.filter(u => u.to).length;
   while (c < 17) { const u = units[Math.floor(rnd() * units.length)]; if (!u.to) { u.to = 1; c++; } } };
@@ -57,77 +59,82 @@ let lastSet = 0;
 const css = n => getComputedStyle(fig).getPropertyValue(n).trim();
 const rgba = (hex, a) => { const v = parseInt(hex.slice(1), 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
 const ease = p => 1 - Math.pow(1 - Math.min(1, Math.max(0, p)), 3);
-const ux = u => x0 + (u.step - 1 + 0.08 + u.f * 0.84) / D.steps * (x1 - x0);
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const PX = (x, z) => cx + (x * co - z * si) * scale, PY = (x, z) => (x * si + z * co) * scale * TILT;
 const ulen = u => bankLen * (0.38 + 0.62 * Math.pow((u.step - 8) / 24, 0.75));
+const quad = (xa, xb, y) => { ctx.beginPath(); [[xa, -DEEP], [xb, -DEEP], [xb, DEEP], [xa, DEEP]].forEach(([x, z], i) => (i ? ctx.lineTo(PX(x, z), y + PY(x, z)) : ctx.moveTo(PX(x, z), y + PY(x, z)))); ctx.closePath(); };
 
 function layout() {
   W = stage.clientWidth; const phone = W < 520;
   s = phone ? 8 : 11.5; bankLen = phone ? 70 : 88;
-  x0 = 6; x1 = W - (phone ? 84 : 86);
-  yA = 22 + 7.5 * s; yB = yA + 4.6 * s + 30; bankTop = yB + 1.9 * s + 46; H = Math.round(bankTop + bankLen + 30);
-  cx = x1; cy = (yA + yB) / 2; ry = (yB - yA) / 2;
+  x0 = 6; x1 = W - (phone ? 84 : 86); cx = (x0 + x1) / 2; scale = (x1 - x0) / 2 / 1.07;
+  const pad = (Math.sin(0.4) + DEEP) * scale * TILT;
+  yA = 22 + 7.5 * s + pad * 0.6; yB = yA + 4.6 * s + 30 + pad; bankTop = yB + 1.9 * s + 40 + pad; H = Math.round(bankTop + bankLen + 30 + pad * 0.7);
   dpr = Math.min(2.5, window.devicePixelRatio || 1);
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.height = H + "px";
-  bUnits.style.left = x0 + "px"; bUnits.style.top = bankTop + 30 + "px";
-  bAtt.style.left = x1 + 24 + "px"; bAtt.style.top = cy - 16 + "px";
+  const c0 = Math.cos(YAW0), s0 = Math.sin(YAW0), rest = (x, z) => (x * s0 + z * c0) * scale * TILT;
+  bUnits.style.left = x0 + "px"; bUnits.style.top = bankTop + rest(-1, DEEP) + 26 + "px";
+  bAtt.style.left = x1 + 24 + "px"; bAtt.style.top = (yA + yB) / 2 + rest(1, 0) - 16 + "px";
   draw(performance.now());
 }
 
-function arcs(base, a, b, p, color, now, bold) {
+function arcs(base, a, b, p, color, now) {
   for (let k = 0; k <= N; k++) {
-    const mean = k === N;
+    const mean = k === N, z = mean ? 0 : ((k + 0.5) / N - 0.5) * 2 * DEEP;
     let v;
     if (mean) { let m = 0; for (let j = 0; j < N; j++) m += a[j] + (b[j] - a[j]) * p; v = m / N; } else v = a[k] + (b[k] - a[k]) * p;
     const wob = still || mean ? 0 : (0.5 + 0.1 * Math.abs(v)) * Math.sin(now / 190 + k * 1.7);
     ctx.beginPath();
-    for (let i = 0; i <= 48; i++) { const u = i / 48, x = x0 + u * (x1 - x0), y = base - v * s * Math.sin(Math.PI * u) + wob * Math.sin(2 * Math.PI * u); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-    ctx.strokeStyle = rgba(color, mean ? 1 : 0.3); ctx.lineWidth = mean ? 1.7 : 0.7; ctx.stroke();
+    for (let i = 0; i <= 48; i++) { const u = i / 48, x = -1 + 2 * u, X = PX(x, z), Y = base + PY(x, z) - v * s * Math.sin(Math.PI * u) + wob * Math.sin(2 * Math.PI * u); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+    ctx.strokeStyle = rgba(color, mean ? 1 : 0.32); ctx.lineWidth = mean ? 1.7 : 0.7; ctx.stroke();
   }
 }
 function diamond(x, y, color) { ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4); ctx.fillStyle = col.bg; ctx.fillRect(-6.5, -6.5, 13, 13); ctx.fillStyle = color; ctx.fillRect(-4.5, -4.5, 9, 9); ctx.restore(); }
+const ends = () => { const ax = PX(1, 0), ay = yA + PY(1, 0), by = yB + PY(1, 0); return { mx: ax, my: (ay + by) / 2, ry: (by - ay) / 2 }; };
 
 function draw(now) {
   if (colDirty) { for (const n of ["bg", "ink", "muted", "danger", "harmless"]) col[n] = css("--" + n); colDirty = false; }
+  co = Math.cos(yaw); si = Math.sin(yaw);
   const p = still ? 1 : ease((now - t0) / TW);
   const sil = state === "silenced" ? p : from === "silenced" ? 1 - p : 0;
   const sw = state === "attention" ? p : from === "attention" ? 1 - p : 0;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-  ctx.font = `500 11px ${css("--font")}`; ctx.textBaseline = "alphabetic";
+  const font = css("--font"), front = co >= 0 ? DEEP : -DEEP;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = "alphabetic";
 
-  // the two strings
+  // the two courses of strings, one string per message, set back in depth
   [[yA, 0, col.danger, "dangerous"], [yB, 1, col.harmless, "harmless"]].forEach(([y, i, c, word]) => {
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.strokeStyle = rgba(col.ink, 0.22); ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.strokeStyle = rgba(col.ink, 0.5); ctx.lineWidth = 1;
+    for (const x of [-1, 1]) { ctx.beginPath(); ctx.moveTo(PX(x, -DEEP), y + PY(x, -DEEP)); ctx.lineTo(PX(x, DEEP), y + PY(x, DEEP)); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(PX(-1, 0), y + PY(-1, 0)); ctx.lineTo(PX(1, 0), y + PY(1, 0)); ctx.strokeStyle = rgba(col.ink, 0.22); ctx.lineWidth = 0.6; ctx.stroke();
     arcs(y, D.msgs[from][i], D.msgs[state][i], p, c, now);
-    const ly = i ? y + 1.9 * s + 16 : y + 18;
-    ctx.textAlign = "left"; ctx.fillStyle = c; ctx.font = `500 11px ${css("--font")}`; ctx.fillText(word, x0, ly);
-    const w = ctx.measureText(word).width; ctx.fillStyle = col.ink; ctx.font = `600 12px ${css("--font")}`; ctx.fillText(NUM[state][i], x0 + w + 8, ly);
-    ctx.beginPath(); ctx.arc(x0, y, 2, 0, 6.2832); ctx.fillStyle = rgba(col.ink, 0.5); ctx.fill();
+    const lx = Math.max(2, PX(-1, front) - 2), ly = y + PY(-1, front) + (i ? 1.9 * s + 14 : 18);
+    ctx.textAlign = "left"; ctx.fillStyle = c; ctx.font = `500 11px ${font}`; ctx.fillText(word, lx, ly);
+    const w = ctx.measureText(word).width; ctx.fillStyle = col.ink; ctx.font = `600 12px ${font}`; ctx.fillText(NUM[state][i], lx + w + 8, ly);
   });
 
   // the exchange loop and the two attention pieces
-  ctx.beginPath(); ctx.ellipse(cx, cy, 15, ry, 0, 0, 6.2832); ctx.setLineDash([2, 4]); ctx.strokeStyle = rgba(col.ink, 0.35); ctx.lineWidth = 0.8; ctx.stroke(); ctx.setLineDash([]);
-  const sx = 15 * Math.sin(Math.PI * sw), sy = ry * Math.cos(Math.PI * sw);
-  diamond(cx + sx, cy - sy, col.danger); diamond(cx - sx, cy + sy, col.harmless);
+  const e = ends();
+  ctx.beginPath(); ctx.ellipse(e.mx, e.my, 15, e.ry, 0, 0, 6.2832); ctx.setLineDash([2, 4]); ctx.strokeStyle = rgba(col.ink, 0.35); ctx.lineWidth = 0.8; ctx.stroke(); ctx.setLineDash([]);
+  const sx = 15 * Math.sin(Math.PI * sw), sy = e.ry * Math.cos(Math.PI * sw);
+  diamond(e.mx + sx, e.my - sy, col.danger); diamond(e.mx - sx, e.my + sy, col.harmless);
 
-  // the bank of 200
-  ctx.beginPath(); ctx.moveTo(x0, bankTop); ctx.lineTo(x1, bankTop); ctx.strokeStyle = rgba(col.ink, 0.45); ctx.lineWidth = 0.9; ctx.stroke();
+  // the bank of 200, each at its step and, in depth, its neuron number
+  quad(-1, 1, bankTop); ctx.strokeStyle = rgba(col.ink, 0.4); ctx.lineWidth = 0.8; ctx.stroke();
   for (const u of units) {
-    const x = ux(u), L = ulen(u), live = (1 - sil) * Math.max(u.ring, u.pluck) + sil * u.pluck * 0.25;
+    const x = (u.sx = PX(u.wx, u.wz)), y = (u.sy = bankTop + PY(u.wx, u.wz)), L = ulen(u), live = (1 - sil) * Math.max(u.ring, u.pluck) + sil * u.pluck * 0.25;
     if (live > 0.03) {
       const amp = (1.3 + 1.6 * u.pluck) * live, ph = still ? 1 : Math.sin(now / 38 + u.ph);
       ctx.strokeStyle = rgba(col.danger, 0.35 + 0.6 * live); ctx.lineWidth = 0.9;
-      for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x, bankTop); ctx.quadraticCurveTo(x + sg * amp * 2 * (still ? 1 : 0.55 + 0.45 * ph * sg), bankTop + L / 2, x, bankTop + L); ctx.stroke(); }
-    } else { ctx.beginPath(); ctx.moveTo(x, bankTop); ctx.lineTo(x, bankTop + L); ctx.strokeStyle = rgba(col.ink, 0.3 - 0.12 * sil); ctx.lineWidth = 0.6; ctx.stroke(); }
-    ctx.beginPath(); ctx.arc(x, bankTop + L, 0.9, 0, 6.2832); ctx.fillStyle = rgba(col.ink, 0.4 - 0.15 * sil); ctx.fill();
+      for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + sg * amp * 2 * (still ? 1 : 0.55 + 0.45 * ph * sg), y + L / 2, x, y + L); ctx.stroke(); }
+    } else { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + L); ctx.strokeStyle = rgba(col.ink, 0.3 - 0.12 * sil); ctx.lineWidth = 0.6; ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(x, y + L, 0.9, 0, 6.2832); ctx.fillStyle = rgba(col.ink, 0.4 - 0.15 * sil); ctx.fill();
   }
-  // the damper
-  const dy = bankTop - 9 + sil * 23, dx0 = x0 + 7 / 32 * (x1 - x0) - 4;
-  ctx.beginPath(); ctx.moveTo(dx0, dy); ctx.lineTo(x1 + 4, dy); ctx.strokeStyle = rgba(col.ink, 0.55 + 0.45 * sil); ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.stroke(); ctx.lineCap = "butt";
-  ctx.beginPath(); ctx.moveTo(x1 + 4, dy); ctx.lineTo(x1 + 4, bankTop - 16); ctx.lineWidth = 0.8; ctx.strokeStyle = rgba(col.ink, 0.45); ctx.stroke();
+  // the damper, a frame that lowers onto the 200
+  quad(-1 + 2 * 7 / 32, 1, bankTop - 10 + sil * 26); ctx.fillStyle = rgba(col.ink, 0.04 + 0.08 * sil); ctx.fill(); ctx.strokeStyle = rgba(col.ink, 0.55 + 0.45 * sil); ctx.lineWidth = 1.5; ctx.stroke();
   // step ticks
-  ctx.font = `500 10px ${css("--font")}`; ctx.fillStyle = col.muted; ctx.textAlign = "center";
-  const tx = n => x0 + (n - 0.5) / 32 * (x1 - x0), ty = bankTop + bankLen + 22;
-  ctx.fillText("step 8", tx(8), ty); ctx.fillText("32", tx(32), ty);
+  ctx.font = `500 10px ${font}`; ctx.fillStyle = col.muted; ctx.textAlign = "center";
+  const tick = (n, label) => { const x = -1 + 2 * (n - 0.5) / 32; ctx.fillText(label, PX(x, front), bankTop + PY(x, front) + bankLen * (0.38 + 0.62 * Math.pow((n - 8) / 24, 0.75)) + 20); };
+  tick(8, "step 8"); tick(32, "32");
 }
 
 function setState(next) {
@@ -140,17 +147,25 @@ function setState(next) {
 bUnits.addEventListener("click", () => setState("silenced"));
 bAtt.addEventListener("click", () => setState("attention"));
 
-// pointer: pluck the fine strings, press the bank to damp it, press the pieces to exchange them
-const zone = (x, y) => (x > x0 - 6 && x < x1 + 8 && y > bankTop - 16 && y < bankTop + bankLen + 8) ? "bank" : (Math.abs(x - cx) < 30 && y > yA - 22 && y < yB + 22) ? "att" : "";
+// pointer: drag to turn, pluck the fine strings, press the bank to damp it, press the pieces to exchange them
+const zone = (x, y) => { const e = ends(); if (Math.abs(x - e.mx) < 30 && y > e.my - e.ry - 22 && y < e.my + e.ry + 22) return "att";
+  const xs = [PX(-1, -DEEP), PX(-1, DEEP), PX(1, -DEEP), PX(1, DEEP)], ys = [PY(-1, -DEEP), PY(-1, DEEP), PY(1, -DEEP), PY(1, DEEP)];
+  return x > Math.min(...xs) - 6 && x < Math.max(...xs) + 6 && y > bankTop + Math.min(...ys) - 16 && y < bankTop + Math.max(...ys) + bankLen + 8 ? "bank" : ""; };
 const pos = e => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
 let lastPluck = -1;
+canvas.addEventListener("pointerenter", () => { inside = true; });
 canvas.addEventListener("pointermove", e => {
-  const [x, y] = pos(e), z = zone(x, y); canvas.style.cursor = z ? "pointer" : "";
+  const [x, y] = pos(e);
+  if (drag) { yawTo = clamp(yawTo + (x - lastX) * 0.006, -0.75, 0.75); lastX = x; if (down && Math.abs(x - down[0]) > 6) down = null; if (still) { yaw = yawTo; draw(performance.now()); } return; }
+  const z = zone(x, y); canvas.style.cursor = z ? "pointer" : "grab";
   if (z !== "bank") return;
-  let best = -1, bd = 7; units.forEach((u, i) => { const d = Math.abs(ux(u) - x); if (d < bd && y < bankTop + ulen(u) + 6) { bd = d; best = i; } });
+  let best = -1, bd = 7; units.forEach((u, i) => { const d = Math.abs(u.sx - x); if (d < bd && y > u.sy - 6 && y < u.sy + ulen(u) + 6) { bd = d; best = i; } });
   if (best >= 0 && best !== lastPluck) { units[best].pluck = 1; lastPluck = best; if (state !== "silenced") ping(best); if (still) draw(performance.now()); }
 });
-canvas.addEventListener("pointerdown", e => { const [x, y] = pos(e), z = zone(x, y); if (z === "bank") setState("silenced"); else if (z === "att") setState("attention"); });
+canvas.addEventListener("pointerdown", e => { const [x, y] = pos(e); drag = true; lastX = x; down = [x, y]; });
+canvas.addEventListener("pointerup", e => { if (drag && down) { const z = zone(down[0], down[1]); if (z === "bank") setState("silenced"); else if (z === "att") setState("attention"); } drag = false; down = null; });
+canvas.addEventListener("pointercancel", () => { drag = false; down = null; });
+canvas.addEventListener("pointerleave", () => { drag = false; down = null; inside = false; });
 
 // sound: two held notes whose loudness follows the two readings, and a faint shimmer from the 200
 let ac = null, gA, gB, soundOn = false;
@@ -171,6 +186,8 @@ bSound.addEventListener("click", () => {
 function frame(now) {
   if (now - lastSet > 1500) { lastSet = now; pickSet(); if (state !== "silenced") { let c = 0; units.forEach((u, i) => { if (u.to && !u.ring && c < 4) { c++; setTimeout(() => ping(i), c * 110); } }); } }
   for (const u of units) { u.ring += (u.to - u.ring) * 0.07; u.pluck *= 0.95; if (u.pluck < 0.02) u.pluck = 0; }
+  if (!inside && !drag) swayT += 0.016;
+  yaw += (yawTo + 0.1 * Math.sin(swayT * 0.4) - yaw) * 0.12;
   draw(now); if (visible) requestAnimationFrame(frame); else running = false;
 }
 new ResizeObserver(layout).observe(stage);
