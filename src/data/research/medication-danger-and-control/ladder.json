@@ -1,0 +1,153 @@
+{
+ "gap": 4.33,
+ "n_pairs": 30,
+ "parts": [
+  {
+   "label": "Whole reply position replaced",
+   "note": "Every part of the position, at all 32 steps. The positive control: it shows the method can change the urgency reading.",
+   "change": -1.862411,
+   "ci": [
+    -2.152531,
+    -1.594106
+   ],
+   "detectable": 0.4028,
+   "detected": true,
+   "source": "Whole position, all layers, other text's values"
+  },
+  {
+   "label": "Attention output only",
+   "note": "Only what the attention parts wrote at the position, at all 32 steps. Exploratory: added after the first results.",
+   "change": -1.860345,
+   "ci": [
+    -2.166339,
+    -1.596871
+   ],
+   "detectable": 0.4096,
+   "detected": true,
+   "source": "Mixing sublayer output, all layers, other text's values"
+  },
+  {
+   "label": "All 294,912 feed-forward neurons replaced",
+   "note": "Every feed-forward neuron at the position, given the other message's values.",
+   "change": 0.025361,
+   "ci": [
+    -0.443529,
+    0.348967
+   ],
+   "detectable": 0.5979,
+   "detected": false,
+   "source": "All 294,912 neurons, other text's values (repeat)"
+  },
+  {
+   "label": "All feed-forward neurons set to average",
+   "note": "Every feed-forward neuron at the position set to its average on the reference text.",
+   "change": -0.72089,
+   "ci": [
+    -0.982476,
+    -0.448157
+   ],
+   "detectable": 0.4117,
+   "detected": true,
+   "source": "All 294,912 neurons, reference mean"
+  },
+  {
+   "label": "200 units chosen on the reading, silenced",
+   "note": "Units ranked by how well they track the urgency reading itself, silenced as in the pilot.",
+   "change": 0.004802,
+   "ci": [
+    -0.011249,
+    0.025861
+   ],
+   "detectable": 0.0266,
+   "detected": false,
+   "source": "200 poles selected on the readout, reference mean where firing (the pilot's ablation)"
+  },
+  {
+   "label": "Pilot's 200 units silenced (rerun)",
+   "note": "The pilot's 200 most predictive units, silenced as in the pilot, rerun on the rented graphics processor.",
+   "change": -0.027242,
+   "ci": [
+    -0.043572,
+    -0.014315
+   ],
+   "detectable": 0.021,
+   "detected": true,
+   "source": "200 poles selected on danger tier, reference mean where firing (the pilot's ablation)"
+  }
+ ],
+ "dose": [
+  {
+   "label": "19 random neurons",
+   "note": "Given the other message's values. Mean of 20 random draws; draws 6 to 20 were added after the first results.",
+   "change": -0.006903,
+   "ci": [
+    -0.020464,
+    0.00716
+   ],
+   "detectable": 0.0205,
+   "detected": false,
+   "source": "19 random neurons, other text's values (mean of 20 draws)"
+  },
+  {
+   "label": "200 random neurons",
+   "note": "Given the other message's values. Mean of 20 random draws; draws 6 to 20 were added after the first results.",
+   "change": -0.00701,
+   "ci": [
+    -0.019337,
+    0.008169
+   ],
+   "detectable": 0.0191,
+   "detected": false,
+   "source": "200 random neurons, other text's values (mean of 20 draws)"
+  },
+  {
+   "label": "2,000 random neurons",
+   "note": "Given the other message's values. Mean of 20 random draws; draws 6 to 20 were added after the first results.",
+   "change": -0.004114,
+   "ci": [
+    -0.020995,
+    0.007235
+   ],
+   "detectable": 0.0215,
+   "detected": false,
+   "source": "2,000 random neurons, other text's values (mean of 20 draws)"
+  },
+  {
+   "label": "20,000 random neurons",
+   "note": "Given the other message's values. Mean of 20 random draws; draws 6 to 20 were added after the first results.",
+   "change": 0.009868,
+   "ci": [
+    -0.045778,
+    0.041004
+   ],
+   "detectable": 0.0653,
+   "detected": false,
+   "source": "20,000 random neurons, other text's values (mean of 20 draws)"
+  },
+  {
+   "label": "100,000 random neurons",
+   "note": "Given the other message's values. Mean of 20 random draws; draws 6 to 20 were added after the first results. This dose was added after the first results.",
+   "change": -0.065454,
+   "ci": [
+    -0.321804,
+    0.120653
+   ],
+   "detectable": 0.3353,
+   "detected": false,
+   "source": "100,000 random neurons, other text's values (mean of 20 draws)"
+  },
+  {
+   "label": "All 294,912 neurons",
+   "note": "Given the other message's values.",
+   "change": 0.025361,
+   "ci": [
+    -0.443529,
+    0.348967
+   ],
+   "detectable": 0.5979,
+   "detected": false,
+   "source": "All 294,912 neurons, other text's values"
+  }
+ ],
+ "source": "readout_study/results/staircase_summary.json"
+}

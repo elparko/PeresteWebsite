@@ -1,0 +1,72 @@
+/* Ladder chart for the post on dangerous doses and control. */
+.dc-rows .rfig-row {
+  align-items: center;
+}
+@media (min-width: 640px) {
+  .dc-rows .rfig-row {
+    grid-template-columns: 12rem minmax(0, 1fr) 11rem;
+  }
+}
+.dc-track,
+.dc-axis {
+  position: relative;
+  display: block;
+  height: 1.5rem;
+}
+.dc-track {
+  border-radius: 6px;
+  background: #f6f8fa;
+}
+.dc-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #dceff1;
+}
+.dc-zero {
+  position: absolute;
+  top: -0.2rem;
+  bottom: -0.2rem;
+  width: 1px;
+  background: #232c54;
+}
+.dc-bar {
+  position: absolute;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  border-radius: 2px;
+}
+.dc-yes {
+  background: #3f518f;
+}
+.dc-no {
+  background: #a9b2c6;
+}
+.dc-ci {
+  position: absolute;
+  top: 50%;
+  height: 0.6rem;
+  margin-top: -0.3rem;
+  border-left: 1.5px solid #232c54;
+  border-right: 1.5px solid #232c54;
+  background: linear-gradient(#232c54, #232c54) center / 100% 1.5px no-repeat;
+}
+.dc-axis {
+  height: 1rem;
+}
+.dc-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: #5a6472;
+}
+@media (max-width: 639px) {
+  .dc-rows .rfig-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dc-axis-row .rfig-label,
+  .dc-axis-row .rfig-value {
+    display: none;
+  }
+}

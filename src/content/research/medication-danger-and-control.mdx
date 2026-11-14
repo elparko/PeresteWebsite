@@ -1,0 +1,119 @@
+---
+title: "Do the units that predict a message's danger control the model's urgency reading?"
+description: "Thousands of units in two open language models respond differently to a safe and a dangerous version of the same regimen, but switching off the most predictive of them left more than 99% of the difference in how urgently the model rates dangerous and harmless messages in place. In an exploratory follow-up, swapping every feed-forward neuron at the start of the reply between a dangerous and a harmless message changed that difference by no detectable amount, while swapping only the attention output, the part that passes information between words, lowered it as much as swapping the whole position."
+date: 2026-11-14
+author: "Parker Smith"
+tag: "Study"
+draft: false
+toc: true
+hero: true
+---
+
+import LadderChart from "../../components/research/danger-control/LadderChart.astro";
+import SixtyMessages from "../../components/research/danger-control/SixtyMessages.astro";
+import PostHero from "../../components/research/PostHero.astro";
+
+<PostHero post={props.post} headings={props.headings}>
+<SixtyMessages />
+</PostHero>
+
+Barely, if at all. In two open language models, thousands of units respond differently to a safe and a dangerous version of the same drug regimen. To test whether those units control how urgent the model judges a message to be, we wrote messages at five levels of danger, from household objects (level 1) to high-alert drugs (level 5), started each reply for the model with the words "Urgency level:" and read how strongly it leaned toward words like High against words like Low. That lean is the urgency reading, and the urgency gap is how much higher it is for the most dangerous messages than for the most harmless ones. Switching off the units that best predicted danger left more than 99% of the urgency gap in place: 0.3% of the gap went in one model, and no more than silencing the same number of randomly chosen units removed in the other.
+
+A follow-up on the smaller model looked at the reply position, the point where it begins its reply. In pairs of one dangerous and one harmless message, we swapped part of the model's internal state there between the two messages: each message received the other message's values for that part. The positive control, a change that should lower the gap if the method works, was swapping the whole position: it lowered the gap by 43%, so the test can detect an effect. Swapping every feed-forward neuron there, the units the atlas maps, changed the gap by no detectable amount. Swapping only the output of the attention part of each step, the part that passes information between words, lowered it as much as swapping the whole position did. This was an exploratory test on one model at one position. Setting every feed-forward neuron there to its average instead lowered the gap by 17%, which may disrupt the urgency reading rather than remove what makes a message urgent.
+
+This is not a test of whether a model gives safe medication advice, and nothing here should guide patient care. It asks where, inside a model, the difference between a safe and a dangerous regimen is represented, and whether the parts that register it are the parts that act on it. The [overview](/research/medication-neuron-atlas/) describes the whole project, and the companion post, [What has a language model learned about a dose?](/research/what-a-model-learned-about-a-dose/), shows where each part of a dose is handled across the model's steps. Every unit of Qwen3-8B can be looked up in the [atlas browser](/research/medication-neuron-atlas/browse/).
+
+## Terms used here
+
+**Token.** The piece of text a language model reads at a time: usually a word or part of a word. "Take 7.5 mg once weekly" is read as tokens such as "Take", " 7", ".", "5", " mg", " once" and " weekly".
+
+**Processing step, or layer.** Every token passes through the same fixed sequence of processing steps, always in the same order. Each step refines the model's working notes about that token, and after the last step the model commits to the next token it writes. Qwen3.5-4B, the model most of this post is about, has 32 steps. The overview and the companion post describe Qwen3-8B, which has 36, so step numbers in this post count out of 32. The technical name for a step is a layer, and the field numbers layers from 0, so layer 16 is step 17 of 32.
+
+**Attention.** The first part of each step, which brings information from earlier tokens into the notes for the current token. In Qwen3.5-4B some steps use standard attention and others a faster variant called Gated DeltaNet that does the same job; this post calls both the attention part, and what it writes into the notes the attention output.
+
+**Neuron.** One of the small computing elements in the second part of each step, the feed-forward part, which works on each token by itself. Qwen3.5-4B has 9,216 per step, or 294,912 in all.
+
+**Unit, or pole.** The high values or the low values of one neuron, treated as separate parts because the two ends can respond to unrelated text. A neuron has two units.
+
+**Fires.** A unit fires on a token when its neuron's value passes a fixed cutoff: above the 97th percentile of that neuron's values on a reference text of a million tokens of drug labels and educational web text, or below the 3rd percentile.
+
+**Silencing, or ablation.** Setting a neuron's value to its average on the reference text wherever its unit was firing, so the unit no longer stands out.
+
+**Reply position.** The last of the fixed formatting tokens, called template tokens, that the chat format adds after the message, which is the point where the model would begin its reply; the words "Urgency level:" that we supply come after it. Everything the model has read about the message is available there, which made it the natural place to look for a decision.
+
+**Urgency reading and urgency gap.** We started the model's reply for it with the words "Urgency level:" and read how strongly it leaned toward words like High against words like Low; that is the urgency reading. The urgency gap is the reading for the most dangerous messages minus the reading for the most harmless ones.
+
+**Swap.** In a pair of one dangerous and one harmless message written in the same sentence frame, to swap a part of the model's state is to give each message the other message's values for that part at the reply position. The part may be the whole position, every feed-forward neuron or only the attention output. If that part holds what makes the dangerous message urgent, the swap should shrink the urgency gap.
+
+## What was asked, and why medication is a good place to ask it
+
+Methotrexate taken weekly and methotrexate taken daily differ by one word, and the daily version can be fatal. Medication text lets an experiment hold everything fixed except the detail that makes a regimen dangerous, and drug labels say which version is dangerous. Whatever differs inside the model between "The label says to take 7.5 mg once weekly" and "... once daily" is a response to the regimen.
+
+The question had two parts. Does the model register the difference between a safe and a dangerous regimen in its units? And if it does, do those units control how urgent the model's reply is? A unit can track something without being what the model uses to act on it, in the way a lab value can correlate with an outcome without being on its causal path. The first test, which we call the pilot, ran on a Mac under a plan registered in advance; a follow-up on a rented graphics processing unit (GPU), described below, tested whether the pilot's intervention could have worked at all.
+
+## Do the models register a dangerous regimen?
+
+They respond to the change, across thousands of units. We wrote 54 pairs of messages in 27 drugs, each pair a safe and a dangerous version of one regimen, in a patient's words or as a medication order. At the reply position of Qwen3.5-4B, 26,573 units separated the safe from the dangerous version in at least three drugs, in a consistent direction. When the safe and dangerous labels were shuffled within each drug, the 95th percentile of that count was 4,702. On Qwen3-8B the count was 22,234, against 5,504 under shuffled labels. The urgency reading rose for the dangerous version in all 27 drugs on both models.
+
+Pairs that differed only in a harmless detail, such as "this morning" against "this evening", were separated by 6,986 units on Qwen3.5-4B and 9,592 on Qwen3-8B. So the response is a broad change of state, not a small set of dose-checking units. The dangerous versions mostly changed the dose tenfold or made the schedule hourly, so these units respond to a large change in the regimen; the study did not show that they detect danger as such.
+
+## Does silencing the most predictive units change the urgency reading?
+
+Not by a meaningful amount. For this test we wrote 150 short messages graded into five levels of danger, from household objects to high-alert drugs. "I think I took methotrexate twice this morning by mistake, once at breakfast and once after" is a level 5 message; the same sentence with "packed my reading glasses" is level 1. A simple formula fitted on the units' values at the reply position predicted the danger level of messages it had not been fitted on with a rank (Spearman) correlation of 0.89 on Qwen3.5-4B and 0.90 on Qwen3-8B. Part of that comes from telling a drug from a household object: on the 90 messages about prescription drugs alone, the correlation was 0.76 on Qwen3.5-4B and 0.70 on Qwen3-8B. On Qwen3.5-4B the units of step 17 of 32 alone reached 0.94.
+
+We then silenced the 50, 200 or 800 most predictive units at the reply position and compared the change in the urgency gap with silencing the same number of random units. On Qwen3.5-4B, 200 units lowered the gap by 0.014, against a gap of 4.32, which is 0.3%. That was more than every one of 200 random sets, so it met the rule we registered in advance, but the difference from random units was below the smallest difference the design could detect across new messages (0.027). On Qwen3-8B, silencing 800 units lowered the gap by 0.011 more than random units (95% interval 0.044 lower to 0.023 higher), against a gap of 11.28, and silencing 50 units raised it by 0.029 more than random units (0.015 to 0.046), a rise of about 0.3% of the gap, in the opposite direction from the prediction. No smallest detectable effect was computed for the Qwen3-8B tests. On both models more than 99% of the gap remained.
+
+One detail explains part of this. Of the 200 chosen units, only about 19 were firing at the reply position of a given message, so silencing changed 19 of 294,912 values. A small effect from so small an intervention means little unless something shows that an intervention at that position can change the urgency reading at all.
+
+## Could silencing units at that point have worked?
+
+The follow-up on Qwen3.5-4B answered that with positive controls. We paired 30 level 5 messages with 30 level 1 messages written in the same sentence frame, and at the reply position swapped part of the internal state between the two messages. If a part of the state at that position holds what makes the dangerous message urgent, swapping it should shrink the gap.
+
+<LadderChart
+  number={1}
+  set="parts"
+  domain={[-2.4, 0.8]}
+  title="In an exploratory test, swapping only the attention output lowers the urgency gap as much as swapping the whole reply position; swapping every feed-forward neuron gives no detectable change"
+  caption="Each row changes one part of the model's state at the reply position in both messages of 30 pairs, by swapping it between the two messages, silencing units, or setting neurons to their average. Bars are the mean change in the urgency gap, which was 4.33 on this machine; more negative means more of the gap removed. Whiskers are 95% intervals from resampling the drugs and objects. The shaded band is the smallest change each test had an 80% chance of detecting. Qwen3.5-4B, rented GPU."
+/>
+
+At this position, swapping the attention output alone lowered the urgency gap by 1.86, as much as swapping everything, while swapping every feed-forward neuron changed it by +0.03. To read the chart, compare each bar with its shaded band: a dark bar reaches beyond its band and is a detected change, and a pale bar inside its band is a change the test could not detect. The first row is the positive control. Swapping the whole reply position, at all 32 steps, lowered the gap by 1.86 (95% interval 1.59 to 2.15), 43% of the gap, so the method changes the urgency reading when it should. Swapping all 294,912 feed-forward neurons at the same position changed the gap by +0.03 (95% interval 0.44 lower to 0.35 higher); a change of 0.60, or 14% of the gap, had an 80% chance of being detected. Swapping only the attention output lowered the gap by 1.86, the same as the whole position. That row was added after the planned results were seen, so it is exploratory.
+
+The two rows that silence 200 units are tiny interventions. The pilot's own 200 units, rerun on the GPU, lowered the gap by 0.027, just beyond the 0.021 that test could detect and 0.6% of the gap. Units ranked by how well they track the urgency reading itself, rather than the danger level, did no better: +0.005, with a smallest detectable change of 0.027. Setting every feed-forward neuron to its average lowered the gap by 0.72 (17%). The urgency reading fell by 0.95 for the dangerous messages. For the harmless ones it fell by 0.23, which is smaller than the 0.31 that comparison could detect, so this row may disrupt the urgency reading rather than remove what makes a message urgent; the data do not settle which.
+
+<LadderChart
+  number={2}
+  set="dose"
+  domain={[-0.7, 0.7]}
+  title="Swapping random feed-forward neurons, from 19 to all 294,912, gives no detectable change in the urgency gap"
+  caption="Random neurons at the reply position swapped between the two messages, averaged over 20 random draws (the all-neurons row has only one possible set); more negative means more of the gap removed. Whiskers are 95% intervals from resampling the drugs and objects; the shaded band is the smallest change each test had an 80% chance of detecting. Five draws per row were planned; draws 6 to 20 and the 100,000-neuron row were added after the first results, and the five planned draws alone also show no detected change. Qwen3.5-4B, rented GPU."
+/>
+
+No number of random neurons we tried, from 19 to all of them, changed the urgency gap by a detectable amount. As in Figure 1, a pale bar inside its shaded band is a change the test could not detect. The smallest detectable change was about 0.02 up to 2,000 neurons, 0.34 at 100,000 and 0.60 at all of them. So the pilot's tiny effect was not only a matter of silencing too few units or the wrong ones. At this position, swapping feed-forward neurons in any number we tried changed the urgency gap by no detectable amount.
+
+## What the attention result shows, and what it does not
+
+It shows that the attention output at the reply position is enough to reproduce the effect of swapping that whole position. It does not show that the feed-forward neurons play no part: swapping the attention output also changes what the neurons at that position receive, and neurons at the message's own tokens may help compute the urgency reading before the reply position. The result comes from one model and one position, and the attention row was added after the planned results were seen.
+
+Most of the urgency gap depends on other positions in any case. After the message, the model's chat format adds nine fixed formatting tokens, called template tokens, and the last of them is the reply position; after it come the tokens of "Urgency level:". The 43% from swapping the reply position has two parts, both measured as shares of the same 4.33 gap: the dangerous message's urgency reading fell by 13% of the gap, and the harmless message's reading rose by 30% of it. Swapping the nine template tokens together with every "Urgency level:" token except the last made the dangerous message's reading fall by 91% of the gap and the harmless message's reading rise by 95% of it, so the two messages' readings nearly traded places.
+
+## The same test on two computers
+
+The pilot ran on a Mac and the follow-up on the rented GPU, with the same model files. The pilot's silencing of 200 units lowered the gap by 0.014 on the Mac and by 0.027 on the GPU. Message by message, the change differed between the two machines by 0.023 on average, as much as the change itself, and the per-message changes correlated at only 0.36. An effect this small is at the level of arithmetic differences between two chips. Its direction, and its advantage over random units on the same messages, held on both machines; its pattern across messages did not.
+
+## What this means for changing a model by adjusting units
+
+A unit that responds to a dangerous regimen is a place where the model responds to a change in the regimen. Nothing here shows it to be a switch for the urgency reading, let alone for what the model says. In Qwen3.5-4B, swapping every feed-forward neuron at the reply position changed the urgency gap by +0.03, and a change of 0.60 (14% of the gap) would probably have been detected. Setting them all to their average instead lowered the gap by 17%, which may disrupt the urgency reading rather than remove what makes a message urgent. In this test, silencing a handful of units barely changed the urgency reading. Any claim that changing units changes a model's advice needs an intervention large enough to matter, a positive control known to change the outcome, and a statement of the smallest effect the test could have seen.
+
+The open question is attention. We do not yet know whether the exploratory attention result repeats in a planned test, at which of the 32 steps swapping the attention output changes the urgency gap, whether the same holds at the "Urgency level:" tokens on which most of the gap depends, or whether any of it holds on Qwen3-8B, where this follow-up was not run. Those are the next tests.
+
+## Limitations
+
+The danger levels were assigned by one person to 30 drugs and objects, six per level, in five sentence frames, so intervals are wide, and the two lowest levels are not prescription drugs. The urgency reading comes from the first words of a reply the experiment began for the model, not from free replies. The follow-up used 30 message pairs on one model. Swapping every feed-forward neuron between two messages creates a state the model never computes on its own.
+
+## Read more
+
+- [Open the atlas](/research/medication-neuron-atlas/browse/) to look up any unit named here.
+- [The atlas overview](/research/medication-neuron-atlas/): what the atlas is, how to read a unit, and how far to trust a card.
+- [What has a language model learned about a dose?](/research/what-a-model-learned-about-a-dose/): where each part of a dosing instruction appears across the 36 steps.
+- [Technical report (PDF)](/research/medication-neuron-atlas/medication-neuron-atlas.pdf): full methods, the audit trail, and the source of every number.

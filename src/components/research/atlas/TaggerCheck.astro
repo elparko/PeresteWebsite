@@ -1,0 +1,50 @@
+---
+import Figure from "../Figure.astro";
+import "../../../styles/research-atlas.css";
+import data from "../../../data/research/medication-neuron-atlas/tagger.json";
+
+interface Props {
+  number: number;
+}
+
+const n = (v: number) => v.toLocaleString("en-US");
+const types = [...data.types.filter((t: any) => t.type !== "Other"), ...data.types.filter((t: any) => t.type === "Other")];
+---
+
+<Figure
+  number={Astro.props.number}
+  title="The word-type rules mislabeled at most 2 of the 45 words checked for each kind of word"
+  caption="Each dot is one randomly drawn token that was read in its sentence; orange dots are tokens that did not belong to their type. With 45 tokens per type, an error rate can be bounded only to below about 6.4% when no error is seen. The type counts are corpus tokens, excluding the first token of each passage."
+>
+  <div class="rfig-rows">
+    {types.map((t: any) => (
+      <div
+        class="rfig-row rfig-hit"
+        tabindex="0"
+        data-tip={`${t.type}: ${t.errors} of ${t.checked} wrong${t.note ? `\n${t.note}` : ""}`}
+      >
+        <span class="rfig-label">{t.type}<br /><span class="rfig-value">{n(t.tokens)} tokens</span></span>
+        <span class="atl-dots" aria-hidden="true">
+          {Array.from({ length: t.checked }, (_, i) => <span class={i < t.errors ? "atl-dot atl-dot--err" : "atl-dot"}></span>)}
+        </span>
+        <span class="rfig-value">{t.errors} of {t.checked} wrong</span>
+      </div>
+    ))}
+  </div>
+  <details>
+    <summary>Notes on each type and the rules changed after a first reading</summary>
+    <div class="rfig-scroll">
+      <table>
+        <thead><tr><th>Type</th><th>Tokens in the corpus</th><th>Read</th><th>Wrong</th><th>Note</th></tr></thead>
+        <tbody>
+          {types.map((t: any) => (
+            <tr><td>{t.type}</td><td>{n(t.tokens)}</td><td>{t.checked}</td><td>{t.errors}</td><td>{t.note ?? ""}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <ul class="rfig-about" style="margin-top:0.75rem;padding-left:1.1rem">
+      {data.rule_changes.map((r: string) => <li>{r}</li>)}
+    </ul>
+  </details>
+</Figure>
