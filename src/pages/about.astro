@@ -1,127 +1,255 @@
 ---
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
-import Section from "../components/Section.astro";
-import Card from "../components/Card.astro";
+import PageOpening from "../components/PageOpening.astro";
+import GlyphArt from "../components/GlyphArt.astro";
 
-// Hero taglines. One renders by default (for no-JS and SEO); a small inline
-// script swaps in a random one per visit.
-const taglines = [
-  "A healthcare AI company built around partnership and patient reality.",
-  "Clinical AI for the patients the health system reaches last.",
-  "Healthcare AI that meets patients where they actually are.",
-  "Clinical AI, built for real patients and deployed in real care.",
-  "Healthcare AI for the people most health tech is never designed for.",
+const practices = [
+  {
+    label: "Educates, does not advise",
+    line: "Guide explains a patient's own records and does not give medical advice. When something sounds urgent, it sends the patient to a person.",
+  },
+  {
+    label: "Through clinics",
+    line: "Patients will enroll in Guide through their clinic. Guide is not sold directly to consumers.",
+  },
+  {
+    label: "Published research",
+    line: "Each study is published with its methods and results.",
+  },
 ];
 ---
 
 <Base
-  title="About · Pereste"
-  description="Pereste Health Inc. is a Louisiana-based healthcare AI company building and deploying clinical AI solutions in partnership with institutions."
+  title="About · Pereste Health"
+  description="Pereste Health Inc. is a Louisiana company that builds Pereste Guide, a voice app that explains a patient's own health record in plain language, and publishes safety research on healthcare AI."
 >
-  <Hero
-    eyebrow="About Pereste"
-    title="A healthcare AI company built around partnership and patient reality."
-    lede="Pereste is a Louisiana-based healthcare AI company. We design clinical AI for the patients hardest to reach, and partner with the institutions already serving them to deploy it."
-  />
+  <PageOpening label="About" title="Pereste Health builds Guide and publishes safety research on healthcare AI.">
+    <p>Pereste Health Inc. is a Louisiana company.</p>
+    <p>Pereste Guide is in development. The research is published on this site.</p>
+    <div slot="figure" class="about-figure">
+      <GlyphArt
+        piece="name-field"
+        label="Rows of the word Pereste, with two cones of brighter letters forming a lighthouse's twin beams."
+        class="about-glyph"
+        ground={true}
+      />
+    </div>
+    <Fragment slot="links">
+      <a href="mailto:parker@pereste.com" class="btn-primary">Contact</a>
+    </Fragment>
+  </PageOpening>
 
-  <script is:inline define:vars={{ taglines }}>
-    const heading = document.querySelector("h1");
-    if (heading && taglines.length) {
-      heading.textContent =
-        taglines[Math.floor(Math.random() * taglines.length)];
-    }
-  </script>
-
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">Why Pereste exists</p>
-      </div>
-      <div class="md:col-span-8 space-y-6">
-        <p class="lede">
-          Across rural America, the patients who need follow-through the most
-          are the ones the system reaches the least. Between visits, care plans
-          go unread and questions go unanswered, and people end up back in the
-          hospital, not for lack of effort, but for lack of anything built for
-          them.
-        </p>
-        <p class="lede">
-          We started Pereste to close that gap: clinical AI that adapts to the
-          person in front of it, deployed inside the institutions already doing
-          the work. We're rooted in Louisiana, among the hardest-hit states in
-          the nation for diabetes, health literacy, and access to care, and
-          building exactly where the need is greatest.
-        </p>
+  <section class="lines" aria-labelledby="two-lines">
+    <div class="container-page">
+      <h2 id="two-lines">Two lines of work</h2>
+      <div class="lines-grid">
+        <div class="line-col">
+          <p class="label-mono">Guide · for patients</p>
+          <p>
+            Guide is a voice app that reads a patient's own discharge papers, lab results and care plan and
+            explains them out loud in plain language. It covers six chronic conditions, with type 2 diabetes
+            as the lead.
+          </p>
+          <a href="/guide/" class="link-arrow">See Guide</a>
+        </div>
+        <div class="line-col">
+          <p class="label-mono">Research · on models</p>
+          <p>
+            We study how language models handle medications and medical advice, in open-weights models and
+            in Claude. The published work is a medication neuron atlas of Qwen3-8B, the DoseGate output
+            layer, and a study of advice versus education in Qwen3.5-4B.
+          </p>
+          <a href="/research/" class="link-arrow">Read the research</a>
+        </div>
       </div>
     </div>
-  </Section>
+  </section>
 
-  <Section tone="subtle">
-    <p class="eyebrow mb-4" data-reveal>What we do</p>
-    <h2 class="max-w-3xl mb-6" data-reveal style="--reveal-delay:60ms">
-      We build the AI, and we deploy it where patients already get care.
-    </h2>
-    <p class="lede max-w-2xl mb-12" data-reveal style="--reveal-delay:120ms">
-      Our first product, Guide, is a voice-first companion that turns a
-      patient's own discharge papers, lab results, and care plan into a calm,
-      plain-language conversation at their own reading level. Building it takes
-      two things, tightly coupled: we develop the adaptive clinical AI behind
-      Guide, and we deploy it inside the hospitals and clinics already caring
-      for patients, running on their systems, under their governance, with no
-      patient data sent to outside AI services.
-    </p>
-    <div class="grid md:grid-cols-2 gap-6">
-      <Card eyebrow="Model" title="AI that adapts to the patient, not the other way around." data-reveal>
-        We develop the underlying AI: adaptive to each patient, grounded in
-        clinical context, and trained to behave well when the stakes are real.
-        Our work is protected by pending intellectual property.
-      </Card>
-      <Card eyebrow="Implementation" title="Deployed inside the institutions we partner with." data-reveal style="--reveal-delay:70ms">
-        Our solutions run where patient data already lives, under the
-        governance the institution already trusts. No PHI egress, no parallel
-        infrastructure to maintain.
-      </Card>
-    </div>
-  </Section>
-
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">Where we're going</p>
-      </div>
-      <div class="md:col-span-8 space-y-6">
-        <p class="lede">
-          Our product, <a href="/guide" class="text-brand-ink underline decoration-brand-line underline-offset-4 hover:decoration-brand-ink">Guide</a>,
-          covers six of the most common chronic conditions (type 2 diabetes,
-          heart failure, chronic kidney disease, COPD, high blood pressure, and
-          obesity), supporting patients between visits, when a care plan is
-          most often misunderstood. The same patients, the same gap.
-        </p>
-        <p class="lede">
-          Pereste is the company that holds that IP and brings Guide to the
-          institutions ready to deploy it.
-        </p>
+  <section class="practice" aria-labelledby="how-we-work">
+    <div class="container-page">
+      <div class="practice-grid">
+        <h2 id="how-we-work">How we work</h2>
+        <dl class="practice-list">
+          {practices.map((p) => (
+            <div>
+              <dt class="label-mono">{p.label}</dt>
+              <dd>{p.line}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </div>
-  </Section>
+  </section>
 
-  <Section>
-    <div class="grid md:grid-cols-12 gap-10 items-end" data-reveal>
-      <div class="md:col-span-8">
-        <p class="eyebrow mb-4">Company</p>
-        <h2 class="max-w-2xl">
-          Pereste Health Inc. Founded and based in Louisiana.
-        </h2>
-      </div>
-      <div class="md:col-span-4">
-        <ul class="space-y-3 text-sm text-brand-ink/80">
-          <li><span class="text-brand-muted">Entity:</span> Pereste Health Inc.</li>
-          <li><span class="text-brand-muted">Headquarters:</span> Louisiana, USA</li>
-          <li><span class="text-brand-muted">Stage:</span> Early, partnering with first deployment sites</li>
-          <li><span class="text-brand-muted">Press / partnerships:</span> <a href="mailto:parker@pereste.com" class="link-arrow">Contact us</a></li>
-        </ul>
+  <section class="people" aria-labelledby="people">
+    <div class="container-page">
+      <div class="people-grid">
+        <div>
+          <h2 id="people">People</h2>
+          <ul class="team">
+            <li>
+              <p class="person">Parker Smith</p>
+              <p class="label-mono">Founder, chief executive officer</p>
+            </li>
+            <li>
+              <p class="person">Drew Mouton</p>
+              <p class="label-mono">Co-founder, chief business officer</p>
+            </li>
+            <li>
+              <p class="person">Ranjith Kumar</p>
+              <p class="label-mono">Co-founder, chief technology officer</p>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="facts-head">Company facts</h2>
+          <dl class="facts">
+            <div>
+              <dt class="label-mono">Legal name</dt>
+              <dd>Pereste Health Inc.</dd>
+            </div>
+            <div>
+              <dt class="label-mono">Based in</dt>
+              <dd>Louisiana, USA</dd>
+            </div>
+            <div>
+              <dt class="label-mono">Contact</dt>
+              <dd><a href="mailto:parker@pereste.com">parker@pereste.com</a></dd>
+            </div>
+          </dl>
+        </div>
       </div>
     </div>
-  </Section>
+  </section>
 </Base>
+
+<style>
+  .team {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .team .label-mono {
+    margin-top: 0.25rem;
+  }
+  .about-figure {
+    min-width: 0;
+  }
+  .about-figure :global(.about-glyph) {
+    aspect-ratio: 8 / 7;
+    border-radius: 1.25rem;
+  }
+
+  .lines {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    background: #f6f8fa;
+    border-top: 1px solid theme("colors.brand.line");
+  }
+  .lines-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  .line-col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.75rem;
+    border-radius: 1.25rem;
+    border: 1px solid theme("colors.brand.line");
+    background: #fff;
+  }
+  .line-col p:not(.label-mono) {
+    max-width: 34rem;
+    color: rgb(35 44 84 / 0.85);
+  }
+  .line-col .link-arrow {
+    margin-top: auto;
+  }
+  @media (min-width: 768px) {
+    .lines-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .line-col {
+      padding: 2.25rem;
+    }
+  }
+
+  .practice {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    background: theme("colors.brand.ink");
+    color: #fff;
+  }
+  .practice .label-mono {
+    color: theme("colors.brand.teal-pale");
+  }
+  .practice-grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+  .practice-grid > * {
+    min-width: 0;
+  }
+  .practice-list {
+    display: grid;
+    gap: 1.75rem;
+  }
+  .practice-list dd {
+    margin-top: 0.4rem;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.85);
+  }
+  @media (min-width: 900px) {
+    .practice-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 4rem;
+    }
+  }
+
+  .people {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+  }
+  .people-grid {
+    display: grid;
+    gap: 3.5rem;
+  }
+  .people-grid > * {
+    min-width: 0;
+  }
+  .person {
+    margin-top: 0.5rem;
+    font-family: theme("fontFamily.display");
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+  .facts {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .facts dd {
+    margin-top: 0.3rem;
+    font-size: 1.0625rem;
+    overflow-wrap: anywhere;
+  }
+  .facts a {
+    text-decoration: underline;
+    text-decoration-color: theme("colors.brand.line");
+    text-underline-offset: 4px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .facts a:hover {
+      text-decoration-color: theme("colors.brand.ink");
+    }
+  }
+  @media (min-width: 900px) {
+    .people-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4rem;
+    }
+  }
+</style>

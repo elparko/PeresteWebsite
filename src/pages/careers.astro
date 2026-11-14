@@ -1,51 +1,86 @@
 ---
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
-import Section from "../components/Section.astro";
+import PageOpening from "../components/PageOpening.astro";
 ---
 
 <Base
-  title="Careers · Pereste"
-  description="Pereste is building a small, deliberate team at the intersection of clinical AI and underserved care."
+  title="Careers · Pereste Health"
+  description="Pereste Health hires clinicians, engineers and researchers to work on Guide and on safety research for healthcare AI."
 >
-  <Hero
-    eyebrow="Careers"
-    title="Building a small, deliberate team."
-    lede="Pereste is early. We're hiring carefully: clinicians, engineers, and operators who want to work on AI that actually meets patients where they are. If that sounds like you, we'd like to hear from you."
-    primaryCta={{ href: "mailto:parker@pereste.com", label: "Reach out" }}
-  />
-
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">How we work</p>
-      </div>
-      <div class="md:col-span-8 space-y-5">
-        <p class="lede">
-          Small team, high ownership. We're partnering with real clinical
-          settings and shipping into them, not running pilots in a vacuum.
-        </p>
-        <p class="lede">
-          We hire for judgment, clarity, and a real interest in the patients
-          we're building for, the people most health tech is never designed
-          around.
-        </p>
-      </div>
-    </div>
-  </Section>
-
-  <Section tone="subtle">
-    <p class="eyebrow mb-4" data-reveal>Open roles</p>
-    <h2 class="max-w-3xl mb-8" data-reveal style="--reveal-delay:60ms">
-      No public roles right now, but we're always interested in talking.
-    </h2>
-    <p class="lede" data-reveal style="--reveal-delay:120ms">
-      If you work at the intersection of healthcare and machine learning, or
-      if you've spent time in rural and community care settings and have
-      thoughts about what's broken, send us a note.
+  <PageOpening label="Careers" title="Building a small, deliberate team.">
+    <p>
+      Pereste is early and hiring carefully: clinicians, engineers and researchers who want to work on
+      Guide or on safety research for healthcare AI. Write to parker@pereste.com.
     </p>
-    <div class="mt-10" data-reveal style="--reveal-delay:180ms">
-      <a href="mailto:parker@pereste.com" class="btn-primary">Email us</a>
+    <a slot="links" href="mailto:parker@pereste.com" class="btn-primary">parker@pereste.com</a>
+  </PageOpening>
+
+  <section class="careers-band hairline">
+    <div class="container-page">
+      <div class="careers-grid">
+        <div>
+          <p class="label-mono mb-4">Open roles</p>
+          <h2>There are no open roles listed right now.</h2>
+        </div>
+        <ul class="areas">
+          <li>
+            <p class="label-mono">Guide</p>
+            <p>A voice app that explains a patient's own health record in plain language.</p>
+            <a href="/guide/" class="link-arrow">See Guide</a>
+          </li>
+          <li>
+            <p class="label-mono">Research</p>
+            <p>Safety research on the AI models used in healthcare.</p>
+            <a href="/research/" class="link-arrow">Read the research</a>
+          </li>
+        </ul>
+      </div>
     </div>
-  </Section>
+  </section>
 </Base>
+
+<style>
+  .careers-band {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+  }
+  .careers-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+  .careers-grid > :global(*) {
+    min-width: 0;
+  }
+  .careers-grid h2 {
+    max-width: 18ch;
+  }
+  .areas {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .areas li {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid theme("colors.brand.line");
+  }
+  .areas li p:not(.label-mono) {
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: rgb(35 44 84 / 0.88);
+  }
+  @media (min-width: 640px) {
+    .areas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2rem;
+    }
+  }
+  @media (min-width: 900px) {
+    .careers-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 4rem;
+    }
+  }
+</style>

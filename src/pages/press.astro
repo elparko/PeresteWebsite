@@ -1,94 +1,183 @@
 ---
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
-import Section from "../components/Section.astro";
+import PageOpening from "../components/PageOpening.astro";
 import ConditionChips from "../components/ConditionChips.astro";
+import { researchItems } from "../data/researchItems";
 
-const snapshot = [
-  { label: "Legal name", value: "Pereste Health Inc." },
-  { label: "Headquarters", value: "Louisiana, USA" },
-  { label: "Sector", value: "Healthcare AI" },
-  { label: "Product", value: "Guide", href: "/guide" },
-  { label: "Conditions covered", value: "Six chronic conditions" },
-  { label: "Deployment", value: "On-premises, inside partner institutions" },
-  { label: "Press contact", value: "parker@pereste.com", href: "mailto:parker@pereste.com" },
+const logos = [
+  { href: "/logos/logo-primary.png", label: "Logo, color" },
+  { href: "/logos/logo-black.png", label: "Logo, black" },
+  { href: "/logos/logo-white.png", label: "Logo, white" },
+  { href: "/logos/pereste-mark.svg", label: "Mark, SVG" },
+  { href: "/logos/pereste-mark-inverse.svg", label: "Mark, inverse SVG" },
 ];
 ---
 
 <Base
-  title="Press · Pereste"
-  description="Press inquiries and company information for Pereste Health Inc."
+  title="Press · Pereste Health"
+  description="Press contact and company facts for Pereste Health Inc., the maker of Guide and a publisher of safety research on the AI models used in healthcare."
 >
-  <Hero
-    eyebrow="Press"
-    title="Press and media inquiries."
-    lede="Pereste Health Inc. is a Louisiana-based healthcare AI company building and deploying clinical AI in partnership with institutions, now across six chronic conditions. For interviews, briefings, or background, reach out."
-    primaryCta={{ href: "mailto:parker@pereste.com", label: "Press inquiries" }}
-  />
+  <PageOpening label="Press" title="Press and media inquiries.">
+    <p>For interviews, briefings or background, write to parker@pereste.com.</p>
+    <a slot="links" href="mailto:parker@pereste.com" class="btn-primary">parker@pereste.com</a>
+  </PageOpening>
 
-  {/* Media contact */}
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10 items-start" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">Media contact</p>
+  <section class="press-band hairline">
+    <div class="container-page">
+      <div class="press-grid">
+        <h2 class="label-mono">Company facts</h2>
+        <dl class="facts">
+          <div class="row">
+            <dt class="label-mono">Legal name</dt>
+            <dd>Pereste Health Inc.</dd>
+          </div>
+          <div class="row">
+            <dt class="label-mono">Based in</dt>
+            <dd>Louisiana, USA</dd>
+          </div>
+          <div class="row">
+            <dt class="label-mono">Guide</dt>
+            <dd>
+              <p>
+                A voice app that reads a patient's own discharge papers, lab results and care plan and
+                explains them out loud in plain language. It does not give medical advice, and it sends
+                the patient to a person when something sounds urgent. Its full name is Pereste Guide.
+              </p>
+              <div class="chips"><ConditionChips /></div>
+              <a href="/guide/" class="link-arrow mt-5">See Guide</a>
+            </dd>
+          </div>
+          <div class="row">
+            <dt class="label-mono">Research</dt>
+            <dd>
+              <ul class="research-list">
+                {researchItems.map((r) => (
+                  <li>
+                    <a href={r.href} class="link-arrow">{r.title}</a>
+                    <span class="label-mono models">{r.models}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="/research/" class="link-arrow mt-5">All research</a>
+            </dd>
+          </div>
+          <div class="row">
+            <dt class="label-mono">Stage</dt>
+            <dd>Pereste Guide is in development and is not yet in use with patients. It is planned for the App Store and Google Play.</dd>
+          </div>
+          <div class="row">
+            <dt class="label-mono">Press contact</dt>
+            <dd><a href="mailto:parker@pereste.com" class="link-arrow">parker@pereste.com</a></dd>
+          </div>
+          <div class="row">
+            <dt class="label-mono">Logos</dt>
+            <dd>
+              <ul class="logo-list">
+                {logos.map((l) => (
+                  <li><a href={l.href} class="link-arrow" download>{l.label}</a></li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        </dl>
       </div>
-      <div class="md:col-span-8">
-        <p class="lede">
-          For interviews, briefings, fact-checks, or background, contact Parker
-          directly. We aim to respond to press within one business day.
+    </div>
+  </section>
+
+  <section class="press-band boiler">
+    <div class="container-page">
+      <div class="press-grid">
+        <div>
+          <h2 class="label-mono">Standard description</h2>
+          <p class="note">Copy freely.</p>
+        </div>
+        <p class="boiler-text">
+          Pereste Health Inc. is a Louisiana company with two lines of work. It builds Pereste Guide, a voice app
+          in development that explains a patient's own records in plain language across six chronic conditions (type 2
+          diabetes, heart failure, chronic kidney disease, COPD, high blood pressure and obesity), for
+          rural and underserved care. It also publishes safety research on the language models used in
+          healthcare.
         </p>
-        <div class="mt-6">
-          <a href="mailto:parker@pereste.com" class="btn-primary">parker@pereste.com</a>
-        </div>
       </div>
     </div>
-  </Section>
-
-  {/* Company snapshot */}
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">Company snapshot</p>
-      </div>
-      <div class="md:col-span-8">
-        <ul class="divide-y divide-brand-line">
-          {snapshot.map((row) => (
-            <li class="py-4 flex justify-between gap-6 text-sm md:text-base">
-              <span class="text-brand-muted">{row.label}</span>
-              <span class="text-brand-ink text-right">
-                {row.href ? (
-                  <a href={row.href} class="link-arrow">{row.value}</a>
-                ) : (
-                  row.value
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <div class="mt-8">
-          <p class="eyebrow mb-4">Conditions Guide covers</p>
-          <ConditionChips />
-        </div>
-      </div>
-    </div>
-  </Section>
-
-  {/* About Pereste — reusable boilerplate */}
-  <Section tone="subtle">
-    <div class="flex items-center justify-between gap-6 mb-4" data-reveal>
-      <p class="eyebrow">About Pereste</p>
-      <p class="text-xs text-brand-muted">Standard description, copy freely</p>
-    </div>
-    <p class="lede max-w-3xl" data-reveal style="--reveal-delay:60ms">
-      Pereste Health Inc. is a Louisiana-based healthcare AI company building and
-      deploying clinical AI in partnership with the institutions that already
-      serve underserved patients. Its product, Guide, is an adaptive, voice-first
-      companion that turns a patient's own records, lab results, and care plan
-      into a spoken conversation at their reading level, currently across six
-      chronic conditions: type 2 diabetes, heart failure, chronic kidney disease,
-      COPD, high blood pressure, and obesity. Guide runs on-premises inside
-      partner institutions, with no patient data sent to outside AI services.
-    </p>
-  </Section>
-
+  </section>
 </Base>
+
+<style>
+  .press-band {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+  }
+  .boiler {
+    background: theme("colors.brand.subtle");
+  }
+  .press-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+  .press-grid > :global(*) {
+    min-width: 0;
+  }
+  .facts {
+    display: grid;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-block: 1.25rem;
+    border-top: 1px solid theme("colors.brand.line");
+  }
+  .row:last-child {
+    border-bottom: 1px solid theme("colors.brand.line");
+  }
+  .row dt {
+    padding-top: 0.2rem;
+  }
+  .row dd {
+    min-width: 0;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: rgb(35 44 84 / 0.88);
+    overflow-wrap: anywhere;
+  }
+  .chips {
+    margin-top: 1.25rem;
+  }
+  .research-list,
+  .logo-list {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .research-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .models {
+    line-height: 1.5;
+  }
+  .note {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: theme("colors.brand.muted");
+  }
+  .boiler-text {
+    max-width: 44rem;
+    font-size: clamp(1.05rem, 1rem + 0.3vw, 1.25rem);
+    line-height: 1.6;
+    color: theme("colors.brand.ink");
+  }
+  @media (min-width: 640px) {
+    .row {
+      grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+      gap: 2rem;
+    }
+  }
+  @media (min-width: 900px) {
+    .press-grid {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: 4rem;
+    }
+  }
+</style>

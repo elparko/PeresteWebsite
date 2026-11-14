@@ -16,18 +16,16 @@ interface Props {
 
 const { eyebrow, title, lede, primaryCta, secondaryCta, image } = Astro.props;
 
-// Build-time check: does the image actually exist?
 let imageReady = false;
 if (image) {
   const fsPath = path.join(process.cwd(), "public", image.src.replace(/^\//, ""));
   imageReady = fs.existsSync(fsPath);
 }
 
-const showRightCol = !!image; // reserve the column whether or not the file is there
+const showRightCol = !!image;
 ---
 
 <section class="relative overflow-hidden">
-  {/* Soft brand wash — teal beam fading into a cool horizon */}
   <div class="hero-bg absolute inset-0 -z-10" aria-hidden="true"></div>
 
   <div class="container-page pt-14 pb-20 md:pt-24 md:pb-28">
@@ -52,7 +50,6 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
       {showRightCol && (
         <div class="lg:col-span-5 flex justify-center lg:justify-end">
           <div class="relative w-full max-w-[248px] lg:max-w-[272px] hero-in-device">
-            {/* Soft teal beam glow behind the device */}
             <div
               class="absolute -inset-10 -z-10 rounded-[56px] opacity-80 blur-3xl"
               style="background: radial-gradient(58% 58% at 50% 42%, #8CCFDB 0%, rgba(140,207,219,0) 70%);"
@@ -60,7 +57,6 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
             ></div>
 
             {imageReady ? (
-              /* App screen presented in a device frame. */
               <div class="device">
                 <img
                   src={image!.src}
@@ -73,7 +69,6 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
                 />
               </div>
             ) : (
-              /* Placeholder — auto-replaced when the real image lands. */
               <div
                 class="aspect-[9/19] w-full rounded-[2.75rem] border border-brand-line bg-gradient-to-b from-brand-subtle to-white shadow-[0_20px_60px_-20px_rgba(35,44,84,0.25)] flex items-center justify-center"
                 role="img"
@@ -85,9 +80,6 @@ const showRightCol = !!image; // reserve the column whether or not the file is t
                     alt=""
                     class="h-12 w-auto opacity-90"
                   />
-                  <p class="text-xs uppercase tracking-[0.18em] text-brand-muted">
-                    Guide
-                  </p>
                 </div>
               </div>
             )}

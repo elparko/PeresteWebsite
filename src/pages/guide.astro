@@ -1,240 +1,361 @@
 ---
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
-import Section from "../components/Section.astro";
-import Card from "../components/Card.astro";
-import CTA from "../components/CTA.astro";
+import PageOpening from "../components/PageOpening.astro";
 import ConditionChips from "../components/ConditionChips.astro";
 
 const screens = [
   {
-    src: "/images/app-medicines.png",
-    alt: "Guide medicines screen: each medicine explained in plain words",
-    eyebrow: "Medicines",
-    title: "Plain-word explainers.",
-    body: "What each medicine is for and when to take it, in everyday language, not the label's.",
+    src: "/images/app-labs.png",
+    alt: "The Guide labs screen, showing A1C and both blood pressure numbers, each on a range bar with a short plain-language note.",
+    label: "Labs",
+    body: "It shows A1C, blood pressure and the other results on a range, with a plain-language note on each one.",
   },
   {
-    src: "/images/app-labs.png",
-    alt: "Guide labs screen: what each number means, in context",
-    eyebrow: "Labs",
-    title: "What your numbers mean.",
-    body: "A1C, blood pressure, and the rest, shown in context with a plain-language read on each.",
+    src: "/images/app-medicines.png",
+    alt: "The Guide medicines screen, listing each medicine with what it is for.",
+    label: "Medicines",
+    body: "It explains what each medicine is for and when to take it, in everyday words instead of the label's.",
   },
   {
     src: "/images/app-visits.png",
-    alt: "Guide visits screen: prepare for the next appointment",
-    eyebrow: "Visits",
-    title: "Walk in prepared.",
-    body: "What's coming up, why it matters, and the questions the patient meant to ask.",
-  },
-];
-
-const routing = [
-  {
-    label: "Educates",
-    body: "Answers questions in plain language, at the patient's own reading level.",
-  },
-  {
-    label: "Declines",
-    body: "Never makes an individual medical decision. That stays with the care team.",
-  },
-  {
-    label: "Escalates",
-    body: "Flags red-flag symptoms to care, and routes anything urgent to a real person.",
+    alt: "The Guide visits screen, showing the next appointment with its reason, doctor and clinic.",
+    label: "Visits",
+    body: "It lists the coming visits, says why each one matters, and helps the patient prepare questions.",
   },
 ];
 ---
 
 <Base
-  title="Guide — Pereste Health"
-  description="Guide is Pereste Health's patient app: a voice-first, plain-language companion that turns a patient's own records into an adaptive conversation across six chronic conditions. HIPAA-secured, grounded in clinical reality."
+  title="Pereste Guide · Pereste Health"
+  description="Pereste Guide is a voice app, in development, that reads a patient's own discharge papers, lab results and care plan and explains them out loud in plain language. It does not give medical advice."
 >
-  <Hero
-    eyebrow="Product · Guide"
-    title="Your care, explained out loud."
-    lede="Guide turns a patient's own discharge papers, lab results, and care plan into a calm, spoken conversation at their reading level. And it knows which symptoms are urgent and need a real person, fast."
-    primaryCta={{ href: "mailto:parker@pereste.com", label: "Talk to our team" }}
-    secondaryCta={{ href: "/about", label: "About Pereste" }}
-    image={{ src: "/images/app-home.png", alt: "Guide app home screen on a phone" }}
-  />
-
-  {/* The problem */}
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">The problem</p>
-      </div>
-      <div class="md:col-span-8 space-y-5">
-        <p class="lede">
-          Aging and rural patients leave the hospital with dense paperwork
-          that's hard to make sense of. Understanding drops, confusion
-          compounds, and preventable readmissions follow.
-        </p>
-      </div>
-    </div>
-  </Section>
-
-  {/* What Guide does */}
-  <Section tone="subtle">
-    <p class="eyebrow mb-4" data-reveal>What Guide does</p>
-    <h2 class="max-w-3xl mb-12" data-reveal style="--reveal-delay:60ms">
-      A conversation that meets every patient where they are.
-    </h2>
-    <div class="grid md:grid-cols-3 gap-6">
-      <Card
-        eyebrow="Plain language"
-        title="Records become a conversation."
-        icon={{ src: "/images/icon-grounded.svg", alt: "" }}
-        data-reveal
-      >
-        Discharge papers and lab results become a calm, personal conversation,
-        not a form to decipher. Guide explains what's already in the patient's
-        record in plain words: their diagnosis, medications, and care plan. It
-        never gives medical advice.
-      </Card>
-      <Card
-        eyebrow="Adaptive"
-        title="Adapts in real time."
-        icon={{ src: "/images/icon-adaptive.svg", alt: "" }}
-        data-reveal
-        style="--reveal-delay:70ms"
-      >
-        Guide senses how much medical language each person is comfortable with
-        and rewrites depth, vocabulary, and pace as the conversation unfolds.
-        It's the same app for an 85-year-old and a younger caregiver.
-      </Card>
-      <Card
-        eyebrow="Private"
-        title="Built for institutional trust."
-        icon={{ src: "/images/icon-onprem.svg", alt: "" }}
-        data-reveal
-        style="--reveal-delay:140ms"
-      >
-        A voice-first app for aging adults, on a HIPAA-secured system Pereste
-        runs itself. Personal health information never leaves a protected
-        environment, and no patient data is sent to outside AI services.
-      </Card>
-    </div>
-  </Section>
-
-  {/* Inside the app */}
-  <Section bordered>
-    <p class="eyebrow mb-4" data-reveal>Inside the app</p>
-    <h2 class="max-w-3xl mb-4" data-reveal style="--reveal-delay:60ms">
-      Designed for an aging, rural population — large type, voice-first, no jargon.
-    </h2>
-    <p class="lede max-w-2xl mb-14" data-reveal style="--reveal-delay:120ms">
-      Live on iOS and Android today, not a concept. The screens below follow Type 2
-      diabetes, the lead condition; the same adaptive conversation works across
-      every one Guide covers.
+  <PageOpening label="Pereste Guide" title="Your care, explained out loud.">
+    <p>
+      Pereste Guide reads a patient's own discharge papers, lab results and care plan, and explains them out
+      loud in plain language. It does not give medical advice. When something sounds urgent, it sends
+      the patient to a person.
     </p>
-    <div class="grid md:grid-cols-3 gap-10 lg:gap-12">
-      {screens.map((s, i) => (
-        <div class="flex flex-col" data-reveal style={`--reveal-delay:${i * 90}ms`}>
-          <div class="relative mx-auto w-full max-w-[228px]">
-            <div
-              class="absolute -inset-8 -z-10 rounded-[48px] opacity-70 blur-3xl"
-              style="background: radial-gradient(58% 58% at 50% 42%, #8CCFDB 0%, rgba(140,207,219,0) 70%);"
-              aria-hidden="true"
-            ></div>
-            <div class="device device-sm">
-              <img
-                src={s.src}
-                alt={s.alt}
-                width="720"
-                height="1558"
-                loading="lazy"
-                decoding="async"
-              />
+    <p>Guide is in development. It is not yet in use with patients.</p>
+    <div slot="figure" class="stage">
+      <div class="phone">
+        <div class="device">
+          <img
+            src="/images/app-home.png"
+            alt="The Guide app's home screen, showing a patient's own A1C result and an upcoming eye exam."
+            width="720"
+            height="1558"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+        <span class="pin pin-a">own records</span>
+        <span class="pin pin-b">plain words, out loud</span>
+        <span class="pin pin-c">urgent goes to a person</span>
+      </div>
+    </div>
+    <a slot="links" href="mailto:parker@pereste.com" class="btn-primary">Ask about Guide</a>
+  </PageOpening>
+
+  <section class="band band-tint">
+    <div class="container-page">
+      <p class="label-mono mb-4">What it does</p>
+      <h2>Three screens, one patient's record.</h2>
+      <ul class="screens">
+        {screens.map((s) => (
+          <li>
+            <div class="screen-frame">
+              <div class="device device-sm">
+                <img src={s.src} alt={s.alt} width="720" height="1558" loading="lazy" decoding="async" />
+              </div>
             </div>
-          </div>
-          <p class="eyebrow mt-8 mb-2">{s.eyebrow}</p>
-          <h3 class="text-xl tracking-tight-2 mb-2">{s.title}</h3>
-          <p class="text-brand-ink/75 leading-relaxed">{s.body}</p>
-        </div>
-      ))}
+            <p class="label-mono mt-6 mb-2">{s.label}</p>
+            <p class="screen-body">{s.body}</p>
+          </li>
+        ))}
+      </ul>
     </div>
-  </Section>
+  </section>
 
-  {/* Conditions */}
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">What it covers</p>
+  <section id="conditions" class="band">
+    <div class="container-page split-grid">
+      <div>
+        <p class="label-mono mb-4">Six chronic conditions</p>
+        <h2>Type 2 diabetes first.</h2>
       </div>
-      <div class="md:col-span-8 space-y-6">
-        <p class="lede">
-          Guide covers six of the most common chronic conditions, the ones
-          where a misunderstood care plan turns into a preventable readmission:
-        </p>
+      <div class="col">
         <ConditionChips />
-        <p class="lede">
-          They share a population, an aging one in rural and underserved
-          communities, and a failure mode: a care plan that's never fully
-          understood. These conditions rarely travel alone — most patients carry
-          two or more at once — and Guide meets each patient where they are,
-          whatever the diagnosis.
+        <p class="body">
+          Guide covers six chronic conditions, and type 2 diabetes is the lead condition.
         </p>
       </div>
     </div>
-  </Section>
+  </section>
 
-  {/* Accurate and honest — trust */}
-  <Section tone="subtle">
-    <p class="eyebrow mb-4" data-reveal>Accurate and honest</p>
-    <h2 class="max-w-3xl mb-6" data-reveal style="--reveal-delay:60ms">Safe by architecture, not by hope.</h2>
-    <p class="lede max-w-2xl mb-12" data-reveal style="--reveal-delay:120ms">
-      Guide is grounded in the patient's own record, so there's nothing to make
-      up. And it's trained to route, not advise.
-    </p>
-    <div class="grid md:grid-cols-3 gap-6 mb-10">
-      {routing.map((r, i) => (
-        <div class="card p-7 md:p-8" data-reveal style={`--reveal-delay:${i * 70}ms`}>
-          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent mb-3">
-            {r.label}
-          </p>
-          <p class="text-brand-ink/80 leading-relaxed">{r.body}</p>
+  <section class="band band-tint" aria-labelledby="why">
+    <div class="container-page split-grid">
+      <div>
+        <p class="label-mono mb-4">Why plain language</p>
+        <h2 id="why">Health literacy in the United States.</h2>
+      </div>
+      <dl class="rows rows-light">
+        <div>
+          <dt class="label-mono">About 90 million</dt>
+          <dd>
+            Americans have literacy skills insufficient for today's healthcare settings.
+            <span class="source">Source: JAMA</span>
+          </dd>
         </div>
-      ))}
+        <div>
+          <dt class="label-mono">36%</dt>
+          <dd>
+            of U.S. adults have basic or below-basic health literacy. Among adults 65 and older, the
+            figure is 59%.
+            <span class="source">Source: AHA Scientific Statement</span>
+          </dd>
+        </div>
+      </dl>
     </div>
-    <ul class="grid sm:grid-cols-2 gap-x-10 gap-y-3 max-w-3xl text-brand-ink/80" data-reveal>
-      <li class="flex gap-3"><span class="text-brand-accent">—</span> An independent safety check reviews every answer before it's spoken.</li>
-      <li class="flex gap-3"><span class="text-brand-accent">—</span> Anything uncertain defaults to "let's ask your care team."</li>
-      <li class="flex gap-3"><span class="text-brand-accent">—</span> Runs on a HIPAA-secured system; no patient data leaves a protected environment.</li>
-      <li class="flex gap-3"><span class="text-brand-accent">—</span> Reads the patient's record; it never changes it.</li>
-    </ul>
-  </Section>
+  </section>
 
-  {/* Where it's heading */}
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">Where it's heading</p>
+  <section class="band band-ink">
+    <div class="container-page split-grid">
+      <div>
+        <p class="label-mono mb-4">Limits</p>
+        <h2>What Guide does not do.</h2>
       </div>
-      <div class="md:col-span-8 space-y-5">
-        <p class="lede">
-          Guide is deploying with rural clinics and the academic partners who
-          serve the patients it's built for, with the patient and clinician apps
-          already live on iOS and Android.
-        </p>
-        <p class="lede">
-          If your institution serves patients who would benefit from a more
-          adaptive, voice-based handoff between visits, we'd like to hear from
-          you.
-        </p>
+      <dl class="rows">
+        <div>
+          <dt class="label-mono">No diagnosis</dt>
+          <dd>Guide does not diagnose, create a treatment plan or change the care team's instructions.</dd>
+        </div>
+        <div>
+          <dt class="label-mono">Care team decides</dt>
+          <dd>Decisions about care stay with the patient and their physician.</dd>
+        </div>
+        <div>
+          <dt class="label-mono">Emergencies</dt>
+          <dd>In an emergency, the patient should call 911 or go to the nearest emergency department, not use Guide.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container-page split-grid">
+      <div>
+        <p class="label-mono mb-4">Access</p>
+        <h2>How it will reach patients.</h2>
+      </div>
+      <dl class="rows rows-light">
+        <div>
+          <dt class="label-mono">Enrollment</dt>
+          <dd>Patients will enroll through a participating clinic. Guide is not sold directly to consumers.</dd>
+        </div>
+        <div>
+          <dt class="label-mono">Status</dt>
+          <dd>Guide is in development. It is not yet in use with patients.</dd>
+        </div>
+        <div>
+          <dt class="label-mono">Apps</dt>
+          <dd>Guide is not yet on the App Store or Google Play. It is planned for both.</dd>
+        </div>
+        <div>
+          <dt class="label-mono">Deployment</dt>
+          <dd>Guide is being built with flexible deployment options.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="band band-tint">
+    <div class="container-page split-grid">
+      <div>
+        <p class="label-mono mb-4">Research</p>
+        <h2>Related research.</h2>
+      </div>
+      <div class="col">
+        <ul class="studies">
+          <li>
+            <a href="/research/advice-vs-education/" class="link-arrow">Advice versus education</a>
+            <p>A study of whether a chat model's internal state separates a request for medical advice from a request for medical education.</p>
+          </li>
+          <li>
+            <a href="/research/dosegate/" class="link-arrow">DoseGate</a>
+            <p>An output layer that fills every medication reference from the patient's medication orders or blocks the output.</p>
+          </li>
+        </ul>
+        <p class="body">This research and Guide come from the same group. The research is meant to inform how Guide is built.</p>
+        <a href="/research/" class="link-arrow">All research</a>
       </div>
     </div>
-  </Section>
-
-  <Section>
-    <CTA
-      eyebrow="For institutions"
-      title="Bring Guide to your patients."
-      body="We partner with clinics, health systems, and academic care settings to deploy Guide in real care workflows, under the governance and security they already trust, with no patient data sent to outside AI services."
-      primaryCta={{ href: "mailto:parker@pereste.com", label: "Start the conversation" }}
-      tone="ink"
-      data-reveal
-    />
-  </Section>
+  </section>
 </Base>
+
+<style>
+  .source {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+    color: theme("colors.brand.muted");
+  }
+  .stage {
+    display: grid;
+    place-items: center;
+    padding-block: 0.5rem;
+  }
+  .phone {
+    position: relative;
+    width: min(60%, 18rem);
+  }
+  .pin {
+    position: absolute;
+    white-space: nowrap;
+    font-family: theme("fontFamily.mono");
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.55rem;
+    border-radius: 3px;
+    background: theme("colors.brand.ink");
+    color: #fff;
+    box-shadow: 0 6px 16px -8px rgba(35, 44, 84, 0.5);
+  }
+  .pin-a {
+    top: 16%;
+    right: calc(100% - 1.25rem);
+  }
+  .pin-b {
+    top: 46%;
+    left: calc(100% - 1.25rem);
+    background: theme("colors.brand.accent-soft");
+    color: #0a6f79;
+    box-shadow: inset 0 0 0 1px theme("colors.brand.accent");
+  }
+  .pin-c {
+    bottom: 14%;
+    right: calc(100% - 1.25rem);
+  }
+  @media (max-width: 1199px) {
+    .pin-a,
+    .pin-c {
+      right: auto;
+      left: -3.25rem;
+    }
+    .pin-b {
+      left: auto;
+      right: -3.25rem;
+    }
+  }
+  @media (max-width: 639px) {
+    .pin {
+      font-size: 0.62rem;
+      padding: 0.3rem 0.4rem;
+    }
+  }
+
+  .band {
+    padding-block: clamp(4rem, 3rem + 5vw, 7rem);
+  }
+  .band h2 {
+    max-width: 18ch;
+  }
+  .band-tint {
+    background: #f6f8fa;
+  }
+  .band-ink {
+    background: theme("colors.brand.ink");
+    color: #fff;
+  }
+  .band-ink .label-mono {
+    color: theme("colors.brand.teal-pale");
+  }
+
+  .split-grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+  .split-grid > * {
+    min-width: 0;
+  }
+  @media (min-width: 900px) {
+    .split-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 4rem;
+    }
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .body {
+    max-width: 36rem;
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: rgb(35 44 84 / 0.85);
+  }
+
+  .screens {
+    display: grid;
+    gap: 3rem;
+    margin-top: 3rem;
+  }
+  .screens > li {
+    min-width: 0;
+  }
+  @media (min-width: 768px) {
+    .screens {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2.5rem;
+    }
+  }
+  .screen-frame {
+    width: min(100%, 15rem);
+  }
+  .screen-body {
+    max-width: 22rem;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: rgb(35 44 84 / 0.85);
+  }
+
+  .rows {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .rows > div {
+    padding-top: 1.25rem;
+    border-top: 1px solid rgb(255 255 255 / 0.18);
+  }
+  .rows-light > div {
+    border-top-color: theme("colors.brand.line");
+  }
+  .rows dd {
+    margin-top: 0.4rem;
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+  .band-ink .rows dd {
+    color: rgb(255 255 255 / 0.88);
+  }
+  .rows-light dd {
+    color: rgb(35 44 84 / 0.88);
+  }
+
+  .studies {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .studies a {
+    font-size: 1.125rem;
+  }
+  .studies p {
+    margin-top: 0.4rem;
+    max-width: 36rem;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: rgb(35 44 84 / 0.85);
+  }
+</style>

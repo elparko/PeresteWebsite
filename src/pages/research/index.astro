@@ -1,58 +1,285 @@
 ---
 import Base from "../../layouts/Base.astro";
-import Hero from "../../components/Hero.astro";
-import Section from "../../components/Section.astro";
+import PageOpening from "../../components/PageOpening.astro";
+import GlyphArt from "../../components/GlyphArt.astro";
+import AtlasExplainer from "../../components/research/atlas/AtlasExplainer.astro";
+import { researchItems } from "../../data/researchItems";
 import { getPublishedPosts, formatDate } from "../../data/posts";
 
-const papers = [
+const items = [...researchItems].sort((a, b) => b.date.localeCompare(a.date));
+const listed = new Set(items.map((r) => r.href));
+const others = (await getPublishedPosts())
+  .map((post) => ({ href: `/research/${post.id}/`, ...post.data }))
+  .filter((post) => !listed.has(post.href));
+
+const studies = [
   {
-    href: "/research/dosegate",
-    title:
-      "A model-agnostic, formally verified output layer that keeps language model medication instructions faithful to medication orders",
-    description:
-      "A Lean 4 output layer that fills every medication reference in a language model's instructions from the patient's medication orders or blocks the output.",
-    date: new Date("2026-11-05"),
-    tag: "Paper",
-    draft: false,
+    label: "Representation",
+    line: "The medication neuron atlas maps where the units of Qwen3-8B respond to drug names, doses, routes and frequencies in FDA drug labels.",
+  },
+  {
+    label: "Advice or education",
+    line: "The advice versus education study tests whether the internal state of Qwen3.5-4B separates a request for medical advice from a request for medical education.",
+  },
+  {
+    label: "Faithful output",
+    line: "DoseGate fills every medication reference in a model's output from the patient's medication orders, or it blocks the output.",
   },
 ];
-
-const posts = [
-  ...(await getPublishedPosts()).map((post) => ({ href: `/research/${post.id}`, ...post.data })),
-  ...papers,
-].sort((a, b) => b.date.valueOf() - a.date.valueOf());
 ---
 
 <Base
-  title="Research · Pereste"
-  description="Papers and studies from Pereste Health on building safe, plain-language healthcare AI."
+  title="Research · Pereste Health"
+  description="Pereste Health publishes safety research on how language models used in healthcare handle medications and medical advice, with the methods and results of each study."
 >
-  <Hero
-    eyebrow="Research"
-    title="Research from Pereste."
-    lede="Papers and studies on building healthcare AI that explains medicine to patients in plain words without giving medical advice or misstating an order."
-  />
+  <PageOpening label="Research" title="Safety research on the AI models used in healthcare.">
+    <p>
+      We study how language models handle medications and medical advice, in open-weights models (Qwen,
+      MedGemma, Llama) and in Claude. Each study publishes its methods and results.
+    </p>
+    <div slot="figure" class="opening-figure">
+      <AtlasExplainer title="Each part of a dose has its own units, at its own depth in the model" />
+    </div>
+    <Fragment slot="links">
+      <a href="/research/medication-neuron-atlas/browse/" class="btn-primary">Open the atlas</a>
+      <a href="/research/medication-neuron-atlas/" class="link-arrow">Read the overview</a>
+    </Fragment>
+  </PageOpening>
 
-  <Section bordered>
-    {posts.length === 0 ? (
-      <p class="text-brand-muted">No posts yet.</p>
-    ) : (
-      <ul class="grid gap-6" data-reveal>
-        {posts.map((post) => (
+  <section class="work" aria-labelledby="published">
+    <div class="container-page">
+      <p class="label-mono mb-4">Published</p>
+      <h2 id="published">Studies, papers and tools.</h2>
+      <ul class="items">
+        {items.map((r) => (
           <li>
-            <a href={post.href} class="card block p-7 md:p-9">
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-muted">
-                <span class="eyebrow text-brand-accent">{post.tag}</span>
-                <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>
-                {post.draft && <span class="eyebrow text-brand-indigo">Draft</span>}
+            <a href={r.href} class="item">
+              <div class="item-figure">
+                {r.glyph ? (
+                  <GlyphArt
+                    piece="open-capsule"
+                    label="A capsule shape picked out in tiles from a field of medicine label words."
+                    class="item-glyph"
+                    options={{ interactive: false }}
+                  />
+                ) : (
+                  <img src={r.image} alt={r.alt} loading="lazy" decoding="async" />
+                )}
               </div>
-              <h3 class="mt-4 max-w-3xl">{post.title}</h3>
-              <p class="mt-3 max-w-prose text-brand-ink/80">{post.description}</p>
-              <span class="link-arrow mt-6">{post.cta ?? "Read"}</span>
+              <div class="item-text">
+                <p class="label-mono">
+                  {r.kind} · <time datetime={r.date}>{formatDate(new Date(r.date))}</time>
+                </p>
+                <p class="label-mono item-models">{r.models}</p>
+                <h3>{r.title}</h3>
+                <p class="item-line">{r.line}</p>
+                <span class="link-arrow mt-6">Read</span>
+              </div>
             </a>
           </li>
         ))}
       </ul>
-    )}
-  </Section>
+
+      {others.length > 0 && (
+        <div class="others">
+          <p class="label-mono mb-4">Also published</p>
+          <ul>
+            {others.map((post) => (
+              <li>
+                <a href={post.href} class="other">
+                  <span class="label-mono">
+                    {post.tag} · <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>
+                    {post.draft && " · Draft"}
+                  </span>
+                  <span class="other-title">{post.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="study" aria-labelledby="what-we-study">
+    <div class="container-page">
+      <div class="study-grid">
+        <div>
+          <p class="label-mono mb-4">Questions</p>
+          <h2 id="what-we-study">What we study</h2>
+        </div>
+        <dl class="study-list">
+          {studies.map((s) => (
+            <div>
+              <dt class="label-mono">{s.label}</dt>
+              <dd>{s.line}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="guide-line">
+    <div class="container-page">
+      <p>
+        Pereste also builds Pereste Guide, a voice app in development that explains a patient's own records in plain language.
+        <a href="/guide/" class="link-arrow ml-1">See Guide</a>
+      </p>
+      <p class="mt-3">Both lines of work come from the same group. The research is meant to inform how Guide is built.</p>
+    </div>
+  </section>
 </Base>
+
+<style>
+  .opening-figure {
+    min-width: 0;
+  }
+  .opening-figure :global(.ax) {
+    margin: 0;
+  }
+
+  .work {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    background: #f6f8fa;
+    border-top: 1px solid theme("colors.brand.line");
+  }
+  .work h2 {
+    max-width: 20ch;
+  }
+  .items {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  .item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 0.75rem 0.75rem 1.75rem;
+    border-radius: 1.25rem;
+    border: 1px solid theme("colors.brand.line");
+    background: #fff;
+    transition:
+      border-color var(--dur-hover) ease,
+      transform 200ms var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .item:hover {
+      border-color: theme("colors.brand.ink");
+      transform: translateY(-2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .item,
+    .item:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+  .item-figure {
+    min-width: 0;
+    width: 100%;
+    height: clamp(18.75rem, 30vw, 24rem);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #f1f4f7;
+  }
+  .item-figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .item-figure :global(.item-glyph) {
+    height: 100%;
+  }
+  .item-text {
+    min-width: 0;
+    padding-inline: 0.5rem;
+  }
+  .item-models {
+    margin-top: 0.5rem;
+    color: theme("colors.brand.muted");
+    line-height: 1.5;
+  }
+  .item h3 {
+    margin-top: 1rem;
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  }
+  .item-line {
+    margin-top: 0.75rem;
+    max-width: 34rem;
+    color: rgb(35 44 84 / 0.82);
+  }
+  @media (min-width: 900px) {
+    .item {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      align-items: center;
+      gap: 2.5rem;
+      padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+    }
+  }
+
+  .others {
+    margin-top: 3rem;
+  }
+  .others ul {
+    border-top: 1px solid theme("colors.brand.line");
+  }
+  .other {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid theme("colors.brand.line");
+  }
+  .other-title {
+    font-family: theme("fontFamily.display");
+    font-weight: 700;
+    font-size: 1.125rem;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .other:hover .other-title {
+      color: theme("colors.brand.accent");
+    }
+  }
+
+  .study {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    background: theme("colors.brand.ink");
+    color: #fff;
+  }
+  .study .label-mono {
+    color: theme("colors.brand.teal-pale");
+  }
+  .study-grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+  .study-grid > * {
+    min-width: 0;
+  }
+  .study-list {
+    display: grid;
+    gap: 1.75rem;
+  }
+  .study-list dd {
+    margin-top: 0.4rem;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.85);
+  }
+  @media (min-width: 900px) {
+    .study-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 4rem;
+    }
+  }
+
+  .guide-line {
+    padding-block: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  }
+  .guide-line p {
+    max-width: 44rem;
+  }
+</style>
