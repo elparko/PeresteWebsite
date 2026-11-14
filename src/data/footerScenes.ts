@@ -13,7 +13,7 @@ export type FooterLayout = "wash" | "band";
 
 /* "wash": the painting sits pale behind the footer's links.
    "band": the links sit on white, and the painting is a full-color band below them. */
-export const footerLayout: FooterLayout = "wash";
+export const footerLayout: FooterLayout = "band";
 
 const scenes = {
   lighthouse: {
