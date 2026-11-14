@@ -88,12 +88,14 @@ const summary = `Every unit of Qwen3-8B with at least ten times the firing rate 
   const cue = mk("div", "cue", matchMedia("(hover: none)").matches ? "Tap a word" : "Point at a word");
   const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const marked = (t) => esc(t).replace(/&lt;&lt;/g, "<mark>").replace(/&gt;&gt;/g, "</mark>");
+  const DEEP = 0.8; let yaw = -0.5, yawTo = -0.5, swayT = 0, drag = false, lastX = 0;
+  const follow = (u) => { const { W, H } = env0, w = pop.offsetWidth, below = u.y < H * 0.5; pop.style.left = clamp(u.x - w / 2, 6, Math.max(6, W - geo.R - w + 10)) + "px"; pop.style.top = below ? u.y + 14 + "px" : ""; pop.style.bottom = below ? "" : H - u.y + 14 + "px"; };
   let env0 = null, hot = -1, sticky = -1, sel = -1, held = false, per = 1, geo, ground, layers = [], intro = 1, touched = false, demo = 2, demoT = 0;
   const act = () => { if (demo === 1) hot = -1; demo = 2; touched = true; cue.classList.add("seen"); };
   const late = units.filter((u) => u.j === 4 && u.step >= 28).sort((a, b) => (/dose/i.test(b.name) ? 1 : 0) - (/dose/i.test(a.name) ? 1 : 0) || b.thr - a.thr);
   const first = Math.max(0, units.indexOf(late[0]));
   const alpha = PARTS.map(() => 1), alphaTo = PARTS.map(() => 1);
-  const REST = () => `Each point is ${per === 1 ? "one unit" : per + " units"} (near-silent units left out) with ≥10× firing rate on that part of a dose, at its step. Ringed points are units you can open.`;
+  const REST = () => `Each point is ${per === 1 ? "one unit" : per + " units"} (near-silent units left out) with ≥10× firing rate on that part of a dose, at its step. Ringed points are units you can open. Drag to turn it.`;
   function show() {
     const u = sel >= 0 ? units[sel] : null, h = u && touched ? u.j : hot >= 0 ? hot : sticky, dim = u && touched ? 0.38 : 0.1;
     PARTS.forEach((p, j) => { alphaTo[j] = h < 0 || j === h ? 1 : dim; p.btn.style.opacity = h < 0 || j === h ? 1 : 0.55; p.btn.setAttribute("aria-pressed", String(j === h)); });
@@ -125,24 +127,21 @@ const summary = `Every unit of Qwen3-8B with at least ten times the firing rate 
     wide: 0.66, narrow: 1.12,
     build(env) {
       const { W, H, small } = env, r = rng(13);
-      const L = small ? 40 : 48, R = small ? 102 : 136, T = 14, B = 14, bh = (H - T - B) / 36, Y = (step) => H - B - (step - 0.5) * bh;
-      geo = { W, H, L, R, T, B, bh, Y }; env0 = env; per = small ? 2 : 1; wrap.classList.toggle("small", small);
-      let c, g;
-      [c, g] = layer(env); ground = c;
+      const L = small ? 40 : 48, R = small ? 102 : 136, T = 16, B = 18, fw = W - L - R, scale = fw * 0.38, tilt = 0.32, cx = L + fw / 2;
+      const reach = (Math.sin(0.5) + Math.cos(0.5) * DEEP) * scale * tilt, baseY = H - B - reach, bh = (baseY - T - reach) / 36, Y = (step) => baseY - (step - 0.5) * bh;
+      geo = { W, H, L, R, T, B, bh, Y, scale, tilt, cx, baseY }; env0 = env; per = small ? 2 : 1; wrap.classList.toggle("small", small);
+      const [c, g] = layer(env); ground = c;
       const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, "#10142f"); gr.addColorStop(0.55, "#171d44"); gr.addColorStop(1, "#1f2757");
       g.fillStyle = gr; g.fillRect(0, 0, W, H);
-      g.strokeStyle = "rgba(190,205,255,0.16)"; g.lineWidth = 1; g.setLineDash([1, 6]); g.lineCap = "round";
-      for (const s of [1, 12, 24, 36]) { g.beginPath(); g.moveTo(L, Y(s)); g.lineTo(W - R, Y(s)); g.stroke(); }
-      layers = PARTS.map((p) => {
-        const [cv, cx] = layer(env); cx.fillStyle = p.color; cx.globalAlpha = 0.85; cx.beginPath();
+      PARTS.forEach((p, j) => {
+        const pts = [], zc = (j - 2) * 0.32;
         for (let s = 0; s < 36; s++) {
           let m = p.counts[s] / per; m = Math.floor(m) + (r() < m - Math.floor(m) ? 1 : 0);
-          for (let q = 0; q < m; q++) { const z = (small ? 1.05 : 1.3) * (0.75 + r() * 0.7), x = L + r() * (W - L - R), y = Y(s + 1) + (r() - 0.5) * bh * 0.86; cx.rect(x - z / 2, y - z / 2, z, z); }
+          for (let q = 0; q < m; q++) pts.push(r() * 2 - 1, zc + (r() - 0.5) * 0.3, s + 1 + (r() - 0.5) * 0.86, (small ? 1.05 : 1.3) * (0.75 + r() * 0.7));
         }
-        cx.fill(); return cv;
+        p.pts = new Float32Array(pts); p.zc = zc;
       });
-      units.forEach((u) => { const f = Math.sin(u.n * 12.9898 + u.step * 78.233) * 43758.5453; u.x = L + ((u.n + 0.5) / 12288) * (W - L - R); u.y = Y(u.step) + (f - Math.floor(f) - 0.5) * bh * 0.5; });
-      ticks.forEach((t, i) => env.label(t, 6, Y([1, 12, 24, 36][i])));
+      units.forEach((u) => { const f = Math.sin(u.n * 12.9898 + u.step * 78.233) * 43758.5453, k = f - Math.floor(f); u.wx = ((u.n + 0.5) / 12288) * 2 - 1; u.wz = (u.j - 2) * 0.32 + (k - 0.5) * 0.24; u.ws = u.step + (k - 0.5) * 0.5; u.x = cx + u.wx * scale; u.y = Y(u.ws); });
       const order = PARTS.map((p, j) => ({ j, y: Y(p.median) })).sort((a, b) => a.y - b.y), gap = small ? 27 : 31;
       for (let i = 1; i < order.length; i++) if (order[i].y - order[i - 1].y < gap) order[i].y = order[i - 1].y + gap;
       order[order.length - 1].y = Math.min(order[order.length - 1].y, H - 22);
@@ -153,7 +152,7 @@ const summary = `Every unit of Qwen3-8B with at least ten times the firing rate 
       show();
     },
     frame(env, dt) {
-      const { ctx, W, H } = env, { L, R, Y } = geo; let busy = false;
+      const { ctx, W, H } = env, { L, R, scale, tilt, cx, baseY, bh } = geo; let busy = !still;
       const rate = still ? 1 : 1 - Math.exp(-dt * 11);
       PARTS.forEach((p, j) => { const d = alphaTo[j] - alpha[j]; if (Math.abs(d) > 0.004) { alpha[j] += d * rate; busy = true; } else alpha[j] = alphaTo[j]; });
       if (intro < 1) { intro = Math.min(1, intro + dt / 2.6); busy = true; }
@@ -162,14 +161,29 @@ const summary = `Every unit of Qwen3-8B with at least ten times the firing rate 
         demoT += dt; const k = Math.floor(demoT / 1.3); busy = true;
         if (k >= PARTS.length) { demo = 2; hot = -1; sel = first; show(); } else if (hot !== k) { hot = k; show(); }
       }
+      if (!still && !env.inside && !drag && !held) swayT += dt;
+      const turn = yawTo + (still ? 0 : 0.18 * Math.sin(swayT * 0.45)) - yaw, turning = Math.abs(turn) > 0.0004;
+      if (turning) yaw += turn * (still ? 1 : 1 - Math.exp(-dt * 9));
+      const co = Math.cos(yaw), si = Math.sin(yaw), PX = (x, z) => cx + (x * co - z * si) * scale, PY = (x, z, s) => baseY + (x * si + z * co) * scale * tilt - (s - 0.5) * bh;
+      const plate = (s) => { ctx.beginPath(); [[-1, -DEEP], [1, -DEEP], [1, DEEP], [-1, DEEP]].forEach(([x, z], i) => (i ? ctx.lineTo(PX(x, z), PY(x, z, s)) : ctx.moveTo(PX(x, z), PY(x, z, s)))); ctx.closePath(); };
       const rise = smooth(intro * 1.1), u0 = sel >= 0 ? units[sel] : null, h = u0 && touched ? u0.j : hot >= 0 ? hot : sticky;
       const mark = u0 || (h >= 0 ? PARTS[h].ex : null), glow = h >= 0 ? 1 - alpha[(h + 1) % PARTS.length] : 0;
       ctx.drawImage(ground, 0, 0, W, H);
+      const lx = Math.min(PX(-1, -DEEP), PX(-1, DEEP)), lz = PX(-1, -DEEP) < PX(-1, DEEP) ? -DEEP : DEEP;
+      ctx.strokeStyle = "rgba(190,205,255,0.2)"; ctx.lineWidth = 1; ctx.setLineDash([1, 6]); ctx.lineCap = "round";
+      [1, 12, 24, 36].forEach((s, i) => { plate(s); ctx.stroke(); env.label(ticks[i], Math.max(4, lx - (i ? 24 : env.small ? 36 : 42)), PY(-1, lz, s)); });
+      ctx.setLineDash([]); ctx.strokeStyle = "rgba(190,205,255,0.13)"; ctx.beginPath();
+      [[-1, -DEEP], [1, -DEEP], [1, DEEP], [-1, DEEP]].forEach(([x, z]) => { ctx.moveTo(PX(x, z), PY(x, z, 1)); ctx.lineTo(PX(x, z), PY(x, z, 36)); }); ctx.stroke();
       ctx.save(); ctx.beginPath(); ctx.rect(0, H * (1 - rise), W, H); ctx.clip();
-      if (h >= 0) { const p = PARTS[h]; ctx.globalAlpha = 0.16 * glow; ctx.fillStyle = p.color; ctx.fillRect(L, Y(p.q3) - geo.bh / 2, W - L - R, Y(p.q1) - Y(p.q3) + geo.bh); }
-      PARTS.forEach((p, j) => { ctx.globalAlpha = alpha[j]; ctx.drawImage(layers[j], 0, 0, W, H); });
-      if (h >= 0 && glow > 0.01) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.75 * glow; ctx.drawImage(layers[h], 0, 0, W, H); ctx.globalCompositeOperation = "source-over"; }
+      if (h >= 0) { const p = PARTS[h]; ctx.globalAlpha = 0.14 * glow; ctx.fillStyle = p.color; plate(p.median); ctx.fill(); ctx.globalAlpha = 0.8 * glow; ctx.strokeStyle = p.color; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]); }
+      PARTS.forEach((p, j) => {
+        const a = p.pts; ctx.fillStyle = p.color; ctx.globalAlpha = 0.85 * alpha[j]; ctx.beginPath();
+        for (let i = 0; i < a.length; i += 4) { const z = a[i + 3] * (1 + 0.28 * (a[i] * si + a[i + 1] * co)); ctx.rect(PX(a[i], a[i + 1]) - z / 2, PY(a[i], a[i + 1], a[i + 2]) - z / 2, z, z); }
+        ctx.fill();
+        if (j === h && glow > 0.01) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.75 * glow; ctx.fill(); ctx.globalCompositeOperation = "source-over"; }
+      });
       for (const u of units) {
+        u.x = PX(u.wx, u.wz); u.y = PY(u.wx, u.wz, u.ws);
         const on = u === mark;
         ctx.globalAlpha = on ? 1 : 0.25 + 0.65 * alpha[u.j]; ctx.strokeStyle = PARTS[u.j].color; ctx.lineWidth = on ? 2 : 1.1;
         ctx.beginPath(); ctx.arc(u.x, u.y, on ? 6 : W < 520 ? 2.9 : 3.5, 0, 6.2832); ctx.stroke();
@@ -177,22 +191,23 @@ const summary = `Every unit of Qwen3-8B with at least ten times the firing rate 
       }
       ctx.restore(); ctx.lineCap = "round";
       PARTS.forEach((p, j) => {
-        const y = Y(p.median), on = smooth((rise * 36 - p.median) / 2 + 0.5);
+        const ax = Math.max(PX(1, -DEEP), PX(1, DEEP)), az = PX(1, -DEEP) > PX(1, DEEP) ? -DEEP : DEEP, ay = PY(1, az, p.median), on = smooth((rise * 36 - p.median) / 2 + 0.5);
         ctx.globalAlpha = on * (h < 0 || j === h ? 1 : 0.3); ctx.strokeStyle = p.color; ctx.lineWidth = 1.4;
-        ctx.beginPath(); ctx.moveTo(W - R + 3, y); ctx.lineTo(W - R + 9, y); ctx.lineTo(W - R + (W < 520 ? 9 : 17), p.ly); ctx.stroke();
-        if (j === h) { ctx.globalAlpha = 0.8; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.setLineDash([]); }
+        ctx.beginPath(); ctx.moveTo(ax + 3, ay); ctx.lineTo(W - R + (W < 520 ? 9 : 17), p.ly); ctx.stroke();
         p.btn.style.visibility = on > 0.05 ? "visible" : "hidden";
       });
+      if (u0 && turning && pop.style.opacity !== "0") follow(u0);
       ctx.globalAlpha = 1; pop.style.visibility = intro < 1 ? "hidden" : "visible";
       return busy;
     },
     pointer(env) {
+      if (drag) { yawTo = clamp(yawTo + (env.px - lastX) * 0.009, -1.1, 1.1); lastX = env.px; return; }
       if (env.touch || held) return; const { L, R } = geo;
       if (env.px < L - 6 || env.px > env.W - R + 4) return;
       act(); const i = near(env, 34); wrap.style.cursor = i >= 0 ? "pointer" : "default"; if (i !== sel) { sel = i; show(); }
     },
     tap(env, e) {
-      if (e.target.closest("button")) return; act();
+      if (e.target.closest("button")) return; act(); drag = true; lastX = env.px;
       const i = near(env, env.touch ? 40 : 30); held = !env.touch && i >= 0 && i === sel ? !held : false; sel = i; show();
     },
     leave() { if (!held && !env0.touch && sel !== -1) { sel = -1; show(); } },
@@ -200,6 +215,7 @@ const summary = `Every unit of Qwen3-8B with at least ten times the firing rate 
     settle() { if (intro >= 1) return false; intro = 1; demo = 2; if (!touched) sel = first; show(); return true; },
   };
   stage(sec, piece);
+  ["pointerup", "pointercancel", "pointerleave"].forEach((n) => wrap.addEventListener(n, () => { drag = false; }));
   wrap.addEventListener("keydown", (e) => {
     const d = e.key === "ArrowUp" || e.key === "ArrowRight" ? 1 : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -1 : 0;
     if (e.key === "Escape") { sel = -1; held = false; show(); return; }
