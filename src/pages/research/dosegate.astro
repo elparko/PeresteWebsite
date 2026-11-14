@@ -1,7 +1,7 @@
 ---
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import Base from "../../layouts/Base.astro";
+import Post from "../../layouts/Post.astro";
 
 const title =
   "A model-agnostic, formally verified output layer that keeps language model medication instructions faithful to medication orders";
@@ -21,63 +21,39 @@ const bibtex = `@misc{smith2026dosegate,
   note   = {Pereste Health},
   url    = {https://pereste.com/research/dosegate}
 }`;
+const summary =
+  "A Lean 4 output layer that fills every medication reference in a language model's instructions from the patient's medication orders or blocks the output.";
+const links = [
+  { label: "Code on GitHub", href: codeUrl, primary: true },
+  ...(hasPdf ? [{ label: "PDF", href: pdfPath }] : []),
+];
+const headings = [
+  { depth: 2, slug: "abstract", text: "Abstract" },
+  { depth: 2, slug: "code", text: "Code" },
+  { depth: 2, slug: "citation", text: "Citation" },
+];
 ---
 
-<Base
-  title="DoseGate · Pereste Health research"
-  description="A Lean 4 output layer that fills every medication reference in a language model's instructions from the patient's medication orders or blocks the output. Paper by Parker Smith, Pereste Health."
-  type="article"
+<Post
+  title={title}
+  description={summary}
+  author="Parker Smith, Pereste Health"
+  links={links}
+  headings={headings}
+  metaTitle="DoseGate · Pereste Health research"
+  metaDescription="A Lean 4 output layer that fills every medication reference in a language model's instructions from the patient's medication orders or blocks the output. Paper by Parker Smith, Pereste Health."
 >
-  <article>
-    <header class="relative overflow-hidden">
-      <div
-        class="absolute inset-0 -z-10"
-        style="background: radial-gradient(70% 55% at 50% 0%, #E6F4F6 0%, rgba(230,244,246,0) 65%);"
-        aria-hidden="true"
-      >
-      </div>
-      <div class="container-page pt-24 pb-10 md:pt-32 md:pb-14">
-        <div class="mx-auto max-w-prose">
-          <a href="/research" class="eyebrow mb-6 inline-block hover:text-brand-accent">Research · Paper</a>
-          <h1 class="paper-title">{title}</h1>
-          <p class="mt-8 text-brand-ink/80">Parker Smith, Pereste Health</p>
-          <div class="mt-8 flex flex-wrap gap-3">
-            <a href={codeUrl} class="btn-primary">Code on GitHub</a>
-            {hasPdf && (
-              <a href={pdfPath} class="btn-secondary">PDF</a>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
+  <h2 id="abstract">Abstract</h2>
+  <p>{abstract}</p>
 
-    <div class="container-page pb-24">
-      <div class="prose-page mx-auto">
-        <h2>Abstract</h2>
-        <p>{abstract}</p>
+  <h2 id="code">Code</h2>
+  <p>
+    The Lean development, the command-line tool, the tests, and the evaluation
+    scripts and data are at{" "}
+    <a href={codeUrl}>github.com/Pereste-Health/dosegate</a> under the Apache
+    License 2.0. The layer described in the paper is release v2.3.0.
+  </p>
 
-        <h2>Code</h2>
-        <p>
-          The Lean development, the command-line tool, the tests, and the evaluation
-          scripts and data are at{" "}
-          <a href={codeUrl}>github.com/Pereste-Health/dosegate</a> under the Apache
-          License 2.0. The layer described in the paper is release v2.3.0.
-        </p>
-
-        <h2>Citation</h2>
-        <pre><code>{bibtex}</code></pre>
-      </div>
-      <div class="hairline mx-auto mt-16 pt-8 max-w-prose">
-        <a href="/research" class="link-arrow">All research</a>
-      </div>
-    </div>
-  </article>
-</Base>
-
-<style>
-  .paper-title {
-    font-size: clamp(1.9rem, 1.3rem + 2vw, 2.75rem);
-    line-height: 1.12;
-    letter-spacing: -0.025em;
-  }
-</style>
+  <h2 id="citation">Citation</h2>
+  <pre><code>{bibtex}</code></pre>
+</Post>

@@ -13,5 +13,5 @@ const { Content, headings } = await render(post);
 ---
 
 <Post {...post.data} headings={headings}>
-  <Content headings={headings} post={post.data} />
+  <Content headings={post.data.toc ? headings : []} post={post.data} />
 </Post>

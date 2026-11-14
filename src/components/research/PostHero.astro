@@ -3,27 +3,75 @@ import type { MarkdownHeading } from "astro";
 import PostContents from "./PostContents.astro";
 import { formatDate } from "../../data/posts";
 
+export interface PostLink {
+  label: string;
+  href: string;
+  primary?: boolean;
+}
+
 interface Props {
-  post: { title: string; description: string; date: Date; updated?: Date; author: string; tag: string };
+  post: {
+    title: string;
+    description: string;
+    date?: Date;
+    updated?: Date;
+    author: string;
+    links?: PostLink[];
+    figure?: { src: string; alt: string; caption?: string };
+  };
   headings?: MarkdownHeading[];
 }
 
 const { post, headings = [] } = Astro.props;
 const sections = headings.filter((h) => h.depth === 2);
+const slotFigure = Astro.slots.has("default");
+const imageFigure = slotFigure ? undefined : post.figure;
+const hasFigure = slotFigure || Boolean(imageFigure);
+const hasLinksSlot = Astro.slots.has("links");
+const links = post.links ?? [];
+const hasLinks = hasLinksSlot || links.length > 0;
 ---
 
-<header class="post-hero">
+<header class:list={["post-hero", hasFigure && "has-figure", post.title.length > 90 && "ph-long"]}>
   <div class="ph-head">
     <a href="/research" class="eyebrow mb-6 inline-block hover:text-brand-accent"><span aria-hidden="true">←&nbsp;</span>Research</a>
     <h1>{post.title}</h1>
   </div>
-  <div class="ph-figure"><slot /></div>
-  <div class="ph-links"><slot name="links" /></div>
+  {hasFigure && (
+    <div class="ph-figure">
+      {imageFigure ? (
+        <figure class="ph-image">
+          <img src={imageFigure.src} alt={imageFigure.alt} />
+          {imageFigure.caption && <figcaption>{imageFigure.caption}</figcaption>}
+        </figure>
+      ) : (
+        <slot />
+      )}
+    </div>
+  )}
+  {hasLinks && (
+    <div class="ph-links">
+      {hasLinksSlot ? (
+        <slot name="links" />
+      ) : (
+        links.map((l) =>
+          l.primary ? (
+            <a href={l.href} class="btn-primary">
+              {l.label}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+            </a>
+          ) : (
+            <a href={l.href} class="link-arrow">{l.label}</a>
+          ),
+        )
+      )}
+    </div>
+  )}
   <div class="ph-meta">
     <p class="lede">{post.description}</p>
     <div class="ph-byline">
       <span>{post.author}</span>
-      <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>
+      {post.date && <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>}
       {post.updated && (
         <span>
           <span class="text-brand-muted">Updated</span>{" "}
@@ -42,6 +90,12 @@ const sections = headings.filter((h) => h.depth === 2);
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1.75rem;
     margin-bottom: 3rem;
+  }
+  .post-hero:not(.has-figure) .ph-meta {
+    order: 2;
+  }
+  .post-hero:not(.has-figure) .ph-links {
+    order: 3;
   }
   .prose-page .post-hero .ph-figure > figure {
     margin: 0;
@@ -74,38 +128,59 @@ const sections = headings.filter((h) => h.depth === 2);
     line-height: 1.25rem;
     color: rgb(35 44 84 / 0.8);
   }
+  .post-hero.ph-long .ph-head h1 {
+    font-size: clamp(1.9rem, 1.2rem + 1.6vw, 2.6rem);
+    line-height: 1.12;
+  }
+  .ph-image img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 36rem;
+    margin-inline: auto;
+    border-radius: 1rem;
+  }
+  .prose-page .ph-image figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: theme("colors.brand.muted");
+  }
 
   @media (min-width: 1152px) {
     .post-wide > .prose-page > .post-hero {
+      margin-bottom: 4.5rem;
+    }
+    .post-wide > .prose-page > .post-hero.has-figure {
       --post-full: min(71rem, 100vw - 8rem);
       width: var(--post-full);
       margin-inline: calc((100% - var(--post-full)) / 2);
-      margin-bottom: 4.5rem;
       grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
       grid-template-rows: auto auto auto 1fr;
       column-gap: 3.5rem;
       row-gap: 0;
       align-items: start;
     }
-    .post-hero .ph-head {
-      grid-column: 1;
-      grid-row: 1;
-    }
     .post-hero .ph-head h1 {
       font-size: clamp(2.5rem, 1rem + 2.6vw, 3.5rem);
       line-height: 1.05;
     }
-    .post-hero .ph-meta {
+    .post-hero.has-figure .ph-head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .post-hero.has-figure .ph-meta {
       grid-column: 1;
       grid-row: 2;
       margin-top: 1.75rem;
     }
-    .post-hero .ph-links {
+    .post-hero.has-figure .ph-links {
       grid-column: 1;
       grid-row: 3;
       margin-top: 2rem;
     }
-    .post-hero .ph-figure {
+    .post-hero.has-figure .ph-figure {
       grid-column: 2;
       grid-row: 1 / span 4;
       align-self: center;

@@ -70,7 +70,7 @@ const { headings, rail = true, top = true } = Astro.props;
     }
   }
   @media (min-width: 1152px) {
-    .post-wide > .prose-page > figure {
+    .post-wide > .prose-page > figure:not(.sx, .fig-text) {
       --post-wide: min(64rem, 100vw - 8rem);
       width: var(--post-wide);
       max-width: none;

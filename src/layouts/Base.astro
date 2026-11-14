@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import { socialCardFor } from "../data/social";
 
 interface Props {
   title?: string;
@@ -19,6 +20,10 @@ const {
 
 const siteUrl = "https://pereste.com";
 const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).toString();
+const card = socialCardFor(Astro.url.pathname);
+const cardTitle = card?.title ?? title;
+const cardDescription = card?.description ?? description;
+const cardImage = card ? new URL(card.image, siteUrl).toString() : undefined;
 ---
 
 <!doctype html>
@@ -48,9 +53,23 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).toString
     {/* Open Graph */}
     <meta property="og:type" content={type} />
     <meta property="og:site_name" content="Pereste" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={cardTitle} />
+    <meta property="og:description" content={cardDescription} />
     <meta property="og:url" content={canonicalHref} />
+    {card && cardImage && (
+      <>
+        <meta property="og:image" content={cardImage} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={card.alt} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={cardTitle} />
+        <meta name="twitter:description" content={cardDescription} />
+        <meta name="twitter:image" content={cardImage} />
+        <meta name="twitter:image:alt" content={card.alt} />
+      </>
+    )}
 
     <title>{title}</title>
   </head>
