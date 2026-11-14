@@ -8,7 +8,7 @@ interface Props {
   phraseOnly?: boolean;
 }
 const phraseOnly = Astro.props.phraseOnly ?? false;
-const CAP_FULL = "How to read this: in the opening view, each row is one part of the phrase “warfarin 5 mg orally once daily”, and its bar shows the processing steps (1 to 36) where the middle half of the units that respond to that kind of word sit; the dark tick is the step by which half of them have appeared. What it means: units for drug names appear in the first few steps, and units for the number in a dose only near the end, close to where the model chooses the next word. A unit counts when it fires on that kind of word at least ten times as often as on other words; near-silent units, whose values stay close to zero, are left out; and because a dose number is defined as the number before a dose unit, part of its position near the end is built into the definition. The 3 times button loosens the rule to three times the rate on other words; the order of drug names before dose numbers holds, but the peak step for dose units, other numbers and dosage forms changes. The second view shows the counts at every step for each kind of word, each row scaled to its own busiest step. The other buttons show one kind of word, section or class at a time: each column is one of the 36 steps; its height is the number of units in that step that meet the rule stated above the chart. Gray marks near-silent units, whose largest value anywhere in the corpus is below 0.05; because firing is defined by each unit's own percentiles, they still fire on 3% of words, and they cluster in steps 2 to 5. They are left out of the atlas's selections. High and low units are combined, and one unit can count for more than one type, section or class. Counts come from the full corpus (9,959,288 tokens; the first token of each passage is not counted), not only from the 30,529 selected units. Drug classes are shown with their number of labels because classes with very few labels gather many selective units from the wording of those labels alone.";
+const CAP_FULL = "How to read this: the “3 times as often” button loosens the rule to three times the rate on other words; the order of drug names before dose numbers holds, but the peak step for dose units, other numbers and dosage forms changes. In the second view each row is scaled to its own busiest step. In the other views each column is one of the 36 steps; its height is the number of units in that step that meet the rule stated above the chart. Gray marks near-silent units, whose largest value anywhere in the corpus is below 0.05; because firing is defined by each unit's own percentiles, they still fire on 3% of words, and they cluster in steps 2 to 5. They are left out of the atlas's selections. High and low units are combined, and one unit can count for more than one type, section or class. Counts come from the full corpus (9,959,288 tokens; the first token of each passage is not counted), not only from the 30,529 selected units. Drug classes are shown with their number of labels because classes with very few labels gather many selective units from the wording of those labels alone.";
 const CAP_SHORT = "How to read this: each row is one part of the phrase “warfarin 5 mg orally once daily”, and its bar shows the processing steps (1 to 36) where the middle half of the units that respond to that kind of word sit; the dark tick is the step by which half of them have appeared. What it means: units for drug names appear in the first few steps, and units for the number in a dose only near the end, close to where the model chooses the next word. A unit counts when it fires on that kind of word at least ten times as often as on other words; near-silent units, whose values stay close to zero, are left out; and because a dose number is defined as the number before a dose unit, part of its position near the end is built into the definition.";
 
 type Series = Record<string, number[]>;
@@ -82,7 +82,7 @@ const readout = describe("Drug name", values, loudValues, groups.types.note.repl
   title="Units selective for drug names sit in the first few steps; units selective for dose numbers sit near the last"
   caption={phraseOnly ? CAP_SHORT : CAP_FULL}
 >
-  <div data-atl-layers>
+  <div data-atl-layers data-atl-number={Astro.props.number}>
     <script type="application/json" data-atl-payload set:html={JSON.stringify(payload)} />
     <div class="atl-controls" hidden={phraseOnly}>
       <div class="rfig-tabs" role="group" aria-label="What to select by">
@@ -100,8 +100,9 @@ const readout = describe("Drug name", values, loudValues, groups.types.note.repl
         {Object.keys(groups.types.items).map((k) => <option value={k} selected={k === initial.item}>{k}</option>)}
       </select>
       <div class="rfig-tabs" role="group" aria-label="Selectivity threshold" data-atl-thresholds>
-        <button type="button" class="rfig-tab" data-atl-threshold="r10" aria-pressed="true">10 times</button>
-        <button type="button" class="rfig-tab" data-atl-threshold="r3" aria-pressed="false">3 times</button>
+        <span class="atl-thr-lab">A unit counts when it fires at least</span>
+        <button type="button" class="rfig-tab" data-atl-threshold="r10" aria-pressed="true">10 times as often as elsewhere</button>
+        <button type="button" class="rfig-tab" data-atl-threshold="r3" aria-pressed="false">3 times as often as elsewhere</button>
       </div>
       </span>
     </div>
@@ -223,11 +224,15 @@ const readout = describe("Drug name", values, loudValues, groups.types.note.repl
       const ts = payload.groups[state.group].thresholds;
       thresholdBox.hidden = ts.length < 2;
       thresholdBox.innerHTML = "";
+      const lab = document.createElement("span");
+      lab.className = "atl-thr-lab";
+      lab.textContent = "A unit counts when it fires at least";
+      thresholdBox.append(lab);
       for (const t of ts) {
         const b = document.createElement("button");
         b.type = "button";
         b.className = "rfig-tab";
-        b.textContent = `${THRESHOLD[t]} times`;
+        b.textContent = `${THRESHOLD[t]} times as often as elsewhere`;
         b.setAttribute("aria-pressed", String(t === state.threshold));
         b.addEventListener("click", () => {
           state.threshold = t;
@@ -293,5 +298,27 @@ const readout = describe("Drug name", values, loudValues, groups.types.note.repl
       state.item = select.value;
       draw();
     });
+    root.addEventListener("atl-show", (e) => {
+      const item = (e as CustomEvent<string>).detail;
+      const tab = root.querySelector<HTMLButtonElement>('[data-atl-group="types"]')!;
+      tab.click();
+      state.item = item;
+      state.threshold = "r10";
+      fillSelect();
+      fillThresholds();
+      draw();
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[data-atl-show]");
+    if (!a) return;
+    const root = document.querySelector<HTMLElement>(`[data-atl-layers][data-atl-number="${a.dataset.atlFigure}"]`);
+    if (!root) return;
+    e.preventDefault();
+    root.dispatchEvent(new CustomEvent("atl-show", { detail: a.dataset.atlShow }));
+    const fig = root.closest<HTMLElement>("figure") ?? root;
+    fig.style.scrollMarginTop = "5rem";
+    fig.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   });
 </script>

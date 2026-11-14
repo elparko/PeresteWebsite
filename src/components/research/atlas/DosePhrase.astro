@@ -1,0 +1,45 @@
+---
+const parts = [
+  { word: "Warfarin", type: "drug name", c: "#9db0ff" },
+  { word: "5", type: "dose number", c: "#ffab63" },
+  { word: "mg", type: "dose unit", c: "#5fd9d0" },
+  { word: "orally", type: "route", c: "#e79cf2" },
+  { word: "once daily", type: "frequency", c: "#b9e56c" },
+];
+---
+
+<div class="dp" data-dp role="img" aria-label="The instruction warfarin 5 mg orally once daily, which a clinician reads as one unit, splits into five parts: drug name, dose number, dose unit, route and frequency.">
+  <div class="dp-row">
+    {parts.map((p) => (
+      <span class="dp-part" style={`--c:${p.c}`}>
+        <span class="dp-word">{p.word}</span>
+        <span class="dp-type">{p.type}</span>
+      </span>
+    ))}
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-dp]").forEach((el) => {
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) { el.classList.add("is-split"); }
+    else {
+      new IntersectionObserver((entries, io) => {
+        if (entries[0].isIntersecting) { setTimeout(() => el.classList.add("is-split"), 1000); io.disconnect(); }
+      }, { threshold: 0.9 }).observe(el);
+    }
+    el.addEventListener("click", () => el.classList.toggle("is-split"));
+  });
+</script>
+
+<style>
+  .dp { display: flex; justify-content: center; margin: 1.75rem 0; cursor: pointer; }
+  .dp-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 0.3em; padding: 0.4rem 0.9rem; border: 1px solid #b5b5b5; border-radius: 6px; background: #fafafa; font-size: 1.15rem; transition: gap 0.7s ease, padding 0.7s ease, border-color 0.7s ease, background-color 0.7s ease; }
+  .dp-part { position: relative; white-space: nowrap; }
+  .dp-word { display: block; padding: 0.3rem 0; border: 1px solid transparent; border-radius: 6px; line-height: 1.35; color: #1a1a1a; transition: padding 0.7s ease, background-color 0.7s ease, border-color 0.7s ease; }
+  .dp-type { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 0.3rem; width: 4rem; text-align: center; white-space: normal; line-height: 1.2; font-size: 0.75rem; color: #666; opacity: 0; transition: opacity 0.6s ease 0.4s; }
+  .is-split .dp-row { gap: 2.9rem 1rem; padding: 0.4rem 0 2.3rem; border-color: transparent; background-color: transparent; }
+  .is-split .dp-word { padding: 0.3rem 0.7rem; background: color-mix(in srgb, var(--c) 18%, #fff); border-color: color-mix(in srgb, var(--c) 70%, #fff); }
+  .is-split .dp-type { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .dp-row, .dp-word, .dp-type { transition: none; } }
+</style>

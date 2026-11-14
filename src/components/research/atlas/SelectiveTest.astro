@@ -1,0 +1,84 @@
+---
+const N = 200;
+const cases = [
+  { name: "Selective", on: 20, off: 1 },
+  { name: "Too rare", on: 0.4, off: 0.02 },
+  { name: "Not specific", on: 20, off: 10 },
+];
+const order = (i: number) => (i * 37) % N;
+---
+
+<div class="st" data-st data-cases={JSON.stringify(cases)}>
+  <div class="st-tabs" role="group" aria-label="Example unit">
+    {cases.map((c, i) => <button type="button" class="st-tab" aria-pressed={i === 0 ? "true" : "false"} data-i={i}>{c.name}</button>)}
+  </div>
+  <div class="st-boxes">
+    <div class="st-box">
+      <p class="st-lab">This type's tokens</p>
+      <div class="st-dots" data-box="on" aria-hidden="true">{Array.from({ length: N }, (_, i) => <i class="st-d" data-r={order(i)}></i>)}</div>
+      <p class="st-rate" data-rate="on"></p>
+    </div>
+    <div class="st-box">
+      <p class="st-lab">All other tokens</p>
+      <div class="st-dots" data-box="off" aria-hidden="true">{Array.from({ length: N }, (_, i) => <i class="st-d" data-r={order(i)}></i>)}</div>
+      <p class="st-rate" data-rate="off"></p>
+    </div>
+  </div>
+  <div class="st-tests" aria-live="polite">
+    <p class="st-test" data-test="rate"></p>
+    <p class="st-test" data-test="ratio"></p>
+  </div>
+  <p class="st-note">Made-up units, not from the atlas. Each box is 200 tokens; a lit dot is a token where the unit fires, and one dot is 0.5%.</p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-st]").forEach((el) => {
+    const cases = JSON.parse(el.dataset.cases!);
+    const q = (s: string) => el.querySelector<HTMLElement>(s)!;
+    const show = (i: number) => {
+      const c = cases[i];
+      const ratio = c.on / c.off;
+      const rateOk = c.on >= 0.5;
+      const ratioOk = ratio >= 10;
+      (["on", "off"] as const).forEach((k) => {
+        const n = Math.floor((c[k] / 100) * 200);
+        q(`[data-box=${k}]`).querySelectorAll<HTMLElement>(".st-d").forEach((d) => {
+          const r = Number(d.dataset.r);
+          d.style.transitionDelay = `${r * 3}ms`;
+          d.classList.toggle("st-lit", r < n);
+        });
+        q(`[data-rate=${k}]`).textContent = `fires on ${c[k]}%`;
+      });
+      const t1 = q("[data-test=rate]"), t2 = q("[data-test=ratio]");
+      t1.textContent = `${rateOk ? "✓" : "✗"} Fires on at least 0.5% of this type's tokens`;
+      t2.textContent = `${ratioOk ? "✓" : "✗"} Fires at least 10 times as often here as on other tokens (${Number.isInteger(ratio) ? ratio : ratio.toFixed(1)}×)`;
+      t1.className = "st-test " + (rateOk ? "st-pass" : "st-fail");
+      t2.className = "st-test " + (ratioOk ? "st-pass" : "st-fail");
+      el.classList.toggle("st-yes", rateOk && ratioOk);
+      el.querySelectorAll<HTMLElement>(".st-tab").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.i) === i)));
+    };
+    el.querySelectorAll<HTMLElement>(".st-tab").forEach((b) => b.addEventListener("click", () => show(Number(b.dataset.i))));
+    show(0);
+  });
+</script>
+
+<style>
+  .st { margin: 1.75rem 0; max-width: 30rem; margin-inline: auto; }
+  .st-tabs { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .st-tab { font: inherit; font-size: 0.9rem; padding: 0.3rem 0.8rem; border: 1px solid #c8c8c8; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+  .st-tab[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+  .st-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .st-box { border: 1px solid #d4d4d4; border-radius: 6px; padding: 0.7rem; background: #fafafa; }
+  .st-lab { margin: 0 0 0.45rem; font-size: 0.85rem; font-weight: 600; }
+  .st-dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; }
+  .st-d { display: block; aspect-ratio: 1; border-radius: 50%; background: #e1e1e1; transition: background-color 0.4s ease; }
+  [data-box="on"] .st-lit { background: #1f9e92; }
+  [data-box="off"] .st-lit { background: #6f6f6f; }
+  .st-rate { margin: 0.45rem 0 0; font-size: 0.8rem; color: #555; text-align: center; }
+  .st-tests { margin-top: 0.7rem; }
+  .st-test { margin: 0.1rem 0; font-size: 0.88rem; line-height: 1.3; }
+  .st-pass { color: #1f6f66; }
+  .st-fail { color: #9a3b3b; }
+  .st-note { margin: 0.4rem 0 0; font-size: 0.78rem; line-height: 1.25; color: #666; text-align: center; }
+  @media (prefers-reduced-motion: reduce) { .st-d { transition: none; } }
+</style>

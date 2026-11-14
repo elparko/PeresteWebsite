@@ -402,3 +402,13 @@
 .prose-page .atl-terms[open] > summary::after {
   content: "\2212";
 }
+
+.terms-fold > summary { display: flex; align-items: center; gap: 0.6rem; margin-top: 3.5rem; cursor: pointer; list-style: none; }
+.terms-fold > summary::-webkit-details-marker { display: none; }
+.terms-fold > summary::before { content: ""; flex: none; width: 0.7rem; height: 0.7rem; border-right: 3px solid currentColor; border-bottom: 3px solid currentColor; transform: rotate(-45deg); transition: transform 0.2s ease; }
+.terms-fold[open] > summary::before { transform: rotate(45deg); }
+.terms-fold > summary > h2 { margin: 0; }
+.terms-fold[open] > summary { margin-bottom: 1rem; }
+.terms-fold:not([open]) + h2 { margin-top: 1.5rem; }
+
+.atl-thr-lab { align-self: center; margin-right: 0.25rem; font-size: 0.85rem; color: #555; }
