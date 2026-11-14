@@ -4,7 +4,7 @@ export interface ResearchItem {
   title: string;
   line: string;
   date: string;
-  kind: "Atlas" | "Paper" | "Study";
+  kind: "Atlas" | "Paper" | "Study" | "Findings";
   image?: string;
   alt?: string;
   glyph?: "open-capsule";
@@ -13,6 +13,26 @@ export interface ResearchItem {
 /* The published research, newest first. One list feeds the home page band and
    the research index, so the two never disagree. */
 export const researchItems: ResearchItem[] = [
+  {
+    href: "/research/what-a-model-learned-about-a-dose/",
+    models: "Qwen3-8B",
+    title: "What has a language model learned about a dose?",
+    line: "At which of its 36 processing steps Qwen3-8B has units for each part of a dosing instruction, and which parts of a drug label it has clear units for.",
+    date: "2026-11-14",
+    kind: "Findings",
+    image: "/images/research/tile-dose.webp",
+    alt: "Points for the model's units at their processing step, from step 1 to step 36, coloured by the part of a dose each responds to: warfarin, 5, mg, orally, once daily.",
+  },
+  {
+    href: "/research/medication-danger-and-control/",
+    models: "Qwen3-8B · Qwen3.5-4B",
+    title: "Do the units that predict a message's danger control the model's urgency reading?",
+    line: "Switching off the units that best predicted a message's danger left more than 99% of the gap between the model's urgency readings for dangerous and harmless messages in place.",
+    date: "2026-11-14",
+    kind: "Findings",
+    image: "/images/research/tile-danger.webp",
+    alt: "Sixty test messages plotted by the model's urgency reading, dangerous messages above harmless ones, beside the 200 units that best predict danger.",
+  },
   {
     href: "/research/medication-neuron-atlas/",
     models: "Qwen3-8B",
