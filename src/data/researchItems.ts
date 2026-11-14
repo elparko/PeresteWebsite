@@ -30,7 +30,7 @@ export const researchItems: ResearchItem[] = [
     line: "Switching off the units that best predicted a message's danger left more than 99% of the gap between the model's urgency readings for dangerous and harmless messages in place.",
     date: "2026-11-14",
     kind: "Findings",
-    image: "/images/research/tile-danger.webp",
+    image: "/images/research/tile-danger-ladder.webp",
     alt: "A bar chart of six ways of changing the model's state at the reply position and how much each changed the urgency gap. Replacing the whole reply position and replacing only the attention output each lowered the gap by 1.86. Replacing all 294,912 feed-forward neurons changed it by +0.025, and silencing 200 chosen units changed it by +0.005 and by −0.027.",
   },
   {
