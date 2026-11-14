@@ -23,6 +23,13 @@ const scenes = {
     height: 800,
     focus: "44% 50%",
   },
+  harbour: {
+    src: "/images/art/footer-harbour",
+    alt: "A pastel painting of a harbour town on a hill and a white lighthouse on a mole, seen across teal water with small boats at their moorings.",
+    width: 2400,
+    height: 800,
+    focus: "76% 50%",
+  },
 } satisfies Record<string, FooterScene>;
 
 /* One scene per section of the site, matched by the start of the path. The
@@ -30,7 +37,7 @@ const scenes = {
    above, then name it here. */
 const bySection: { prefix: string; scene: keyof typeof scenes }[] = [
   { prefix: "/guide/", scene: "lighthouse" },
-  { prefix: "/research/", scene: "lighthouse" },
+  { prefix: "/research/", scene: "harbour" },
   { prefix: "/about/", scene: "lighthouse" },
 ];
 
