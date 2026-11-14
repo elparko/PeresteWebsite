@@ -1,4 +1,6 @@
 ---
+import { footerLayout, footerSceneFor, type FooterLayout } from "../data/footerScenes";
+
 const year = new Date().getFullYear();
 const cols = [
   {
@@ -35,114 +37,211 @@ const cols = [
     ],
   },
 ];
+const requested = process.env.FOOTER_LAYOUT;
+const layout: FooterLayout = requested === "wash" || requested === "band" ? requested : footerLayout;
+const scene = footerSceneFor(Astro.url.pathname);
 ---
 
-<footer class="site-footer">
-  {/* The lighthouse painting, edge to edge, with nothing laid over it. Its
-      dark roofs fade into the navy block that holds the links. */}
-  <div class="footer-painting">
-    <picture>
-      <source media="(max-width: 640px)" type="image/webp" srcset="/images/art/footer-lighthouse-phone.webp" />
-      <source media="(max-width: 640px)" srcset="/images/art/footer-lighthouse-phone.jpg" />
-      <source type="image/webp" srcset="/images/art/footer-lighthouse.webp" />
-      <img
-        src="/images/art/footer-lighthouse.jpg"
-        alt="A pastel painting of a white lighthouse above the dark roofs of a town by the sea, under large sunlit clouds. Some of the town's windows glow in five colours."
-        width="2400"
-        height="800"
-        loading="lazy"
-        decoding="async"
-      />
+<footer class:list={["site-footer", `layout-${layout}`]}>
+  {layout === "wash" && (
+    <picture class="footer-art" aria-hidden="true">
+      <source media="(max-width: 640px)" type="image/webp" srcset={`${scene.src}-phone.webp`} />
+      <source media="(max-width: 640px)" srcset={`${scene.src}-phone.jpg`} />
+      <source type="image/webp" srcset={`${scene.src}.webp`} />
+      <img src={`${scene.src}.jpg`} alt="" width={scene.width} height={scene.height} loading="lazy" decoding="async" style={`object-position:${scene.focus}`} />
     </picture>
-  </div>
+  )}
 
-  <div class="footer-body">
-    <div class="container-page pt-12 pb-10">
-      <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+  <div class="container-page footer-inner">
+    <div class="footer-grid">
+      <div>
+        <a href="/" class="inline-flex items-center gap-3" aria-label="Pereste Health home">
+          <img src="/logos/pereste-mark.svg" alt="" width="40" height="42" class="h-11 w-auto" loading="lazy" decoding="async" />
+          <span class="leading-none">
+            <span class="block font-display text-xl font-semibold tracking-[0.18em] uppercase text-brand-indigo">Pereste</span>
+            <span class="mt-1 block font-display text-[0.68rem] font-medium tracking-[0.3em] uppercase text-[#0a6f79]">Health</span>
+          </span>
+        </a>
+        <p class="mt-5 max-w-xs text-sm leading-relaxed text-brand-ink/85">
+          Pereste Health builds Pereste Guide and publishes safety research on healthcare AI models.
+        </p>
+      </div>
+
+      {cols.map((col) => (
         <div>
-          <a href="/" class="inline-flex items-center gap-3" aria-label="Pereste Health home">
-            <img
-              src="/logos/pereste-mark-inverse.svg"
-              alt=""
-              width="40"
-              height="42"
-              class="h-11 w-auto"
-              loading="lazy"
-              decoding="async"
-            />
-            <span class="leading-none">
-              <span class="block font-display text-xl font-semibold tracking-[0.18em] uppercase text-white">Pereste</span>
-              <span class="mt-1 block font-display text-[0.68rem] font-medium tracking-[0.3em] uppercase text-brand-teal-pale">Health</span>
-            </span>
-          </a>
-          <p class="mt-5 max-w-xs text-sm leading-relaxed text-white/75">
-            Pereste Health builds Guide and publishes safety research on healthcare AI models.
-          </p>
+          <h2 class="footer-heading">{col.heading}</h2>
+          <ul class="mt-4 space-y-2">
+            {col.links.map((link) => (
+              <li>
+                <a href={link.href} class="footer-link text-sm text-brand-ink">{link.label}</a>
+              </li>
+            ))}
+          </ul>
         </div>
-
-        {cols.map((col) => (
-          <div>
-            <h4 class="label-mono !text-brand-teal-pale">{col.heading}</h4>
-            <ul class="mt-4 space-y-2">
-              {col.links.map((link) => (
-                <li>
-                  <a href={link.href} class="footer-link text-sm text-white">{link.label}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-
-      <div class="mt-12 flex flex-col items-start justify-between gap-3 border-t border-white/15 pt-6 md:flex-row md:items-center">
-        <p class="text-xs text-white/65">© {year} Pereste Health Inc. Based in Louisiana, USA.</p>
-        <p class="text-xs text-white/65">Information on this site is not medical advice.</p>
-      </div>
+      ))}
     </div>
+
+    {layout === "wash" ? (
+      <div class="footer-legal">
+        <p>© {year} Pereste Health Inc. Based in Louisiana, USA.</p>
+        <p>Information on this site is not medical advice.</p>
+      </div>
+    ) : (
+      <div class="footer-band">
+        <picture>
+          <source media="(max-width: 640px)" type="image/webp" srcset={`${scene.src}-phone.webp`} />
+          <source media="(max-width: 640px)" srcset={`${scene.src}-phone.jpg`} />
+          <source type="image/webp" srcset={`${scene.src}.webp`} />
+          <img src={`${scene.src}.jpg`} alt={scene.alt} width={scene.width} height={scene.height} loading="lazy" decoding="async" style={`object-position:${scene.focus}`} />
+        </picture>
+        <div class="footer-legal">
+          <p>© {year} Pereste Health Inc. Based in Louisiana, USA.</p>
+          <p>Information on this site is not medical advice.</p>
+        </div>
+      </div>
+    )}
   </div>
 </footer>
 
 <style>
   .site-footer {
-    background: theme("colors.brand.ink");
-  }
-  .footer-painting {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
+    border-top: 1px solid theme("colors.brand.line");
+    color: theme("colors.brand.ink");
   }
-  .footer-painting img {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 1;
-    object-fit: cover;
-    object-position: 34% 50%;
+  .footer-inner {
+    padding-top: 3.5rem;
+    padding-bottom: 2rem;
   }
-  .footer-painting::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0 0;
-    height: 34%;
-    background: linear-gradient(180deg, rgba(35, 44, 84, 0) 0%, rgba(35, 44, 84, 0.55) 55%, #232c54 100%);
-    pointer-events: none;
+  .footer-grid {
+    display: grid;
+    gap: 2.5rem;
   }
-  @media (max-width: 640px) {
-    .footer-painting img {
-      aspect-ratio: 4 / 3;
-      object-position: 50% 50%;
+  @media (min-width: 640px) {
+    .footer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  @media (min-width: 1800px) {
-    .footer-painting img {
-      aspect-ratio: 7 / 2;
+  @media (min-width: 1024px) {
+    .footer-grid {
+      grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
     }
+  }
+  .footer-heading {
+    font-family: theme("fontFamily.mono");
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #0a6f79;
   }
   .footer-link {
     transition: color var(--dur-hover) ease;
   }
   @media (hover: hover) and (pointer: fine) {
     .footer-link:hover {
-      color: theme("colors.brand.teal-pale");
+      color: #0a6f79;
+    }
+  }
+  .footer-legal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .footer-legal p {
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  @media (min-width: 768px) {
+    .footer-legal {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  /* Wash: the painting, pale and tinted, behind everything in the footer. */
+  .layout-wash {
+    background: #e9eef8;
+  }
+  .layout-wash .footer-inner {
+    padding-bottom: 2.25rem;
+    min-height: clamp(22rem, 30vw, 30rem);
+    display: flex;
+    flex-direction: column;
+  }
+  .footer-art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .footer-art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(0.82) brightness(1.18);
+    mix-blend-mode: multiply;
+    opacity: 0.3;
+  }
+  .footer-art::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, #e9eef8 0%, rgba(233, 238, 248, 0) 26%),
+      rgba(63, 81, 143, 0.14);
+  }
+  .layout-wash .footer-legal {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(35 44 84 / 0.25);
+    color: rgb(35 44 84 / 0.9);
+  }
+  .layout-wash .footer-grid {
+    margin-bottom: 3rem;
+  }
+
+  /* Band: links on white, then the painting in full color with the legal line on it. */
+  .layout-band {
+    background: #fff;
+  }
+  .footer-band {
+    position: relative;
+    margin-top: 3.5rem;
+    overflow: hidden;
+  }
+  .footer-band img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 1;
+    object-fit: cover;
+  }
+  .footer-band::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(24, 30, 62, 0) 0%, rgba(24, 30, 62, 0.82) 100%);
+    pointer-events: none;
+  }
+  .footer-band .footer-legal {
+    position: absolute;
+    inset: auto 1.25rem 1rem 1.25rem;
+    z-index: 1;
+    color: #fff;
+  }
+  @media (max-width: 640px) {
+    .footer-band img {
+      aspect-ratio: 4 / 3;
+      object-position: 50% 50% !important;
+    }
+    .footer-art img {
+      object-position: 50% 50% !important;
+      opacity: 0.24;
     }
   }
 </style>

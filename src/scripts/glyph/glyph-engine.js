@@ -114,7 +114,7 @@ const scope = {};
     const ptr = { x: 0, y: 0, tx: 0, ty: 0, on: false, k: 0, seen: false };
     const quietRects = opts.quiet || [];
     const quietStrength = piece.quietStrength === undefined ? 0.82 : piece.quietStrength;
-    let env = null, toks = [], raf = 0, visible = true, dpr = 1, geo = null, dead = false;
+    let env = null, toks = [], raf = 0, visible = true, dpr = 1, geo = null, dead = false, lastDraw = 0;
     const t0 = performance.now();
 
     function quiet(x, y) {
@@ -191,7 +191,7 @@ const scope = {};
     function layout() {
       const w = host.clientWidth, h = host.clientHeight;
       if (!w || !h) return;
-      dpr = Math.min(3, devicePixelRatio || 1);
+      dpr = Math.min(2, devicePixelRatio || 1);
       cv.width = Math.round(w * dpr);
       cv.height = Math.round(h * dpr);
       const f = opts.focus || piece.focus || [0.5, 0.5];
@@ -251,8 +251,11 @@ const scope = {};
 
     function frame() {
       raf = 0;
-      if (dead || !env) return;
+      if (dead || !env || document.hidden) return;
       const animating = piece.animated && !reduced && visible;
+      const now = performance.now();
+      if (animating && !ptr.on && now - lastDraw < 30) return request();
+      lastDraw = now;
       env.t = reduced ? piece.restT || 0 : (performance.now() - t0) / 1000;
       let on = ptr.on;
       if (!on && piece.idle && animating) {
@@ -303,11 +306,19 @@ const scope = {};
       ptr.on = false;
       request();
     }
+    function onUp(e) {
+      if (e.pointerType !== "mouse") onLeave();
+    }
+    function onShow() {
+      if (!document.hidden) request();
+    }
+    document.addEventListener("visibilitychange", onShow);
     if (opts.interactive !== false) {
       target.addEventListener("pointermove", onMove);
       target.addEventListener("pointerdown", onMove);
       target.addEventListener("pointerleave", onLeave);
       target.addEventListener("pointercancel", onLeave);
+      target.addEventListener("pointerup", onUp);
     }
     const ro = new ResizeObserver(function () {
       layout();
@@ -337,6 +348,8 @@ const scope = {};
         target.removeEventListener("pointerdown", onMove);
         target.removeEventListener("pointerleave", onLeave);
         target.removeEventListener("pointercancel", onLeave);
+        target.removeEventListener("pointerup", onUp);
+        document.removeEventListener("visibilitychange", onShow);
         cancelAnimationFrame(raf);
         cv.remove();
       },

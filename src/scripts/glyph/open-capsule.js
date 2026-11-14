@@ -4,7 +4,7 @@ import { GlyphArt } from "./glyph-engine.js";
 
 (function (window) {
 // A field of medicine-label words. The letters inside a tilted capsule fill in
-// as tiles, one half indigo and one half pale teal. The pointer opens it.
+// as tiles, one half indigo and one half pale teal. The capsule turns in place.
 (function () {
   const G = window.GlyphArt, P = G.P;
   const words = [
@@ -24,9 +24,11 @@ import { GlyphArt } from "./glyph-engine.js";
     id: "open-capsule",
     title: "Open capsule",
     line: "Medicine-label words (tablet, refill, read the label) fill the field, and the letters inside a tilted capsule become tiles, one half indigo and one half pale teal.",
-    hint: "Bring the pointer near to open the capsule.",
+    hint: "The capsule turns slowly in place. Point anywhere and it turns to face the pointer.",
     ground: "wash",
     split: true,
+    animated: true,
+    restT: 0,
     quietStrength: 0.92,
     mock: { desktop: { focus: [0.78, 0.5] } },
     tokens: function (env) {
@@ -46,31 +48,28 @@ import { GlyphArt } from "./glyph-engine.js";
       return out;
     },
     setup: function (env, toks) {
-      const g = geom(env);
-      env.g = g;
-      env.ux = Math.cos(g.a);
-      env.uy = Math.sin(g.a);
+      env.g = geom(env);
+      if (env.opts && env.opts.angle !== undefined) env.g.a = env.opts.angle;
       env.toks = toks;
-      for (const tok of toks) {
-        const dx = tok.x - env.fx, dy = tok.y - env.fy;
-        tok.s = dx * env.ux + dy * env.uy;
-        tok.n = -dx * env.uy + dy * env.ux;
-      }
     },
     before: function (ctx, env) {
       const g = env.g, toks = env.toks, v = env.geo.lh * 0.3;
-      let open = 0;
-      if (env.px !== null) {
-        const d = Math.hypot(env.px - env.fx, env.py - env.fy);
-        open = env.pk * (1 - G.smooth(g.hl * 0.6, g.hl * 2.6, d));
-      }
-      const o = open * g.r * 0.9 + env.geo.cw * 0.6;
+      const dt = env.last === undefined ? 0 : Math.min(0.1, env.t - env.last);
+      env.last = env.t;
+      if (env.ang === undefined || env.reduced) env.ang = g.a;
+      else if (env.pointerLive && env.px !== null && Math.hypot(env.px - env.fx, env.py - env.fy) > g.r * 0.6) {
+        const target = Math.atan2(env.py - env.fy, env.px - env.fx);
+        env.ang += Math.atan2(Math.sin(target - env.ang), Math.cos(target - env.ang)) * 0.07;
+      } else env.ang += dt * 0.16;
+      const ux = Math.cos(env.ang), uy = Math.sin(env.ang), o = env.geo.cw * 0.6;
       for (const tok of toks) {
-        const side = tok.s < 0 ? -1 : 1;
-        const s = tok.s - side * o;
+        const dx = tok.x - env.fx, dy = tok.y - env.fy;
+        const s0 = dx * ux + dy * uy, n0 = -dx * uy + dy * ux;
+        const side = s0 < 0 ? -1 : 1;
+        const s = s0 - side * o;
         let m = side;
-        for (const dy of [-v, v]) {
-          const ss = s + dy * env.uy, nn = tok.n + dy * env.ux;
+        for (const d of [-v, v]) {
+          const ss = s + d * uy, nn = n0 + d * ux;
           const sc = G.clamp(ss, -g.hl, g.hl);
           if (ss * side < 0 || Math.hypot(ss - sc, nn) > g.r) m = 0;
         }

@@ -45,11 +45,22 @@ import { GlyphArt } from "./glyph-engine.js";
     return s.top + Math.round(x * s.slope + Math.sin(x * 0.9) * 0.6);
   }
 
+  function beam(tok, env) {
+    const c = env.geo.c;
+    const dx = (tok.x - env.lampX) / c, dy = (tok.y - env.lampY) / c;
+    const al = dx * env.ca + dy * env.sa, along = Math.abs(al), across = Math.abs(dy * env.ca - dx * env.sa);
+    if (along <= 0.6) return 0;
+    const spread = across / (0.5 + along * 0.13);
+    const pulse = env.reduced ? 1 : 0.86 + 0.14 * Math.sin(along * 0.55 - env.t * 1.3);
+    const arm = env.spot || al > 0 ? 1 : 0.7;
+    return (1 - G.smooth(0.45, env.spot ? 1 : 1.3, spread)) * (1 - G.smooth(4, env.view === "phone" ? 24 : 36, along)) * pulse * arm;
+  }
+
   G.register({
     id: "headland",
     title: "Grounded headland",
     line: "Filled tiles stack into a headland of four strata, records at the base, then evidence and plain language, with the patient at the top; a tile lighthouse casts one beam over a sea of ~ glyphs.",
-    hint: "Move the pointer across the headland to lift the strata beneath it.",
+    hint: "Move the pointer: the beam swings from the lamp to follow it and lights the tiles it crosses.",
     ground: "navy",
     mode: "cells",
     glyphs: "0123456789+-.:/%",
@@ -72,6 +83,7 @@ import { GlyphArt } from "./glyph-engine.js";
       env.lampY = env.fy + s.lamp * c;
       env.left = {};
       env.bare = env.opts && env.opts.figure === false;
+      env.spot = env.opts && env.opts.light === "spot";
       env.dim = env.opts && env.opts.fieldAlpha !== undefined ? env.opts.fieldAlpha : 0.14;
       for (const tok of toks) {
         tok.kind = "sky";
@@ -107,19 +119,34 @@ import { GlyphArt } from "./glyph-engine.js";
         if (li === 0 && lj === -1) tok.kind = "roof";
       }
     },
+    before: function (ctx, env) {
+      let target = env.reduced ? 0 : Math.sin(env.t * 0.25) * 0.3;
+      if (!env.spot && env.pointerLive && env.px !== null) target = Math.atan2(env.py - env.lampY, env.px - env.lampX);
+      if (env.spot) target = 0;
+      if (env.ang === undefined || env.reduced || env.spot) env.ang = target;
+      else env.ang += Math.atan2(Math.sin(target - env.ang), Math.cos(target - env.ang)) * 0.1;
+      env.ca = Math.cos(env.ang);
+      env.sa = Math.sin(env.ang);
+    },
     paint: function (tok, env) {
       const s = env.s, c = env.geo.c;
       if (tok.kind === "lamp") return { bg: P.amber, color: P.ink, weight: 500, text: "*" };
       if (tok.kind === "house") return { bg: P.white, color: P.indigo, weight: 500 };
       if (tok.kind === "roof") return { bg: P.white, bgAlpha: 0.9, color: P.indigo, weight: 500, text: "^" };
+      const f = env.bare ? 0 : beam(tok, env);
       if (tok.kind === "land") {
         let col = tok.col;
-        if (env.px !== null) {
-          const d = Math.hypot(tok.x - env.px, tok.y - env.py) / c;
-          const k = (1 - G.smooth(1, 5.5, d)) * env.pk;
-          if (k > 0.01) col = lerp(col, WHITE, 0.6 * k);
+        if (env.spot) {
+          if (env.px !== null) {
+            const d = Math.hypot(tok.x - env.px, tok.y - env.py) / c;
+            const k = (1 - G.smooth(1, 5.5, d)) * env.pk;
+            if (k > 0.01) col = lerp(col, WHITE, 0.6 * k);
+          }
+        } else if (f > 0.02) col = lerp(col, WHITE, 0.8 * f);
+        if (tok.wet) {
+          const wet = tok.wet * (1 - 0.7 * (env.spot ? 0 : f));
+          return { bg: css(col), bgAlpha: 1 - wet, color: tok.fg, alpha: 0.85 * (1 - wet) };
         }
-        if (tok.wet) return { bg: css(col), bgAlpha: 1 - tok.wet, color: tok.fg, alpha: 0.85 * (1 - tok.wet) };
         return { bg: css(col), color: tok.fg, alpha: 0.85 };
       }
       if (env.bare) {
@@ -127,13 +154,7 @@ import { GlyphArt } from "./glyph-engine.js";
         const k = (1 - G.smooth(1, 7, Math.hypot(tok.x - env.px, tok.y - env.py) / c)) * env.pk;
         return { color: P.tealPale, alpha: env.dim + 0.4 * k };
       }
-      const along = Math.abs(tok.x - env.lampX) / c, across = Math.abs(tok.y - env.lampY) / c;
-      if (along > 0.6) {
-        const spread = across / (0.45 + along * 0.12);
-        const pulse = env.reduced ? 1 : 0.86 + 0.14 * Math.sin(along * 0.55 - env.t * 1.3);
-        const f = (1 - G.smooth(0.55, 1, spread)) * (1 - G.smooth(4, env.view === "phone" ? 24 : 36, along)) * pulse;
-        if (f > 0.03) return { bg: P.tealLight, bgAlpha: 0.26 * f, color: P.white, alpha: 0.16 + 0.74 * f, weight: f > 0.5 ? 500 : 400 };
-      }
+      if (f > 0.03) return { bg: P.tealLight, bgAlpha: 0.26 * f, color: P.white, alpha: 0.16 + 0.74 * f, weight: f > 0.5 ? 500 : 400 };
       if (tok.kind === "sea") {
         const depth = tok.cj - s.sea;
         const wave = G.hash(tok.ci, tok.cj, Math.floor(env.t * 0.5 + G.hash(tok.ci, tok.cj, 2) * 4)) < 0.75 ? "~" : "-";
