@@ -10,12 +10,9 @@ hero: true
 ---
 
 import LadderChart from "../../components/research/danger-control/LadderChart.astro";
-import StringsExplainer from "../../components/research/danger-control/StringsExplainer.astro";
 import PostHero from "../../components/research/PostHero.astro";
 
-<PostHero post={props.post} headings={props.headings}>
-<StringsExplainer />
-</PostHero>
+<PostHero post={props.post} headings={props.headings} />
 
 Barely, if at all. In two open language models, thousands of units respond differently to a safe and a dangerous version of the same drug regimen. To test whether those units control how urgent the model judges a message to be, we wrote messages at five levels of danger, from household objects (level 1) to high-alert drugs (level 5), started each reply for the model with the words "Urgency level:" and read how strongly it leaned toward words like High against words like Low. That lean is the urgency reading, and the urgency gap is how much higher it is for the most dangerous messages than for the most harmless ones. Switching off (silencing) the units that best predicted danger left more than 99% of the urgency gap in place: 0.3% of the gap went in one model, and no more than silencing the same number of randomly chosen units removed in the other.
 
