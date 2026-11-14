@@ -114,7 +114,7 @@ const scope = {};
     const ptr = { x: 0, y: 0, tx: 0, ty: 0, on: false, k: 0, seen: false };
     const quietRects = opts.quiet || [];
     const quietStrength = piece.quietStrength === undefined ? 0.82 : piece.quietStrength;
-    let env = null, toks = [], raf = 0, visible = true, dpr = 1, geo = null, dead = false, lastDraw = 0;
+    let env = null, toks = [], raf = 0, timer = 0, visible = true, dpr = 1, geo = null, dead = false, lastDraw = 0;
     const t0 = performance.now();
 
     function quiet(x, y) {
@@ -249,14 +249,11 @@ const scope = {};
       if (piece.after) piece.after(ctx, env);
     }
 
-    function frame() {
-      raf = 0;
-      if (dead || !env || document.hidden) return;
+    // Advance the pointer state and draw once. Returns true when another frame is wanted.
+    function step() {
       const animating = piece.animated && opts.animated !== false && !reduced && visible;
-      const now = performance.now();
-      if (animating && !ptr.on && now - lastDraw < 30) return request();
-      lastDraw = now;
-      env.t = reduced ? piece.restT || 0 : (performance.now() - t0) / 1000;
+      lastDraw = performance.now();
+      env.t = reduced ? piece.restT || 0 : (lastDraw - t0) / 1000;
       let on = ptr.on;
       if (!on && piece.idle && animating) {
         const p = piece.idle(env);
@@ -281,20 +278,42 @@ const scope = {};
       env.pointerLive = ptr.on;
       draw();
       const settling = Math.abs(ptr.tx - ptr.x) + Math.abs(ptr.ty - ptr.y) > 0.3 || Math.abs((on ? 1 : 0) - ptr.k) > 0.004;
-      if (animating || (settling && visible)) request();
+      return animating || (settling && visible);
     }
+    function frame() {
+      raf = 0;
+      clearTimeout(timer);
+      timer = 0;
+      if (dead || !env || document.hidden) return;
+      const animating = piece.animated && opts.animated !== false && !reduced && visible;
+      if (animating && !ptr.on && performance.now() - lastDraw < 30) return request();
+      if (step()) request();
+    }
+    // Frames normally come from requestAnimationFrame. Some browsers stop delivering them
+    // (a hidden pane, a screenshot tool), so each request also arms a timer that runs the
+    // frame if requestAnimationFrame has not run it within 120 ms.
     function request() {
       if (raf || dead) return;
-      let ran = false;
-      let timer = 0;
-      const run = function () {
-        if (ran) return;
-        ran = true;
-        clearTimeout(timer);
-        frame();
-      };
-      raf = requestAnimationFrame(run);
-      timer = setTimeout(run, 120);
+      raf = requestAnimationFrame(frame);
+      timer = setTimeout(stalled, 120);
+    }
+    function stalled() {
+      cancelAnimationFrame(raf);
+      if (env && (host.clientWidth !== env.w || host.clientHeight !== env.h)) layout();
+      frame();
+    }
+    // Lay out and draw the resting state at once, without waiting for a frame.
+    function relayout() {
+      layout();
+      if (env) step();
+      request();
+    }
+    // If the element has no size yet, try again on a timer; the resize observer may never fire.
+    let tries = 0;
+    function retry() {
+      if (dead || env) return;
+      relayout();
+      if (!env && ++tries < 40) setTimeout(retry, 250);
     }
 
     const target = opts.pointerTarget || host;
@@ -331,8 +350,8 @@ const scope = {};
       target.addEventListener("pointerup", onUp);
     }
     const ro = new ResizeObserver(function () {
-      layout();
-      request();
+      if (env && host.clientWidth === env.w && host.clientHeight === env.h) return;
+      relayout();
     });
     ro.observe(host);
     const io = new IntersectionObserver(function (es) {
@@ -340,13 +359,12 @@ const scope = {};
       if (visible) request();
     });
     io.observe(host);
-    layout();
-    request();
+    relayout();
+    if (!env) setTimeout(retry, 250);
     if (document.fonts && document.fonts.load) {
       Promise.all([document.fonts.load("400 14px " + mono), document.fonts.load("500 14px " + mono)]).then(function () {
         if (dead) return;
-        layout();
-        request();
+        relayout();
       });
     }
     return {
@@ -361,6 +379,7 @@ const scope = {};
         target.removeEventListener("pointerup", onUp);
         document.removeEventListener("visibilitychange", onShow);
         cancelAnimationFrame(raf);
+        clearTimeout(timer);
         cv.remove();
       },
     };
