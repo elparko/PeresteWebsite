@@ -134,7 +134,7 @@ const research = researchItems;
             <a href={r.href} class="tile">
               <div class="tile-figure">
                 {r.glyph ? (
-                  <GlyphArt piece="open-capsule" label="A capsule shape picked out in tiles from a field of medicine label words." class="tile-glyph" options={{ interactive: false }} />
+                  <GlyphArt piece={r.glyph} label={r.alt ?? ""} class="tile-glyph" still={r.image} options={{ interactive: false }} />
                 ) : (
                   <img src={r.image} alt={r.alt} loading="lazy" decoding="async" />
                 )}
