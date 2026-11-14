@@ -200,7 +200,29 @@ import { GlyphArt } from "./glyph-engine.js";
           });
         }
       }
+      // Build every fading style now, so a change of unit allocates nothing mid-loop.
+      for (const t of toks) {
+        if (t.plate) {
+          t.pc = t.ps.map(function (s) {
+            const c = [];
+            for (let q = 1; q < QS; q++)
+              c[q] = t.plate === 1
+                ? { bg: P.ink, color: s.color, alpha: (s.alpha * q) / QS, weight: 500, text: s.text }
+                : { bg: s.bg, bgAlpha: q / QS, color: s.color, alpha: q / QS, weight: 500, text: s.text };
+            return c;
+          });
+        } else if (t.u >= 0) {
+          const T = TILES[t.u];
+          t.fc = [];
+          for (let q = 1; q < QS; q++)
+            t.fc[q] = [
+              { color: P.ink, alpha: t.fs.alpha * (1 - q / QS) },
+              { bg: T.bg, bgAlpha: q / QS, color: T.color, alpha: q / QS, weight: 500 },
+            ];
+        }
+      }
       env.lv = [1, 0, 0];
+      env.k = 0;
     },
     before: function (ctx, env) {
       const t = env.t, lv = env.lv;
@@ -214,20 +236,15 @@ import { GlyphArt } from "./glyph-engine.js";
       if (tok.u === 0) return TILES[0];
       return tok.fs;
     },
-    // Fading styles are cached per token in QS alpha steps, so a fade allocates nothing after
-    // its first pass.
     paint: function (tok, env) {
       const k = env.k;
       if (tok.plate) {
         if (k < 0) return tok.plate === 1 ? INK : EMPTY;
-        const a = env.lv[k], s = tok.ps[k];
-        if (a === 1) return s;
+        const a = env.lv[k];
+        if (a === 1) return tok.ps[k];
         const q = Math.round(a * QS);
         if (q === 0) return tok.plate === 1 ? INK : EMPTY;
-        const c = tok.pc || (tok.pc = [[], [], []]);
-        return c[k][q] || (c[k][q] = tok.plate === 1
-          ? { bg: P.ink, color: s.color, alpha: (s.alpha * q) / QS, weight: 500, text: s.text }
-          : { bg: s.bg, bgAlpha: q / QS, color: s.color, alpha: q / QS, weight: 500, text: s.text });
+        return q === QS ? tok.ps[k] : tok.pc[k][q];
       }
       if (tok.u < 0) return tok.fs;
       const a = env.lv[tok.u];
@@ -235,12 +252,7 @@ import { GlyphArt } from "./glyph-engine.js";
       if (a === 1) return TILES[tok.u];
       const q = Math.round(a * QS);
       if (q === 0) return tok.fs;
-      if (q === QS) return TILES[tok.u];
-      const c = tok.fc || (tok.fc = []), T = TILES[tok.u];
-      return c[q] || (c[q] = [
-        { color: P.ink, alpha: (tok.fs.alpha || 0) * (1 - q / QS) },
-        { bg: T.bg, bgAlpha: q / QS, color: T.color, alpha: q / QS, weight: 500 },
-      ]);
+      return q === QS ? TILES[tok.u] : tok.fc[q];
     },
   });
 })();

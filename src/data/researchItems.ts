@@ -39,7 +39,7 @@ export const researchItems: ResearchItem[] = [
     image: "/images/research/tile-atlas.webp",
     alt: "A name plate for one unit of the model, with the words it fires on lit in the drug label text around it, for three units in turn.",
     glyph: "atlas-units",
-    altIndex: "Drug label text in which drug names, doses, routes and frequencies are picked out as tiles, each kind in its own color.",
+    altIndex: "Three dosing phrases from drug labels, such as warfarin 5 mg orally once daily, set as tiles with the drug name, dose number, dose unit, route and frequency each in its own color.",
     glyphIndex: "atlas-kinds",
   },
   {
@@ -60,9 +60,9 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-04",
     kind: "Study",
     image: "/images/research/tile-advice.webp",
-    alt: "The question what should I take, with two replies: one tells the person to contact a healthcare provider, and one explains what a cough with yellow phlegm is typically a sign of. The explanation takes the place of the first reply.",
+    alt: "The question what should I take, with two replies in tiles: one tells the person to contact a healthcare provider, and one explains what a cough with yellow phlegm is typically a sign of.",
     glyph: "advice-reply",
-    altIndex: "A field of short requests worded as advice on one side of a seam of tiles and as education on the other, crossed by one dark row of emergency words that reads the same on both sides.",
+    altIndex: "A field of reply phrases worded as advice on one side of a seam of tiles and as education on the other, crossed by one dark row of emergency words that reads the same on both sides.",
     glyphIndex: "advice-seam",
   },
 ];

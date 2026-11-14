@@ -79,27 +79,39 @@ import { GlyphArt } from "./glyph-engine.js";
         for (let i = 0; i < p.text.length; i++)
           out.push({ x0: p.x + i * hcw, w: hcw, x: p.x + (i + 0.5) * hcw, y: yRow, text: p.text[i], style: ROW });
 
-      // Faint label words. Any word whose box touches the padded box of the figure is left out whole.
+      // Faint label words at one alpha. Rows beside the figure are laid out from the figure outward, so
+      // whole words stop a little short of it and only the tile edge cuts a word.
       const box = {
         x0: env.parts[0].x - pad - cw, x1: x - hcw + pad + cw,
         y0: yRow - th / 2 - lh * 0.45, y1: yRow + 28 * k + th5 / 2 + lh * 0.45,
       };
       const rows = Math.ceil(env.h / lh) + 1, cols = Math.ceil(env.w / cw) + 1;
+      const put = (y, c0, word) => {
+        for (let i = Math.max(c0, 0); i < Math.min(c0 + word.length, cols); i++)
+          if (word[i - c0] !== " ") out.push({ x0: i * cw, w: cw, x: (i + 0.5) * cw, y: y, text: word[i - c0], style: FIELD });
+      };
+      const pick = (r, j) => FIELD_WORDS[Math.floor(G.hash(r, j, 11) * FIELD_WORDS.length)];
       for (let r = 0; r < rows; r++) {
         const y = (r + 0.5) * lh - (rows * lh - env.h) / 2;
-        const inRow = y + lh / 2 > box.y0 && y - lh / 2 < box.y1;
-        const off = Math.floor(G.hash(r, 0, 3) * 16);
-        let pos = -off, j = 0;
-        while (pos < cols) {
-          const word = FIELD_WORDS[Math.floor(G.hash(r, j++, 11) * FIELD_WORDS.length)];
-          const c0 = pos, c1 = pos + word.length;
-          pos = c1 + 1;
-          if (inRow && c1 * cw > box.x0 && c0 * cw < box.x1) continue;
-          // Beside the figure, a word cut by the box edge is left out too, so no scraps stand alone there.
-          const seen = Math.min(c1, Math.floor(env.w / cw)) - Math.max(c0, 0);
-          if (inRow && seen < word.length) continue;
-          for (let i = Math.max(c0, 0); i < Math.min(c1, cols); i++)
-            if (word[i - c0] !== " ") out.push({ x0: i * cw, w: cw, x: (i + 0.5) * cw, y: y, text: word[i - c0], style: FIELD });
+        let j = 0;
+        if (y + lh / 2 > box.y0 && y - lh / 2 < box.y1) {
+          // A side strip narrower than ten letters would hold only cut words, so it stays empty.
+          for (let c1 = Math.floor(box.x0 / cw) - Math.floor(G.hash(r, 1, 7) * 3); c1 > 0 && box.x0 > 10 * cw; ) {
+            const word = pick(r, j++);
+            put(y, c1 - word.length, word);
+            c1 -= word.length + 1;
+          }
+          for (let c0 = Math.ceil(box.x1 / cw) + Math.floor(G.hash(r, 2, 7) * 3); c0 < cols && env.w - box.x1 > 10 * cw; ) {
+            const word = pick(r, j++);
+            put(y, c0, word);
+            c0 += word.length + 1;
+          }
+          continue;
+        }
+        for (let c0 = -Math.floor(G.hash(r, 0, 3) * 16); c0 < cols; ) {
+          const word = pick(r, j++);
+          put(y, c0, word);
+          c0 += word.length + 1;
         }
       }
       return out;
