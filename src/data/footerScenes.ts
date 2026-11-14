@@ -30,6 +30,13 @@ const scenes = {
     height: 800,
     focus: "76% 50%",
   },
+  "open-sea": {
+    src: "/images/art/footer-open-sea",
+    alt: "An oil painting of the sea at evening: a low sun lays a road of light across the swell, with a tiny lighthouse on a spit at the horizon.",
+    width: 2400,
+    height: 800,
+    focus: "55% 50%",
+  },
 } satisfies Record<string, FooterScene>;
 
 /* One scene per section of the site, matched by the start of the path. The
@@ -38,7 +45,9 @@ const scenes = {
 const bySection: { prefix: string; scene: keyof typeof scenes }[] = [
   { prefix: "/guide/", scene: "lighthouse" },
   { prefix: "/research/", scene: "harbour" },
-  { prefix: "/about/", scene: "lighthouse" },
+  { prefix: "/about/", scene: "open-sea" },
+  { prefix: "/careers/", scene: "open-sea" },
+  { prefix: "/press/", scene: "open-sea" },
 ];
 
 export function footerSceneFor(pathname: string): FooterScene {
