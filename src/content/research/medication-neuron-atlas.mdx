@@ -15,6 +15,8 @@ import AtlasExplainer from "../../components/research/atlas/AtlasExplainer.astro
 export const ATLAS_URL = "/research/medication-neuron-atlas/browse/";
 export const PDF_URL = "/research/medication-neuron-atlas/medication-neuron-atlas.pdf";
 
+<AtlasExplainer title="Each part of a dose has its own units, at its own depth in the model" />
+
 <p class="atl-lead">Methotrexate taken weekly and methotrexate taken daily differ by one word on a label.</p>
 
 For rheumatoid arthritis and psoriasis, methotrexate is a standard treatment taken once a week. For these conditions, the same tablets taken daily by mistake can cause life-threatening harm, including suppression of the bone marrow and ulcers of the mouth and gut. The mix-up is well documented and sometimes fatal: of 106 methotrexate errors reported to the FDA from 1997 to 2001, 25 ended in death, and confusion about the weekly schedule was the most common type of error ([Moore and colleagues, 2004](https://pubmed.ncbi.nlm.nih.gov/15287234/)).
@@ -26,8 +28,6 @@ The atlas is not a test of whether the model gives safe or correct medication ad
 <p class="atl-cta"><a href={ATLAS_URL} class="btn-primary">Open the atlas<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></p>
 
 Two posts on what the atlas shows are coming soon. *What has a language model learned about a dose?* follows the parts of a dosing instruction through the model and lists what it has units for and what is missing. *Do the units that predict a message's danger control the model's urgency reading?* tests, mostly on the smaller Qwen3.5-4B, whether switching off units that predict a message's danger changes the model's urgency reading, with positive controls. The <a href={PDF_URL}>technical report (PDF)</a> gives the full methods and the source of every number.
-
-<AtlasExplainer title="Each part of a dose has its own units, at its own depth in the model" />
 
 <details class="atl-terms">
 <summary>Terms used here</summary>
