@@ -21,7 +21,7 @@ const scenes = {
     alt: "A pastel painting of a white lighthouse above the dark roofs of a town by the sea, under large sunlit clouds. Some of the town's windows glow in five colours.",
     width: 2400,
     height: 800,
-    focus: "34% 50%",
+    focus: "44% 50%",
   },
 } satisfies Record<string, FooterScene>;
 
