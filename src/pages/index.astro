@@ -1,172 +1,419 @@
 ---
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
-import Section from "../components/Section.astro";
-import Card from "../components/Card.astro";
-import CTA from "../components/CTA.astro";
+import GlyphArt from "../components/GlyphArt.astro";
+import Placeholder from "../components/Placeholder.astro";
 import ConditionChips from "../components/ConditionChips.astro";
+import { researchItems } from "../data/researchItems";
 
-const stats = [
-  {
-    figure: "~90M",
-    body: "Americans have literacy skills insufficient for today's healthcare settings.",
-    source: "JAMA",
-  },
-  {
-    figure: "36%",
-    body: "of U.S. adults have basic or below-basic health literacy. Among adults 65+, that figure rises to 59%.",
-    source: "AHA Scientific Statement",
-  },
-  {
-    figure: "Worse",
-    body: "control, more ER visits, and more deaths — the toll of low health literacy across diabetes, heart failure, COPD, and kidney disease.",
-    source: "Multiple studies · AHA / NIH",
-  },
-];
+const research = researchItems;
 ---
 
 <Base
-  title="Pereste Health: Better understanding, better outcomes."
-  description="Pereste Health builds Guide: AI-powered chronic-disease education and support in plain language, grounded in each patient's own records and HIPAA-secured, built for rural and underserved care across six chronic conditions."
+  title="Pereste Health"
+  description="Pereste Health builds Guide, a voice app that explains a patient's own health record in plain language for rural chronic care, and publishes safety research on the AI models used in healthcare."
 >
-  <Hero
-    eyebrow="Pereste Health"
-    title="Healthcare AI that meets patients where they are."
-    lede="Pereste builds Guide: AI-powered chronic-disease education and support that speaks in plain language, grounded in each patient's own records, and built for the realities of rural and underserved care."
-    primaryCta={{ href: "/guide", label: "Meet Guide" }}
-    secondaryCta={{ href: "/about", label: "About Pereste" }}
-    image={{ src: "/images/app-home.png", alt: "Guide app home screen on a phone" }}
-  />
-
-  {/* Mission band */}
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">Mission</p>
-      </div>
-      <div class="md:col-span-8">
-        <p class="text-2xl md:text-3xl font-display font-semibold tracking-tight-2 leading-snug text-brand-ink">
-          We build clinical AI for the patients health systems struggle most to
-          reach, and deploy it inside the institutions that already care for
-          them.
-        </p>
-        <p class="lede mt-6">
-          Prevention and chronic-disease management, delivered as close to the
-          patient's home as the clinic itself: privacy-preserving, grounded in
-          clinical reality, and shaped by how patients actually experience their
-          care.
-        </p>
-      </div>
+  <section class="home-top">
+    <div class="container-page">
+      <p class="label-mono mb-5 hero-in" style="--i:0">Pereste Health</p>
+      <h1 class="hero-in" style="--i:1">
+        We build AI for chronic care in rural communities, and we study the safety of the AI models healthcare uses.
+      </h1>
     </div>
-  </Section>
+  </section>
 
-  {/* The literacy gap — public, cited research */}
-  <Section tone="subtle">
-    <p class="eyebrow mb-4" data-reveal>The literacy gap</p>
-    <h2 class="max-w-3xl mb-12" data-reveal style="--reveal-delay:60ms">
-      Rural patients get left behind by today's healthcare communication.
-    </h2>
-    <div class="grid md:grid-cols-3 gap-6">
-      {stats.map((s, i) => (
-        <div class="card p-7 md:p-8 flex flex-col" data-reveal style={`--reveal-delay:${i * 70}ms`}>
-          <p class="font-display text-4xl md:text-5xl font-bold tracking-tight-3 text-brand-ink">
-            {s.figure}
-          </p>
-          <p class="mt-4 text-brand-ink/80 leading-relaxed flex-1">{s.body}</p>
-          <p class="mt-6 text-xs uppercase tracking-[0.14em] text-brand-muted">
-            {s.source}
-          </p>
+  {/* Two halves of equal size: Guide on a light ground, Research on navy. */}
+  <section class="split" aria-label="The two sides of Pereste">
+    <a href="/guide/" class="half half-guide" data-half>
+      <GlyphArt
+        piece="name-field"
+        label="Rows of the word Pereste, with two cones of brighter letters forming a lighthouse's twin beams."
+        class="half-art"
+        pointer="[data-half]"
+        ground={false}
+        options={{
+          quiet: [
+            { x: 0, y: 0, w: 0.62, h: 0.13, feather: 0.08 },
+            { x: 0, y: 0.74, w: 1, h: 0.26, feather: 0.1 },
+          ],
+        }}
+      />
+      <div class="half-inner">
+        <p class="label-mono">Guide · for patients</p>
+        <div class="half-stage">
+          <div class="phone">
+            <div class="device device-sm">
+              <img src="/images/app-home.png" alt="The Guide app's home screen, showing a patient's own lab result and next visit." width="720" height="1558" loading="eager" decoding="async" />
+            </div>
+            <span class="pin pin-a">own records</span>
+            <span class="pin pin-b">plain words, out loud</span>
+            <span class="pin pin-c">urgent goes to a person</span>
+          </div>
         </div>
-      ))}
-    </div>
-  </Section>
-
-  {/* Approach — the three commitments */}
-  <Section bordered>
-    <p class="eyebrow mb-4" data-reveal>Our approach</p>
-    <h2 class="max-w-3xl mb-12" data-reveal style="--reveal-delay:60ms">
-      Built for patients the health system struggles most to reach.
-    </h2>
-    <div class="grid md:grid-cols-3 gap-6">
-      <Card
-        eyebrow="01"
-        title="Built for clinical reality"
-        icon={{ src: "/images/icon-models.svg", alt: "" }}
-        data-reveal
-      >
-        Adaptive to each patient, grounded in their own clinical record, and
-        designed to behave safely when the stakes are real, not a generic
-        chatbot pointed at health questions.
-      </Card>
-      <Card
-        eyebrow="02"
-        title="Deployed in partnership"
-        icon={{ src: "/images/icon-partnership.svg", alt: "" }}
-        data-reveal
-        style="--reveal-delay:70ms"
-      >
-        Guide runs under the institution's existing governance and security,
-        delivered with health systems and academic partners, never
-        direct-to-consumer.
-      </Card>
-      <Card
-        eyebrow="03"
-        title="Rural-first by design"
-        icon={{ src: "/images/icon-rural.svg", alt: "" }}
-        data-reveal
-        style="--reveal-delay:140ms"
-      >
-        We design for an aging, rural population managing chronic conditions,
-        where comprehension, pace, and trust decide whether care actually works.
-        Get it right for them, and it works for everyone.
-      </Card>
-    </div>
-  </Section>
-
-  {/* Product — Guide */}
-  <Section bordered>
-    <div class="grid md:grid-cols-12 gap-10 items-start" data-reveal>
-      <div class="md:col-span-4">
-        <p class="eyebrow">Our product</p>
-        <h2 class="mt-4">Guide</h2>
+        <div class="half-foot">
+          <p>
+            Guide is a voice app that explains a patient's own health record in plain language, for people
+            managing chronic conditions in rural and underserved care.
+          </p>
+          <span class="btn-primary">See Guide</span>
+        </div>
       </div>
-      <div class="md:col-span-8">
-        <p class="lede">
-          Guide turns dense discharge papers, lab results, and care plans into a
-          calm, spoken conversation at each patient's own reading level. And it
-          knows which symptoms are urgent and need a real person, fast. It
-          covers six of the most common chronic conditions:
-        </p>
-        <div class="mt-6">
+    </a>
+
+    <a href="/research/" class="half half-research" data-half>
+      <div class="half-inner">
+        <p class="label-mono">Research · on models</p>
+        <div class="half-stage">
+          <GlyphArt
+            piece="headland"
+            label="A lighthouse on a headland, built from tiles of numerals, with one lit lamp at the top. The layers of the headland are labelled tokens, layers, features and answer."
+            class="headland-art"
+            pointer="[data-half]"
+            ground={false}
+            options={{ labels: ["ANSWER", "FEATURES", "LAYERS", "TOKENS"] }}
+          />
+        </div>
+        <div class="half-foot">
+          <p>
+            Our research tests the language models deployed in healthcare: how they represent medications,
+            when they give advice they should not, and how to keep what they say faithful to the
+            medication order.
+          </p>
+          <span class="btn-inverse">Read the research</span>
+        </div>
+      </div>
+    </a>
+  </section>
+
+  <section class="band band-guide">
+    <div class="container-page">
+      <div class="band-grid">
+        <div>
+          <p class="label-mono mb-4">Guide</p>
+          <h2>Your care, explained out loud.</h2>
+        </div>
+        <div>
+          <dl class="facts">
+            <div>
+              <dt class="label-mono">Own records</dt>
+              <dd>Guide reads the patient's own discharge papers, lab results and care plan.</dd>
+            </div>
+            <div>
+              <dt class="label-mono">Plain words</dt>
+              <dd>It explains them out loud in plain language. It does not give medical advice.</dd>
+            </div>
+            <div>
+              <dt class="label-mono">Urgent</dt>
+              <dd>When something sounds urgent, it sends the patient to a person.</dd>
+            </div>
+          </dl>
+          <p class="label-mono mt-10 mb-4">Six chronic conditions</p>
           <ConditionChips />
-        </div>
-        <div class="mt-8">
-          <a href="/guide" class="link-arrow">See how Guide works</a>
+          <a href="/guide/" class="link-arrow mt-8">See how Guide works</a>
         </div>
       </div>
     </div>
-  </Section>
+  </section>
 
-  {/* Audience CTAs */}
-  <Section>
-    <div class="grid md:grid-cols-2 gap-6">
-      <CTA
-        eyebrow="For institutions"
-        title="Deploy Guide inside the systems that already care for your patients."
-        body="We partner with clinics, health systems, and academic care settings to run Guide under the governance and security they already trust, with no patient data sent to outside AI services."
-        primaryCta={{ href: "mailto:parker@pereste.com", label: "Talk to our team" }}
-        tone="ink"
-        data-reveal
-      />
-      <CTA
-        eyebrow="For investors"
-        title="Durable IP at the intersection of clinical AI and underserved care."
-        body="Pereste holds the methods and proprietary IP behind Guide, built for an aging, rural population. Investor and partnership inquiries welcome."
-        primaryCta={{ href: "mailto:parker@pereste.com", label: "Request our overview" }}
-        tone="subtle"
-        data-reveal
-        style="--reveal-delay:80ms"
-      />
+  <section class="band band-research">
+    <div class="container-page">
+      <div class="band-head">
+        <p class="label-mono mb-4">Research</p>
+        <h2>Safety research on the AI models used in healthcare.</h2>
+      </div>
+      <ul class="tiles">
+        {research.map((r) => (
+          <li>
+            <a href={r.href} class="tile">
+              <div class="tile-figure">
+                {r.glyph ? (
+                  <GlyphArt piece="open-capsule" label="A capsule shape picked out in tiles from a field of medicine label words." class="tile-glyph" options={{ interactive: false }} />
+                ) : (
+                  <img src={r.image} alt={r.alt} loading="lazy" decoding="async" />
+                )}
+              </div>
+              <p class="label-mono tile-models">{r.models}</p>
+              <h3>{r.title}</h3>
+              <p class="tile-line">{r.line}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="join">
+        <Placeholder q={5}>one sentence on how the research is used in Guide</Placeholder>
+      </p>
+      <a href="/research/" class="link-arrow link-light mt-8">All research</a>
     </div>
-  </Section>
+  </section>
 </Base>
+
+<style>
+  .home-top {
+    padding-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    padding-bottom: clamp(2rem, 1.25rem + 3vw, 3.75rem);
+  }
+  .home-top h1 {
+    max-width: 24ch;
+    font-size: clamp(2.1rem, 1.2rem + 3.2vw, 3.6rem);
+    line-height: 1.04;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .half {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .half-guide {
+    background: #f6f8fa;
+    color: theme("colors.brand.ink");
+  }
+  .half-research {
+    background: theme("colors.brand.ink");
+    color: #fff;
+  }
+  .half-research .label-mono {
+    color: theme("colors.brand.teal-pale");
+  }
+  .half :global(.half-art) {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .half-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 100%;
+    padding: 2rem 1.5rem 2.25rem;
+  }
+  .half-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  /* The headland keeps its whole lighthouse, lamp included, inside this box
+     at every width: the box is tall, and nothing overlaps it. */
+  .half :global(.headland-art) {
+    width: 100%;
+    height: clamp(26rem, 118vw, 34rem);
+  }
+  .phone {
+    position: relative;
+    width: min(58%, 15.5rem);
+    margin-block: 0.5rem;
+  }
+  .pin {
+    position: absolute;
+    white-space: nowrap;
+    font-family: theme("fontFamily.mono");
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.55rem;
+    border-radius: 3px;
+    background: theme("colors.brand.ink");
+    color: #fff;
+    box-shadow: 0 6px 16px -8px rgba(35, 44, 84, 0.5);
+  }
+  .pin-a {
+    top: 16%;
+    right: calc(100% - 1.25rem);
+  }
+  .pin-b {
+    top: 44%;
+    left: calc(100% - 1.25rem);
+    background: theme("colors.brand.accent-soft");
+    color: #0a6f79;
+    box-shadow: inset 0 0 0 1px theme("colors.brand.accent");
+  }
+  .pin-c {
+    bottom: 12%;
+    right: calc(100% - 1.25rem);
+  }
+  .half-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-top: auto;
+  }
+  .half-foot p {
+    max-width: 30rem;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+  }
+  .half-guide .half-foot p {
+    color: rgb(35 44 84 / 0.85);
+  }
+  .half-research .half-foot p {
+    color: rgb(255 255 255 / 0.85);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .half-guide:hover .btn-primary {
+      background-color: theme("colors.brand.indigo");
+    }
+    .half-research:hover .btn-inverse {
+      background-color: theme("colors.brand.subtle");
+    }
+  }
+  @media (max-width: 1199px) {
+    .pin-a,
+    .pin-c {
+      right: auto;
+      left: -3.75rem;
+    }
+    .pin-b {
+      left: auto;
+      right: -3.75rem;
+    }
+  }
+  @media (max-width: 639px) {
+    .pin {
+      font-size: 0.62rem;
+      padding: 0.3rem 0.4rem;
+    }
+  }
+  @media (min-width: 900px) {
+    .split {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .half-inner {
+      padding: 2.5rem clamp(1.5rem, 3.5vw, 3.5rem) 3rem;
+    }
+    .half-guide .half-inner {
+      margin-left: auto;
+      max-width: calc(38rem + clamp(1.5rem, 3.5vw, 3.5rem));
+      padding-left: 2.5rem;
+    }
+    .half-research .half-inner {
+      max-width: calc(38rem + clamp(1.5rem, 3.5vw, 3.5rem));
+      padding-right: 2.5rem;
+    }
+    .half-stage {
+      flex: 1;
+    }
+    .half :global(.headland-art) {
+      height: clamp(30rem, 44vw, 40rem);
+    }
+    .phone {
+      width: min(46%, 15.5rem);
+    }
+  }
+
+  .band {
+    padding-block: clamp(4rem, 3rem + 5vw, 7rem);
+  }
+  .band h2 {
+    max-width: 18ch;
+  }
+  .band-grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 1100px) {
+    .band-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 4rem;
+    }
+  }
+  .facts {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .facts dd {
+    margin-top: 0.4rem;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    color: rgb(35 44 84 / 0.88);
+  }
+  @media (min-width: 640px) {
+    .facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2rem;
+    }
+  }
+
+  .band-research {
+    background: theme("colors.brand.ink");
+    color: #fff;
+  }
+  .band-research .label-mono {
+    color: theme("colors.brand.teal-pale");
+  }
+  .band-research h2 {
+    max-width: 20ch;
+  }
+  .tiles {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  @media (min-width: 900px) {
+    .tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0.75rem 0.75rem 1.5rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    transition:
+      border-color var(--dur-hover) ease,
+      transform 200ms var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tile:hover {
+      border-color: rgb(255 255 255 / 0.55);
+      transform: translateY(-2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tile:hover {
+      transform: none;
+    }
+  }
+  .tile-figure {
+    aspect-ratio: 4 / 3;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #f1f4f7;
+  }
+  .tile-figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.9rem;
+    background: #fff;
+  }
+  .tile-figure :global(.tile-glyph) {
+    height: 100%;
+  }
+  .tile-models {
+    margin: 1.25rem 0.5rem 0;
+    line-height: 1.5;
+  }
+  .tile h3 {
+    margin: 0.5rem 0.5rem 0;
+  }
+  .tile-line {
+    margin: 0.6rem 0.5rem 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.78);
+  }
+  .join {
+    margin-top: 3rem;
+    max-width: 44rem;
+  }
+  .link-light {
+    color: #fff;
+  }
+</style>

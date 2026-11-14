@@ -2,102 +2,147 @@
 const year = new Date().getFullYear();
 const cols = [
   {
-    heading: "Company",
+    heading: "Guide",
     links: [
-      { href: "/about", label: "About" },
-      { href: "/research", label: "Research" },
-      { href: "/careers", label: "Careers" },
-      { href: "/press", label: "Press" },
+      { href: "/guide/", label: "What Guide does" },
+      { href: "/guide/#conditions", label: "Six conditions" },
     ],
   },
   {
-    heading: "Product",
+    heading: "Research",
     links: [
-      { href: "/guide", label: "Guide" },
+      { href: "/research/", label: "All research" },
+      { href: "/research/medication-neuron-atlas/", label: "Medication neuron atlas" },
+      { href: "/research/dosegate/", label: "DoseGate" },
+      { href: "/research/advice-vs-education/", label: "Advice versus education" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      { href: "/about/", label: "About" },
+      { href: "/careers/", label: "Careers" },
+      { href: "/press/", label: "Press" },
+      { href: "mailto:parker@pereste.com", label: "parker@pereste.com" },
     ],
   },
   {
     heading: "Legal",
     links: [
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/terms", label: "Terms of Service" },
-      { href: "/oss", label: "Open-Source Notices" },
-    ],
-  },
-  {
-    heading: "Contact",
-    links: [
-      { href: "mailto:parker@pereste.com", label: "General inquiries" },
-      { href: "mailto:parker@pereste.com", label: "Press" },
-      { href: "mailto:parker@pereste.com", label: "Partnerships" },
+      { href: "/privacy/", label: "Privacy Policy" },
+      { href: "/terms/", label: "Terms of Service" },
+      { href: "/oss/", label: "Open-Source Notices" },
     ],
   },
 ];
 ---
 
-<footer class="hairline mt-28">
-  <div class="container-page py-14">
-    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
-      <div>
-        <a href="/" class="inline-flex items-center gap-3" aria-label="Pereste Health home">
-          <img
-            src="/logos/pereste-mark.svg"
-            alt=""
-            width="40"
-            height="42"
-            class="h-11 w-auto"
-            loading="lazy"
-            decoding="async"
-          />
-          <span class="leading-none">
-            <span class="block font-display text-xl font-semibold tracking-[0.18em] uppercase text-brand-indigo">Pereste</span>
-            <span class="mt-1 block font-display text-[0.68rem] font-medium tracking-[0.3em] uppercase text-brand-accent">Health</span>
-          </span>
-        </a>
-        <p class="mt-5 text-sm text-brand-muted max-w-xs leading-relaxed">
-          Better understanding, better outcomes.
-        </p>
+<footer class="site-footer">
+  {/* The lighthouse painting, edge to edge, with nothing laid over it. Its
+      dark roofs fade into the navy block that holds the links. */}
+  <div class="footer-painting">
+    <picture>
+      <source media="(max-width: 640px)" type="image/webp" srcset="/images/art/footer-lighthouse-phone.webp" />
+      <source media="(max-width: 640px)" srcset="/images/art/footer-lighthouse-phone.jpg" />
+      <source type="image/webp" srcset="/images/art/footer-lighthouse.webp" />
+      <img
+        src="/images/art/footer-lighthouse.jpg"
+        alt="A pastel painting of a white lighthouse above the dark roofs of a town by the sea, under large sunlit clouds. Some of the town's windows glow in five colours."
+        width="2400"
+        height="800"
+        loading="lazy"
+        decoding="async"
+      />
+    </picture>
+  </div>
+
+  <div class="footer-body">
+    <div class="container-page pt-12 pb-10">
+      <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+        <div>
+          <a href="/" class="inline-flex items-center gap-3" aria-label="Pereste Health home">
+            <img
+              src="/logos/pereste-mark-inverse.svg"
+              alt=""
+              width="40"
+              height="42"
+              class="h-11 w-auto"
+              loading="lazy"
+              decoding="async"
+            />
+            <span class="leading-none">
+              <span class="block font-display text-xl font-semibold tracking-[0.18em] uppercase text-white">Pereste</span>
+              <span class="mt-1 block font-display text-[0.68rem] font-medium tracking-[0.3em] uppercase text-brand-teal-pale">Health</span>
+            </span>
+          </a>
+          <p class="mt-5 max-w-xs text-sm leading-relaxed text-white/75">
+            Pereste Health builds Guide and publishes safety research on healthcare AI models.
+          </p>
+        </div>
+
+        {cols.map((col) => (
+          <div>
+            <h4 class="label-mono !text-brand-teal-pale">{col.heading}</h4>
+            <ul class="mt-4 space-y-2">
+              {col.links.map((link) => (
+                <li>
+                  <a href={link.href} class="footer-link text-sm text-white">{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
 
-      {cols.map((col) => (
-        <div>
-          <h4 class="text-xs uppercase tracking-[0.18em] text-brand-muted font-medium">
-            {col.heading}
-          </h4>
-          <ul class="mt-4 space-y-2">
-            {col.links.map((link) => (
-              <li>
-                <a
-                  href={link.href}
-                  class="footer-link text-sm text-brand-ink"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-
-    <div class="hairline mt-12 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-      <p class="text-xs text-brand-muted">
-        © {year} Pereste Health Inc. Based in Louisiana, USA.
-      </p>
-      <p class="text-xs text-brand-muted">
-        Pereste is a healthcare AI company. Information on this site is not medical advice.
-      </p>
+      <div class="mt-12 flex flex-col items-start justify-between gap-3 border-t border-white/15 pt-6 md:flex-row md:items-center">
+        <p class="text-xs text-white/65">© {year} Pereste Health Inc. Based in Louisiana, USA.</p>
+        <p class="text-xs text-white/65">Information on this site is not medical advice.</p>
+      </div>
     </div>
   </div>
 </footer>
 
 <style>
+  .site-footer {
+    background: theme("colors.brand.ink");
+  }
+  .footer-painting {
+    position: relative;
+    overflow: hidden;
+  }
+  .footer-painting img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 1;
+    object-fit: cover;
+    object-position: 34% 50%;
+  }
+  .footer-painting::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 34%;
+    background: linear-gradient(180deg, rgba(35, 44, 84, 0) 0%, rgba(35, 44, 84, 0.55) 55%, #232c54 100%);
+    pointer-events: none;
+  }
+  @media (max-width: 640px) {
+    .footer-painting img {
+      aspect-ratio: 4 / 3;
+      object-position: 50% 50%;
+    }
+  }
+  @media (min-width: 1800px) {
+    .footer-painting img {
+      aspect-ratio: 7 / 2;
+    }
+  }
   .footer-link {
     transition: color var(--dur-hover) ease;
   }
   @media (hover: hover) and (pointer: fine) {
     .footer-link:hover {
-      color: theme("colors.brand.accent");
+      color: theme("colors.brand.teal-pale");
     }
   }
 </style>

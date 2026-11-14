@@ -55,6 +55,8 @@ const config: Config = {
           "system-ui",
           "sans-serif",
         ],
+        // Labels placed on drawings, and the glyph art, are set in DM Mono.
+        mono: ["DM Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
         // Kept as an alias so any lingering `font-serif` utilities still
         // resolve to the brand typeface rather than a system serif.
         serif: [
