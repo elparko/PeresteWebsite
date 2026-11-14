@@ -73,7 +73,7 @@ function layout() {
   dpr = Math.min(2.5, window.devicePixelRatio || 1);
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.height = H + "px";
   const c0 = Math.cos(YAW0), s0 = Math.sin(YAW0), rest = (x, z) => (x * s0 + z * c0) * scale * TILT;
-  bUnits.style.left = x0 + "px"; bUnits.style.top = bankTop + rest(-1, DEEP) + 26 + "px";
+  bUnits.style.left = x0 + "px"; bUnits.style.top = bankTop + rest(-1, DEEP) + (phone ? 46 : 26) + "px";
   bAtt.style.left = x1 + 24 + "px"; bAtt.style.top = (yA + yB) / 2 + rest(1, 0) - 16 + "px";
   draw(performance.now());
 }
