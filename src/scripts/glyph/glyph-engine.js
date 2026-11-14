@@ -284,7 +284,17 @@ const scope = {};
       if (animating || (settling && visible)) request();
     }
     function request() {
-      if (!raf && !dead) raf = requestAnimationFrame(frame);
+      if (raf || dead) return;
+      let ran = false;
+      let timer = 0;
+      const run = function () {
+        if (ran) return;
+        ran = true;
+        clearTimeout(timer);
+        frame();
+      };
+      raf = requestAnimationFrame(run);
+      timer = setTimeout(run, 120);
     }
 
     const target = opts.pointerTarget || host;

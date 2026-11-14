@@ -50,7 +50,7 @@ const scene = footerSceneFor(Astro.url.pathname);
       <source media="(max-width: 640px)" type="image/webp" srcset={`${scene.src}-phone.webp`} />
       <source media="(max-width: 640px)" srcset={`${scene.src}-phone.jpg`} />
       <source type="image/webp" srcset={`${scene.src}-1200.webp 1200w, ${scene.src}.webp 2400w`} sizes="100vw" />
-      <img src={`${scene.src}.jpg`} alt="" width={scene.width} height={scene.height} loading="lazy" decoding="async" style={`object-position:${scene.focus}`} />
+      <img src={`${scene.src}.jpg`} alt="" width={scene.width} height={scene.height} loading="lazy" decoding="sync" style={`object-position:${scene.focus}`} />
     </picture>
   )}
 
@@ -94,7 +94,7 @@ const scene = footerSceneFor(Astro.url.pathname);
           <source media="(max-width: 640px)" type="image/webp" srcset={`${scene.src}-phone.webp`} />
           <source media="(max-width: 640px)" srcset={`${scene.src}-phone.jpg`} />
           <source type="image/webp" srcset={`${scene.src}-1200.webp 1200w, ${scene.src}.webp 2400w`} sizes="100vw" />
-          <img src={`${scene.src}.jpg`} alt={scene.alt} width={scene.width} height={scene.height} loading="lazy" decoding="async" style={`object-position:${scene.focus}`} />
+          <img src={`${scene.src}.jpg`} alt={scene.alt} width={scene.width} height={scene.height} loading="lazy" decoding="sync" style={`object-position:${scene.focus}`} />
         </picture>
         <div class="footer-legal">
           <p>© {year} Pereste Health Inc. Based in Louisiana, USA.</p>

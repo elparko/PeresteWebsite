@@ -6,9 +6,10 @@ interface Props {
   narrow?: Record<string, unknown>;
   pointer?: string;
   ground?: boolean;
+  still?: string;
   class?: string;
 }
-const { piece, label, options = {}, narrow, pointer, ground = true, class: className } = Astro.props;
+const { piece, label, options = {}, narrow, pointer, ground = true, still, class: className } = Astro.props;
 ---
 
 <div
@@ -22,6 +23,11 @@ const { piece, label, options = {}, narrow, pointer, ground = true, class: class
   data-glyph-pointer={pointer}
   data-glyph-ground={ground ? "1" : "0"}
 >
+  {still && (
+    <noscript>
+      <img src={still} alt="" class="glyph-still" />
+    </noscript>
+  )}
 </div>
 
 <script>
@@ -52,5 +58,10 @@ const { piece, label, options = {}, narrow, pointer, ground = true, class: class
     position: relative;
     width: 100%;
     overflow: hidden;
+  }
+  .glyph-still {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 </style>
