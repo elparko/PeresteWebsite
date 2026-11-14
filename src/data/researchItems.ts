@@ -24,16 +24,6 @@ export const researchItems: ResearchItem[] = [
     alt: "A three-dimensional volume of points, one for each unit, stacked by processing step from 1 to 36, with the 1,648 units for drug names lit on a plane near step 6 and the words warfarin, 5, mg, orally and once daily listed beside it.",
   },
   {
-    href: "/research/medication-danger-and-control/",
-    models: "Qwen3-8B · Qwen3.5-4B",
-    title: "Do the units that predict a message's danger control the model's urgency reading?",
-    line: "Switching off the units that best predicted a message's danger left more than 99% of the gap between the model's urgency readings for dangerous and harmless messages in place.",
-    date: "2026-11-14",
-    kind: "Findings",
-    image: "/images/research/tile-danger-ladder.webp",
-    alt: "A bar chart of six ways of changing the model's state at the reply position and how much each changed the urgency gap. Replacing the whole reply position and replacing only the attention output each lowered the gap by 1.86. Replacing all 294,912 feed-forward neurons changed it by +0.025, and silencing 200 chosen units changed it by +0.005 and by −0.027.",
-  },
-  {
     href: "/research/medication-neuron-atlas/",
     models: "Qwen3-8B",
     title: "Medication neuron atlas",
