@@ -20,8 +20,20 @@ import { GlyphArt } from "./glyph-engine.js";
   const DEEP = rgb(P.indigo), NAVY = rgb(P.ink), WHITE = rgb(P.white);
 
   function shape(env) {
-    if (env.view === "phone") return { cliff: -8, top: -3, lx: -6, sea: 6, bh: 2, slope: 0.42 };
-    return { cliff: -9, top: -5, lx: -7, sea: 7, bh: 3, slope: 0.4 };
+    const o = env.opts || {}, c = env.geo.c, phone = env.view === "phone";
+    const shaft = o.tower === undefined ? 2 : Math.max(1, Math.round(o.tower));
+    const bh = phone ? 2 : 3;
+    let lx = phone ? -6 : -7, lamp = phone ? -8 : -10;
+    if (o.lighthouse) {
+      lx = Math.round((o.lighthouse[0] * env.w - env.fx) / c);
+      lamp = Math.round((o.lighthouse[1] * env.h - env.fy) / c);
+    }
+    const ciMin = Math.ceil(0.5 - env.fx / c), ciMax = Math.floor((env.w - env.fx) / c - 0.5);
+    const cjMin = Math.ceil(0.5 - env.fy / c), cjMax = Math.floor((env.h - env.fy) / c - 0.5);
+    lx = G.clamp(lx, ciMin + 2, Math.max(ciMin + 2, ciMax - 2));
+    lamp = G.clamp(lamp, cjMin + 4, Math.max(cjMin + 4, cjMax - shaft - 4));
+    const top = lamp + 3 + shaft;
+    return { lx: lx, lamp: lamp, top: top, shaft: shaft, cliff: lx - 2, sea: top + 4 * bh + (phone ? 1 : 0), bh: bh, slope: phone ? 0.42 : 0.4 };
   }
 
   function topAt(s, ci) {
@@ -57,7 +69,7 @@ import { GlyphArt } from "./glyph-engine.js";
       env.s = s;
       const c = env.geo.c;
       env.lampX = env.fx + s.lx * c;
-      env.lampY = env.fy + (s.top - 5) * c;
+      env.lampY = env.fy + s.lamp * c;
       env.left = {};
       env.bare = env.opts && env.opts.figure === false;
       env.dim = env.opts && env.opts.fieldAlpha !== undefined ? env.opts.fieldAlpha : 0.14;
@@ -88,11 +100,11 @@ import { GlyphArt } from "./glyph-engine.js";
         } else if (tok.cj >= s.sea) {
           tok.kind = "sea";
         }
-        const li = tok.ci - s.lx, lj = tok.cj - s.top;
-        if ((lj === -1 || lj === -4) && Math.abs(li) <= 1) tok.kind = "house";
-        if (li === 0 && (lj === -2 || lj === -3)) tok.kind = "house";
-        if (li === 0 && lj === -5) tok.kind = "lamp";
-        if (li === 0 && lj === -6) tok.kind = "roof";
+        const li = tok.ci - s.lx, lj = tok.cj - s.lamp;
+        if ((lj === 1 || lj === s.shaft + 2) && Math.abs(li) <= 1) tok.kind = "house";
+        if (li === 0 && lj > 1 && lj < s.shaft + 2) tok.kind = "house";
+        if (li === 0 && lj === 0) tok.kind = "lamp";
+        if (li === 0 && lj === -1) tok.kind = "roof";
       }
     },
     paint: function (tok, env) {

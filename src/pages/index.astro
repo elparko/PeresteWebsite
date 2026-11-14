@@ -1,7 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
 import GlyphArt from "../components/GlyphArt.astro";
-import Placeholder from "../components/Placeholder.astro";
 import ConditionChips from "../components/ConditionChips.astro";
 import { researchItems } from "../data/researchItems";
 
@@ -10,7 +9,7 @@ const research = researchItems;
 
 <Base
   title="Pereste Health"
-  description="Pereste Health builds Guide, a voice app that explains a patient's own health record in plain language for rural chronic care, and publishes safety research on the AI models used in healthcare."
+  description="Pereste Health builds Pereste Guide, a voice app that explains a patient's own health record in plain language for rural chronic care, and publishes safety research on the AI models used in healthcare."
 >
   <section class="home-top">
     <div class="container-page">
@@ -51,8 +50,8 @@ const research = researchItems;
         </div>
         <div class="half-foot">
           <p>
-            Guide is a voice app that explains a patient's own health record in plain language, for people
-            managing chronic conditions in rural and underserved care.
+            Pereste Guide is a voice app, in development, that explains a patient's own health record in
+            plain language, for people managing chronic conditions in rural and underserved care.
           </p>
           <span class="btn-primary">See Guide</span>
         </div>
@@ -69,7 +68,8 @@ const research = researchItems;
             class="headland-art"
             pointer="[data-half]"
             ground={false}
-            options={{ labels: ["ANSWER", "FEATURES", "LAYERS", "TOKENS"] }}
+            options={{ lighthouse: [0.3, 0.2], tower: 4, labels: ["ANSWER", "FEATURES", "LAYERS", "TOKENS"] }}
+            narrow={{ tower: 3 }}
           />
         </div>
         <div class="half-foot">
@@ -114,7 +114,14 @@ const research = researchItems;
     </div>
   </section>
 
-  <section class="band band-research">
+  <section class="band band-research" data-band>
+    <GlyphArt
+      piece="headland"
+      label=""
+      class="band-field"
+      ground={false}
+      options={{ figure: false, interactive: false, fieldAlpha: 0.1 }}
+    />
     <div class="container-page">
       <div class="band-head">
         <p class="label-mono mb-4">Research</p>
@@ -139,7 +146,7 @@ const research = researchItems;
         ))}
       </ul>
       <p class="join">
-        <Placeholder q={5}>one sentence on how the research is used in Guide</Placeholder>
+        Both lines of work come from the same group. The research is meant to inform how Guide is built.
       </p>
       <a href="/research/" class="link-arrow link-light mt-8">All research</a>
     </div>
@@ -199,7 +206,7 @@ const research = researchItems;
      at every width: the box is tall, and nothing overlaps it. */
   .half :global(.headland-art) {
     width: 100%;
-    height: clamp(26rem, 118vw, 34rem);
+    height: clamp(30rem, 123vw, 36rem);
   }
   .phone {
     position: relative;
@@ -298,7 +305,7 @@ const research = researchItems;
       flex: 1;
     }
     .half :global(.headland-art) {
-      height: clamp(30rem, 44vw, 40rem);
+      height: clamp(35rem, 52vw, 47.5rem);
     }
     .phone {
       width: min(46%, 15.5rem);
@@ -339,8 +346,19 @@ const research = researchItems;
   }
 
   .band-research {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     background: theme("colors.brand.ink");
     color: #fff;
+  }
+  .band-research :global(.band-field) {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .tile {
+    background: theme("colors.brand.ink");
   }
   .band-research .label-mono {
     color: theme("colors.brand.teal-pale");
@@ -412,6 +430,7 @@ const research = researchItems;
   .join {
     margin-top: 3rem;
     max-width: 44rem;
+    color: rgb(255 255 255 / 0.82);
   }
   .link-light {
     color: #fff;

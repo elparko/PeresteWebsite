@@ -3,19 +3,22 @@ interface Props {
   piece: "open-capsule" | "headland" | "name-field";
   label: string;
   options?: Record<string, unknown>;
+  narrow?: Record<string, unknown>;
   pointer?: string;
   ground?: boolean;
   class?: string;
 }
-const { piece, label, options = {}, pointer, ground = true, class: className } = Astro.props;
+const { piece, label, options = {}, narrow, pointer, ground = true, class: className } = Astro.props;
 ---
 
 <div
   class:list={["glyph-art", className]}
-  role="img"
-  aria-label={label}
+  role={label ? "img" : undefined}
+  aria-label={label || undefined}
+  aria-hidden={label ? undefined : "true"}
   data-glyph={piece}
   data-glyph-options={JSON.stringify(options)}
+  data-glyph-narrow={narrow ? JSON.stringify(narrow) : undefined}
   data-glyph-pointer={pointer}
   data-glyph-ground={ground ? "1" : "0"}
 >
@@ -33,6 +36,7 @@ const { piece, label, options = {}, pointer, ground = true, class: className } =
     const start = async () => {
       const [m] = await Promise.all([load(), document.fonts.load('500 14px "DM Mono"').catch(() => null)]);
       const options = JSON.parse(el.dataset.glyphOptions || "{}");
+      if (el.dataset.glyphNarrow && el.clientWidth < 600) Object.assign(options, JSON.parse(el.dataset.glyphNarrow));
       const target = el.dataset.glyphPointer ? el.closest(el.dataset.glyphPointer) : null;
       if (target) options.pointerTarget = target;
       if (el.dataset.glyphGround === "1") el.style.background = m.ground;
