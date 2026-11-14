@@ -18,7 +18,7 @@ export const footerLayout: FooterLayout = "band";
 const scenes = {
   lighthouse: {
     src: "/images/art/footer-lighthouse",
-    alt: "A pastel painting of a white lighthouse above the dark roofs of a town by the sea, under large sunlit clouds. Some of the town's windows glow in five colours.",
+    alt: "A pastel painting of a white lighthouse above a dark-blue harbour town, with a band of teal sea and sunlit clouds in a wide sky.",
     width: 2400,
     height: 800,
     focus: "44% 50%",
