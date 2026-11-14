@@ -37,13 +37,20 @@ const scenes = {
     height: 800,
     focus: "55% 50%",
   },
+  marsh: {
+    src: "/images/art/footer-marsh",
+    alt: "An ink and wash painting of a marsh at first light: an egret stands in the shallows before a pale sun, with reeds in dark ink and a lighthouse faint on the far shore.",
+    width: 2400,
+    height: 800,
+    focus: "43% 50%",
+  },
 } satisfies Record<string, FooterScene>;
 
 /* One scene per section of the site, matched by the start of the path. The
    first match wins, so a page always shows the same painting. Add a scene
    above, then name it here. */
 const bySection: { prefix: string; scene: keyof typeof scenes }[] = [
-  { prefix: "/guide/", scene: "lighthouse" },
+  { prefix: "/guide/", scene: "marsh" },
   { prefix: "/research/", scene: "harbour" },
   { prefix: "/about/", scene: "open-sea" },
   { prefix: "/careers/", scene: "open-sea" },
