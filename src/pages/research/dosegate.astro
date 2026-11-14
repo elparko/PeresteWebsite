@@ -2,6 +2,8 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import Post from "../../layouts/Post.astro";
+import PostHero from "../../components/research/PostHero.astro";
+import GlyphArt from "../../components/GlyphArt.astro";
 
 const title =
   "A model-agnostic, formally verified output layer that keeps language model medication instructions faithful to medication orders";
@@ -42,7 +44,18 @@ const headings = [
   headings={headings}
   metaTitle="DoseGate · Pereste Health research"
   metaDescription="A Lean 4 output layer that fills every medication reference in a language model's instructions from the patient's medication orders or blocks the output. Paper by Parker Smith, Pereste Health."
+  hero
 >
+  <PostHero post={{ title, description: summary, author: "Parker Smith, Pereste Health", links }} headings={headings}>
+    <figure class="dg-figure">
+      <GlyphArt
+        piece="open-capsule"
+        label="A capsule shape picked out in indigo and teal tiles from a field of medicine label words. Moving the pointer opens the capsule."
+        class="dg-capsule"
+      />
+    </figure>
+  </PostHero>
+
   <h2 id="abstract">Abstract</h2>
   <p>{abstract}</p>
 
@@ -57,3 +70,16 @@ const headings = [
   <h2 id="citation">Citation</h2>
   <pre><code>{bibtex}</code></pre>
 </Post>
+
+<style>
+  .dg-figure :global(.dg-capsule) {
+    aspect-ratio: 8 / 7;
+    max-height: 34rem;
+    border-radius: 1rem;
+  }
+  @media (max-width: 640px) {
+    .dg-figure :global(.dg-capsule) {
+      aspect-ratio: 6 / 5;
+    }
+  }
+</style>
