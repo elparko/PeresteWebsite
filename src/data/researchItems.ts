@@ -31,7 +31,7 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-14",
     kind: "Findings",
     image: "/images/research/tile-danger.webp",
-    alt: "Sixty test messages plotted by the model's urgency reading, dangerous messages above harmless ones, beside the 200 units that best predict danger.",
+    alt: "A disc with the tokens of one test message around its rim and threads running to the reply position at its centre, where the model's urgency reading is 4.46 for dangerous messages and 0.13 for harmless ones.",
   },
   {
     href: "/research/medication-neuron-atlas/",
