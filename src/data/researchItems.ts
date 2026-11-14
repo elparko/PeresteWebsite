@@ -21,7 +21,7 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-14",
     kind: "Findings",
     image: "/images/research/tile-dose.webp",
-    alt: "Points for the model's units at their processing step, from step 1 to step 36, coloured by the part of a dose each responds to: warfarin, 5, mg, orally, once daily.",
+    alt: "A three-dimensional volume of points, one for each unit, stacked by processing step from 1 to 36, with the 1,648 units for drug names lit on a plane near step 6 and the words warfarin, 5, mg, orally and once daily listed beside it.",
   },
   {
     href: "/research/medication-danger-and-control/",
@@ -31,7 +31,7 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-14",
     kind: "Findings",
     image: "/images/research/tile-danger.webp",
-    alt: "Two bands of the same model reading a dangerous and a harmless message, with the reply position outlined in each and a dial showing an urgency gap of 4.33.",
+    alt: "Two sets of strings, one for dangerous messages with an urgency reading of 4.46 and one for harmless messages at 0.13, above 200 fine strings for the units that best predict danger, spread from step 8 to step 32.",
   },
   {
     href: "/research/medication-neuron-atlas/",
