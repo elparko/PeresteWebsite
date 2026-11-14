@@ -1,0 +1,110 @@
+---
+title: "What has a language model learned about a dose?"
+description: "At which of its 36 processing steps an open language model has units for each part of a dosing instruction, and which parts of a drug label it has clear units for and which it does not."
+date: 2026-11-14
+author: "Parker Smith"
+tag: "Research"
+draft: false
+toc: true
+hero: true
+---
+
+import UnitCard from "../../components/research/atlas/UnitCard.astro";
+import LayerExplorer from "../../components/research/atlas/LayerExplorer.astro";
+import TaggerCheck from "../../components/research/atlas/TaggerCheck.astro";
+import DoseDepthMap from "../../components/research/atlas/DoseDepthMap.astro";
+import PostHero from "../../components/research/PostHero.astro";
+
+export const ATLAS_HOME = "/research/medication-neuron-atlas/";
+export const ATLAS_URL = "/research/medication-neuron-atlas/browse/";
+export const PDF_URL = "/research/medication-neuron-atlas/medication-neuron-atlas.pdf";
+export const CONTROL_URL = "/research/medication-danger-and-control/";
+
+<PostHero post={props.post} headings={props.headings}>
+<DoseDepthMap />
+</PostHero>
+
+In the open model Qwen3-8B, half of the units for drug names (a unit is one small internal part of the model, defined below) have appeared by step 6 of its 36 processing steps, and half of those for the number in a dose only by step 28. The model has clear units for the mechanics of dosing, for drug interactions and for contraindication language, while its units for boxed warnings and pregnancy mostly describe copied wording, warning headlines or only the peak of firing, and none of the units kept after review by AI models was specific to geriatric dosing or to drug-class name endings.
+
+"Warfarin 5 mg orally once daily" has five parts, and a clinician reads them at once. A language model reads them one token at a time and processes each token through its steps in order. This post shows at which steps the units for each part of a dosing instruction sit, and which parts of a label's clinical language the model has clear units for.
+
+The evidence comes from the <a href={ATLAS_HOME}>medication neuron atlas</a>, which records where each of the model's 884,736 units fires in 2,400 FDA drug labels. Nothing here tests whether the model gives safe or correct medication advice, and nothing here should guide care.
+
+## Terms used here
+
+The full list is on the <a href={ATLAS_HOME}>atlas overview</a>. In brief: a **token** is the piece of text the model reads at each step, usually a word or part of a word. A **processing step** (technically a layer) is one of the 36 stages every token passes through in order, from reading the text at step 1 to choosing the next word at step 36; layers are numbered 0 to 35 in unit names, so layer 0 is step 1. A **unit** is the high or the low end of one of the model's neurons; a unit named L19N432-high is the high end of neuron 432 in layer 19, which is step 20, and a name ending in -low is the low end. A unit **fires** at a token when its neuron's **activation**, the value it computes there, is above the 97th percentile of that neuron's values on a reference text (or, for a low unit, below the 3rd), so every unit fires on about 30 of every 1,000 tokens of ordinary text by construction. Technically a unit is called a **pole**. A unit is **selective** for a kind of word when it fires there much more often than elsewhere. A **near-silent** unit is one whose values stay close to zero everywhere. A unit's **strongest contexts** are the 20 passages where it responded most. A **card** is a short description of a unit written by an AI model from 10 of those contexts. A card could sound right and still be wrong, so each one was tested on passages its writer never saw, called **held-out** passages: its **strong score** says how well a second AI model, reading only the card, could pick out the unit's strongest firing in the other 10 contexts, and its **threshold score** how well that model could pick out the unit's ordinary firing; chance is 0.50 for both. The **string-matching baseline** scores the same test with no card, marking a passage whenever its marked word is the same word the unit fired on in the contexts the writer saw, and the **wrong-unit control** scores it with a card written for a different unit.
+
+## At which steps do the units for each part of a dose sit?
+
+At a different step for each part, in a consistent order. To measure this, every token in the corpus (all the text the atlas was computed on) was given a type, its token type, by fixed rules: drug name, dose number (the "5" in "5 mg"), dose unit (the "mg"), frequency or timing, route, dosage form, other number, or other. A unit counts as selective for a type when it fires on at least 0.5% of that type's tokens and at least ten times as often there as on all other tokens. For each type we then asked at which steps its selective units sit.
+
+One correction comes first. A unit whose neuron barely moves still fires on about 30 of every 1,000 tokens, because firing is defined against each neuron's own range. About 41,000 such near-silent units sit at steps 2 to 5, and they inflate one result: of the 3,764 units selective for drug names, 2,116 are near-silent. Without them, 1,648 remain, and 1,267 of those are still at steps 2 to 6, with the most at step 6. So drug-name units do sit in the first few steps, but there are about half as many as the raw count suggests. Figure 1 and the map at the top of this post leave near-silent units out.
+
+With that correction, the parts of "warfarin 5 mg orally once daily" line up in order. Half of the units for drug names have appeared by step 6 of 36, half of those for routes by step 10, half of those for dose units by step 11, half of those for frequency by step 14, and half of those for the number in a dose only by step 28. 1,593 of the 2,615 dose-number units sit in the last 12 steps, and none is near-silent.
+
+How to read Figure 1: in the opening view, each row is one part of the phrase, and its bar spans the steps where the middle half of the units for that kind of word sit, with a dark tick at the step by which half have appeared. The second view gives the number of units at every step for each type, and the other buttons show one type, label section or drug class at a time. What it means: half of the units for drug names have appeared by step 6, but half of those for the number in a dose only by step 28, close to where the model chooses the next word, so a study of the first few steps alone would miss most of the units for dose numbers.
+
+<LayerExplorer number={1} />
+
+Two caveats temper the dose-number result. First, part of its position in the last 12 steps is built into the definition. A dose number is defined as the number before a dose unit, so a unit in those last steps that anticipates the coming "mg" counts as selective for the number before it. Several units do exactly that. An AI review of the first 7,700 cards written, about a quarter of the total, found several: L32N1547-low fired on a number followed by mg in 19 of its 20 strongest contexts, L34N8406-high on a number followed by mL in 19 of 20, and L33N6217-low on a number followed by kg in all 20; of the 1,227 dose-number units carded in that first batch, 580 sat in the last six steps. Second, the few drug-name units near the end mostly do not respond to particular drugs: only 2 of the 64 such cards in that batch name a specific drug, and 36 describe drug names in general.
+
+Some units link one part of the instruction to the next. L29N8506-high, at step 30 of 36, fires on "orally" right after a dose in 16 of its 20 strongest contexts, as in "400 mg orally once daily", and among the tokens whose likelihood its output most raises, read from the model's weights, are "twice" and "once", which fits a link from route to frequency; this was not tested. L32N5207-high, at step 33, fires on "orally" after a dose in 19 of its 20. Their strongest contexts repeat a few labels, so these are two examples of a link from route to frequency, not a measured pattern across the model.
+
+The units for timing show what a selective unit looks like. L19N432-high, at step 20 of 36, fires on the time unit in a repeat schedule: all 20 of its strongest contexts mark a word such as "hours", "h" or "intervals", and 19 of them are dosing schedules such as "every 3 hours" or "q6 to 8h".
+
+<UnitCard pole="L19N432+" />
+
+A unit is selected for its everyday firing on a type, but its card is written from 10 of its 20 most extreme moments, and those usually fall elsewhere. Among the units selected for routes, dosage forms, dose units or frequency, 79.5% (4,595 of 5,781) have none of their 20 strongest contexts on a token of that type, and the median share of a type-selected unit's firing that falls on its type is 0.14. The atlas therefore marks, below each card, whether its strongest contexts agree with the reason the unit was selected. For a token type, the check passes when the rules mark at least 5 of a unit's 20 strongest contexts as that type; it held for 2,494 of the 9,821 units selected on a type. The timing unit above passes: the rules mark 11 of its 20 strongest contexts as frequency phrases, although all 20 are time units.
+
+## What does the model have clear units for?
+
+For the mechanics of dosing, for drug interactions and for contraindication language. To answer this without being misled by single repeated sentences, a reviewer, itself an AI model, built a shortlist. It started from units whose cards scored at least 0.9 on the strong score, whose strongest contexts agree with their selection reason and carry no repeated-text mark (the atlas's flag for a unit whose strongest contexts mostly repeat the same or nearly the same wording copied across labels), and whose card does not say "no clear pattern". It kept units whose 20 strongest contexts come from at least 10 different labels, with no more than 6 from web text, and whose card names a meaning rather than a position inside a word. It then read all 20 contexts of 125 candidates against their cards and kept 66, and a second AI reviewer, run separately, rechecked those 66 and kept 56, in 17 themes. In this post, "the model has a unit for" a topic means that at least one such unit exists: its strongest contexts, across many labels, match a card about that topic. It does not mean that the unit describes the model's ordinary handling of the topic, that the model understands it, or that the unit controls what the model says. A theme is called weak below when its kept units describe wording copied across a drug class, a warning's headline syntax or only the peak of a unit's firing, rather than the topic itself.
+
+The mechanics of dosing are well covered, and here the cards often describe ordinary firing too. Units for a dose number with its unit have a mean threshold score of 0.84 in the shortlist; L23N10618-high, for instance, fires on mg right after a dose number. Frequency and timing has 5 units, the best with a threshold score of 0.85, and titration and tapering has 5, including L11N863-high, which fires on "discontinue", "reduce" and "stop" (0.90). The cards for L23N10618-high and L11N863-high are shown on the <a href={ATLAS_HOME}>atlas overview</a>.
+
+Drug interactions are the richest theme with clinical content. Among the reviewer's 140 candidates matching this theme, 23 reached a threshold score of 0.70, and the kept units include ones whose cards are about inhibitor-or-inducer wording, substrates, the strength of an inhibitor and interaction-driven dose limits. The unit below fires on "inhibitor" and "inducer" in statements about enzymes such as CYP3A4 and about drug transporters. When the same test passages were scored with a card written for a different unit (the wrong-unit control), that card also scored 1.00, so this card does not single out this unit.
+
+<UnitCard pole="L12N4866-" />
+
+Contraindication and hypersensitivity language has 5 clean units, two of them with a threshold score of 0.85. The unit below fires on the piece "itr" inside "nitrates" in phosphodiesterase-5 inhibitor labels and on "in" after "contraindicated".
+
+<UnitCard pole="L16N428-" />
+
+Among the units selected for a label section whose strongest contexts do fall in that section, the cards point the same way: 32 of 59 contraindication cards mention hypersensitivity or allergy, 91 of 460 interaction cards name a cytochrome P450 enzyme, and 54 of 119 overdosage cards name a management step such as dialysis or activated charcoal. These counts come from an AI model reading the wording of the cards, with each count rechecked by a second pass, not from a separate test; the interaction and overdosage counts cover the cards about subject matter rather than formatting or stock sentences.
+
+Three further themes have units that mostly describe only the strongest firing, not the ordinary firing. For renal and hepatic dose adjustment, the best threshold score among the candidates was 0.70. For maximum-dose wording such as "do not exceed", only 33 candidates matched and 3 reached 0.70. For overdose management, 6 of 84 candidates reached 0.70, and 16% of the high-scoring overdose cards carry a repeated-text mark and were left out. These theme counts come from keyword matches on each card's short title and are approximate.
+
+## What is missing?
+
+Four things a clinician might expect are weak or absent.
+
+Boxed warnings. The strongest units for a class's boxed warning fire on one sentence copied across that class, such as the mortality warning for elderly patients with dementia who take antipsychotics, or the opioid sentence on the risks of addiction; 28% of high-scoring boxed-warning or fatal-event cards carry a repeated-text mark, the most of any theme. The 4 units kept describe a warning's headline syntax and serious-event wording, and none is tied to one class's boxed sentence. The unit below, selected for label text in general, is one of them: it fires on "serious infections" in the boxed warnings and warnings sections of immunosuppressive drugs, across 16 labels. Its card scored 1.00 on the strong score, where the string-matching baseline already scored 0.95, and 0.55 on the threshold score.
+
+<UnitCard pole="L15N8563-" />
+
+Pregnancy and lactation. Units exist, but none of the 35 candidates reached a threshold score of 0.70; the best was 0.65. The unit below fires on "is" or "are" after a drug name, where the next words concern excretion in milk or crossing the placenta, and its card describes only that peak. Four of its strongest contexts repeat one tetracycline sentence, and the string-matching baseline scored at least as well as the card (1.00 against 0.90 on the strong score).
+
+<UnitCard pole="L26N4114-" />
+
+Geriatric dosing. No unit on the shortlist was specific to older patients. The geriatric cards the reviewer read either repeated one sentence or mixed "elderly" with unrelated words; the closest unit fires on wording about small, frail or elderly patients.
+
+Drug-class name endings. The one candidate for a class stem, -pril, was rejected on checking, because 13 of its 20 strongest contexts were the piece "ril", 6 of them in captopril. The only name-ending unit kept tracks salt forms such as sodium and chloride. More broadly, associations with label sections and drug classes are weaker than those with token types: at ten times the rate elsewhere, more than 1,500 units qualify for every token type, but only 29 qualify for dosage and administration and none for boxed warnings, contraindications or warnings. Separately, of the units selected for boxed warnings, contraindications and overdosage, 64%, 73% and 64% have none of their 20 strongest contexts in that section, and a drug-class link mostly reflects the wording of a few labels. The <a href={PDF_URL}>technical report</a> explains why the selection rules produce this and how they should change.
+
+## How accurate are the token types?
+
+Accurate enough to count with, within the limits of a small hand check. We read 45 randomly drawn tokens of each type in their sentences. At most 2 of each 45 were wrong: two dose numbers and two routes, one each in three other types, and none for drug names, other numbers or dosage forms. Three of the 7 errors were plasma levels counted as dose numbers or dose units.
+
+How to read Figure 2: each dot is one token read in its sentence, and an orange dot is a token the rules put in the wrong type. What it means: with 45 tokens per type, even where no error was seen, an error rate of up to about 6% cannot be ruled out.
+
+<TaggerCheck number={2} />
+
+## What this does not show
+
+A unit for dose numbers or for contraindication language is a place where a response appears. Nothing here shows that such a unit governs what the model says, and a handful of such units is not a medication safety filter. <a href={CONTROL_URL}>Do the units that predict a message's danger control the model's urgency reading?</a> reports a related test, mostly on the smaller Qwen3.5-4B, in which units chosen because they predicted how dangerous a message was, not the atlas units, were silenced (switched off). The urgency reading in that title is how strongly the model leans toward words like High against words like Low when its reply begins "Urgency level:". The findings cover one model and drug label text only, the cards were written and scored by AI models, and no clinician has blind-coded any test item.
+
+## Read more
+
+- <a href={ATLAS_URL}>Open the atlas</a> to look up any unit named here.
+- <a href={ATLAS_HOME}>The atlas overview</a>: what the atlas is, how to read a unit, and how far to trust a card.
+- <a href={CONTROL_URL}>Do the units that predict a message's danger control the model's urgency reading?</a>
+- <a href={PDF_URL}>Technical report (PDF)</a>: full methods, near-silent units, the selection rules and their limitation, and the complete analysis of the card scores.

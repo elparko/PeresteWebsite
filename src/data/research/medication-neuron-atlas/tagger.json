@@ -1,0 +1,66 @@
+{
+ "method": "45 tokens of each type drawn at random from the tagged corpus (seed in mna.atlas_types.sample) and read in context by the atlas session; an error is a token that does not belong to its type as defined in src/mna/atlas_types.py",
+ "limit": "45 tokens per type bound an error rate of zero only below about 6.4% (95%)",
+ "rule_changes": [
+  "a number directly before a dose unit became its own type, because 38% of numbers were section or table references",
+  "bare kg, units per dL or per L, and mL/min are no longer dose units, because 31% of numbers before a unit were body weights or lab values",
+  "lowercase injection is no longer a dosage form, because 13% of form tokens were the act of injecting"
+ ],
+ "types": [
+  {
+   "type": "Other",
+   "tokens": 8118893,
+   "checked": 45,
+   "errors": 1,
+   "note": "one missed drug word, penicillin"
+  },
+  {
+   "type": "Drug name",
+   "tokens": 792922,
+   "checked": 45,
+   "errors": 0
+  },
+  {
+   "type": "Frequency or timing",
+   "tokens": 58522,
+   "checked": 45,
+   "errors": 1,
+   "note": "one general-text phrase, 24 hours a day"
+  },
+  {
+   "type": "Dose unit",
+   "tokens": 76124,
+   "checked": 45,
+   "errors": 1,
+   "note": "one plasma level in mcg/mL"
+  },
+  {
+   "type": "Dose number",
+   "tokens": 135077,
+   "checked": 45,
+   "errors": 2,
+   "note": "two plasma levels"
+  },
+  {
+   "type": "Other number",
+   "tokens": 656475,
+   "checked": 45,
+   "errors": 0,
+   "note": "all are digits or number punctuation; 17 of 45 are section or table references and 4 are digits inside a name such as CYP2C9"
+  },
+  {
+   "type": "Route",
+   "tokens": 56595,
+   "checked": 45,
+   "errors": 2,
+   "note": "epidural hematoma and oral temperature"
+  },
+  {
+   "type": "Dosage form",
+   "tokens": 64680,
+   "checked": 45,
+   "errors": 0,
+   "note": "9 of 45 are containers (vial, syringe), which the type includes"
+  }
+ ]
+}

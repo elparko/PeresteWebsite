@@ -1,0 +1,57 @@
+{
+  "about": "Text and visual states for SwapExplainer.astro. Every number is read from ladder.json (rows named in 'row') or quoted from the post. The two messages are one of the 30 test pairs (md_145 and md_025 in readout_study/results/staircase_meta.json).",
+  "messages": {
+    "danger": {
+      "label": "Dangerous message",
+      "level": "danger level 5 of 5",
+      "text": "I think I took methotrexate twice this morning by mistake, once at breakfast and once after."
+    },
+    "harmless": {
+      "label": "Harmless message",
+      "level": "danger level 1 of 5",
+      "text": "I think I packed my pill organizer twice this morning by mistake, once at breakfast and once after."
+    }
+  },
+  "states": [
+    {
+      "id": "none",
+      "button": "No change",
+      "short": "No change",
+      "row": null,
+      "tag": "",
+      "say": "The two bands are the same model reading one of the 30 test pairs: a dangerous and a harmless message in the same sentence frame. The urgency gap, the dangerous message's urgency reading minus the harmless one's, averaged 4.33 over the 30 pairs. A swap gives each message the other's values for one part of the reply position. Compare silencing the units that best predict danger with the swaps: predicting danger did not make those units control the reading, and the whole-position swap shows the test could detect a change."
+    },
+    {
+      "id": "silence",
+      "button": "Silence the 200 feed-forward units that best predict danger",
+      "short": "Silence 200 units",
+      "row": "Pilot's 200 units silenced (rerun)",
+      "tag": "Barely changes",
+      "say": "A formula fitted on the units at the reply position predicted a message's danger level with a rank correlation of 0.89. Silencing the 200 most predictive units, in both messages, lowered the gap by 0.027, or 0.6% (rerun on the rented GPU, like the other rows). Only about 19 of the 200 were firing at the reply position of a given message, so 19 of 294,912 values changed."
+    },
+    {
+      "id": "whole",
+      "button": "Swap the whole reply position",
+      "short": "Swap whole position",
+      "row": "Whole reply position replaced",
+      "tag": "Positive control",
+      "say": "Each message gets the other's entire state at the reply position, at all 32 steps. The gap fell by 1.86, 43% of it. This shows the test can detect an effect at this position when there is one."
+    },
+    {
+      "id": "ff",
+      "button": "Swap every feed-forward neuron there",
+      "short": "Swap feed-forward",
+      "row": "All 294,912 feed-forward neurons replaced",
+      "tag": "No detectable change",
+      "say": "Each message gets the other's values for all 294,912 feed-forward neurons at the reply position. The gap changed by +0.03. A change of 0.60, 14% of the gap, had an 80% chance of being detected."
+    },
+    {
+      "id": "attn",
+      "button": "Swap only the attention output there",
+      "short": "Swap attention",
+      "row": "Attention output only",
+      "tag": "Exploratory",
+      "say": "Each message gets only the other's attention output at the reply position, at all 32 steps. The gap fell by 1.86, as much as swapping the whole position. This row was added after the planned results were seen, on one model at one position."
+    }
+  ]
+}

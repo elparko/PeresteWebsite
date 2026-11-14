@@ -1,0 +1,69 @@
+---
+import Figure from "../Figure.astro";
+import "../../../styles/research-danger-control.css";
+import data from "../../../data/research/medication-danger-and-control/ladder.json";
+
+interface Props {
+  number: number;
+  set: "parts" | "dose";
+  title: string;
+  caption: string;
+  domain: [number, number];
+}
+
+const { number, set, title, caption, domain } = Astro.props;
+const [lo, hi] = domain;
+const pct = (v: number) => ((Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo)) * 100;
+const fmt = (v: number) => {
+  const s = Math.abs(v).toFixed(Math.abs(v) < 0.1 ? 3 : 2);
+  return v < 0 ? `−${s}` : `+${s}`;
+};
+const zero = pct(0);
+
+const rows = data[set].map((r) => {
+  const a = pct(Math.min(0, r.change));
+  const b = pct(Math.max(0, r.change));
+  const text = `${fmt(r.change)} (${fmt(r.ci[0])} to ${fmt(r.ci[1])})`;
+  const tip = `${r.label}\nChange in the gap: ${text}\nSmallest change the test could detect: ${r.detectable.toFixed(r.detectable < 0.1 ? 3 : 2)}\n${r.detected ? "Detected." : "Not detected."} ${r.note}`;
+  return {
+    ...r,
+    text,
+    tip,
+    bar: { left: a, width: Math.max(b - a, 0.4) },
+    whisker: { left: pct(r.ci[0]), width: pct(r.ci[1]) - pct(r.ci[0]) },
+    band: { left: pct(-r.detectable), width: pct(r.detectable) - pct(-r.detectable) },
+  };
+});
+const ticks = set === "parts" ? [-2, -1, 0] : [-0.5, 0, 0.5];
+---
+
+<Figure number={number} title={title} caption={caption}>
+  <div class="rfig-rows dc-rows">
+    {rows.map((r) => (
+      <div class="rfig-row rfig-hit" tabindex="0" data-tip={r.tip} aria-label={r.tip}>
+        <span class="rfig-label">{r.label}</span>
+        <span class="dc-track">
+          <span class="dc-band" style={`left:${r.band.left}%;width:${r.band.width}%`}></span>
+          <span class="dc-zero" style={`left:${zero}%`}></span>
+          <span class={`dc-bar ${r.detected ? "dc-yes" : "dc-no"}`} style={`left:${r.bar.left}%;width:${r.bar.width}%`}></span>
+          <span class="dc-ci" style={`left:${r.whisker.left}%;width:${r.whisker.width}%`}></span>
+        </span>
+        <span class="rfig-value">{r.text}</span>
+      </div>
+    ))}
+    <div class="rfig-row dc-axis-row" aria-hidden="true">
+      <span class="rfig-label"></span>
+      <span class="dc-axis">
+        {ticks.map((t) => (
+          <span class="dc-tick" style={`left:${pct(t)}%`}>{t === 0 ? "0" : fmt(t).replace(/\.?0+$/, "")}</span>
+        ))}
+      </span>
+      <span class="rfig-value"></span>
+    </div>
+  </div>
+  <div class="rfig-legend">
+    <span class="rfig-swatch" style="--c:#3F518F">Change detected</span>
+    <span class="rfig-swatch" style="--c:#A9B2C6">Not detected</span>
+    <span class="rfig-swatch" style="--c:#DCEFF1">Smallest change the test could detect, either direction</span>
+  </div>
+</Figure>

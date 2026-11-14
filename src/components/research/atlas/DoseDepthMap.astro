@@ -1,0 +1,210 @@
+---
+import "../../../styles/research-explainers.css";
+import layers from "../../../data/research/medication-neuron-atlas/layers.json";
+import units from "../../../data/research/medication-neuron-atlas/depth-units.json";
+
+interface Props {
+  title?: string;
+}
+
+const { title } = Astro.props;
+const TYPES = ["Drug name", "Route", "Dose unit", "Frequency or timing", "Dose number"];
+const types = Object.fromEntries(TYPES.map((t) => [t, { r10_loud: (layers.types as Record<string, { r10_loud: number[] }>)[t].r10_loud }]));
+const median = (c: number[]) => { const total = c.reduce((a, b) => a + b, 0); let run = 0; for (let s = 0; s < 36; s++) { run += c[s]; if (run >= total / 2) return s + 1; } return 36; };
+const summary = `Every unit of Qwen3-8B with at least ten times the firing rate on one part of a dose, near-silent units left out, drawn as a point at its processing step (1 to 36). ${TYPES.map((t) => `${t.toLowerCase()}: ${types[t].r10_loud.reduce((a, b) => a + b, 0).toLocaleString("en-US")} units, half at or before step ${median(types[t].r10_loud)}`).join("; ")}.`;
+---
+
+<figure class="dm" data-dm>
+  {title && <figcaption class="dm-title">{title}</figcaption>}
+  <div class="stage"><canvas role="img" aria-label={summary}></canvas></div>
+  <p class="line" aria-live="polite"></p>
+  <script type="application/json" data-dm-data set:html={JSON.stringify({ types, units }).replace(/</g, "\\u003c")} />
+</figure>
+
+<script>
+
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const rng = (seed) => () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  const layer = (env) => { const c = document.createElement("canvas"); c.width = env.canvas.width; c.height = env.canvas.height; const g = c.getContext("2d"); g.setTransform(env.dpr, 0, 0, env.dpr, 0, 0); return [c, g]; };
+  function stage(sec, piece) {
+    const wrap = sec.querySelector(".stage"), canvas = wrap.querySelector("canvas"), ctx = canvas.getContext("2d");
+    const env = { sec, wrap, canvas, ctx, W: 0, H: 0, dpr: 1, still, px: -1e4, py: -1e4, inside: false, touch: false, small: false, line: sec.querySelector(".line"), request: () => {}, label: (el, x, y) => { el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`; } };
+    let raf = 0, last = 0, visible = false, built = false, seen = false;
+    const loop = (now) => { raf = 0; const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016; last = now; const busy = piece.frame(env, dt); if (busy && visible) raf = requestAnimationFrame(loop); else last = 0; };
+    env.request = () => { if (!raf && visible && built) raf = requestAnimationFrame(loop); };
+    const begin = () => { piece.intro(env); setTimeout(() => { if (piece.settle(env)) piece.frame(env, 0); }, 3400); };
+    const size = () => {
+      const w = wrap.clientWidth; if (!w) return;
+      const h = Math.round(w * (w < 520 ? piece.narrow : piece.wide));
+      if (built && w === env.W && h === env.H) return;
+      env.W = w; env.H = h; env.dpr = Math.min(2, window.devicePixelRatio || 1); env.small = w < 520;
+      wrap.style.height = h + "px"; canvas.width = Math.round(w * env.dpr); canvas.height = Math.round(h * env.dpr); ctx.setTransform(env.dpr, 0, 0, env.dpr, 0, 0);
+      piece.build(env); built = true; piece.frame(env, 0);
+      if (visible && !seen) { seen = true; if (!still) begin(); }
+      env.request();
+    };
+    const at = (e) => { const b = canvas.getBoundingClientRect(); env.px = e.clientX - b.left; env.py = e.clientY - b.top; env.touch = e.pointerType === "touch"; };
+    wrap.addEventListener("pointermove", (e) => { at(e); env.inside = true; piece.pointer(env, e); env.request(); });
+    wrap.addEventListener("pointerdown", (e) => { at(e); env.inside = true; piece.tap(env, e); env.request(); });
+    wrap.addEventListener("pointerleave", () => { env.inside = false; env.px = env.py = -1e4; piece.leave(env); env.request(); });
+    new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); if (visible && built && !seen) { seen = true; if (!still) begin(); } env.request(); }, { threshold: 0.15 }).observe(wrap);
+    new ResizeObserver(size).observe(wrap);
+    size();
+    return env;
+  }
+
+  document.querySelectorAll("[data-dm]").forEach((sec) => {
+    const data = JSON.parse(sec.querySelector("[data-dm-data]").textContent);
+    const TYPES = data.types, UNITS = data.units;
+
+  const PARTS = [
+    { type: "Drug name", word: "warfarin", plural: "drug names", color: "#9db0ff", pick: [6, 7414] },
+    { type: "Route", word: "orally", plural: "routes", color: "#e79cf2" },
+    { type: "Dose unit", word: "mg", plural: "dose units", color: "#5fd9d0", pick: [12, 7313] },
+    { type: "Frequency or timing", word: "once daily", plural: "frequency or timing words", color: "#b9e56c" },
+    { type: "Dose number", word: "5", plural: "dose numbers", color: "#ffab63" },
+  ];
+  PARTS.forEach((p) => {
+    p.counts = TYPES[p.type].r10_loud; p.total = p.counts.reduce((a, b) => a + b, 0);
+    const quant = (q) => { let run = 0; for (let s = 0; s < 36; s++) { run += p.counts[s]; if (run >= p.total * q) return s + 1; } return 36; };
+    p.q1 = quant(0.25); p.median = quant(0.5); p.q3 = quant(0.75);
+  });
+  const partOf = Object.fromEntries(PARTS.map((p, j) => [p.type, j]));
+  const units = UNITS.map((u) => ({ ...u, j: partOf[u.part] })).sort((a, b) => a.j - b.j || a.step - b.step || a.n - b.n);
+  PARTS.forEach((p, j) => { p.ex = units.find((u) => u.j === j && p.pick && u.step === p.pick[0] && u.n === p.pick[1]) || units.filter((u) => u.j === j).sort((a, b) => Math.abs(a.step - p.median) - Math.abs(b.step - p.median) || b.thr - a.thr)[0]; });
+  const wrap = sec.querySelector(".stage");
+  wrap.style.background = "#151a3a"; wrap.style.cursor = "default"; wrap.tabIndex = 0; wrap.setAttribute("role", "group");
+  wrap.setAttribute("aria-label", "Map of units by step. Arrow keys move between the ringed units and open each one's card.");
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); e.className = cls; if (text != null) e.textContent = text; wrap.appendChild(e); return e; };
+  const ticks = [1, 12, 24, 36].map((s) => mk("span", "lab tick left sky", (s === 1 ? "step " : "") + s));
+  const pop = mk("div", "pop"); pop.setAttribute("aria-live", "polite");
+  const cue = mk("div", "cue", matchMedia("(hover: none)").matches ? "Tap a word" : "Point at a word");
+  const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const marked = (t) => esc(t).replace(/&lt;&lt;/g, "<mark>").replace(/&gt;&gt;/g, "</mark>");
+  let env0 = null, hot = -1, sticky = -1, sel = -1, held = false, per = 1, geo, ground, layers = [], intro = 1, touched = false, demo = 2, demoT = 0;
+  const act = () => { if (demo === 1) hot = -1; demo = 2; touched = true; cue.classList.add("seen"); };
+  const late = units.filter((u) => u.j === 4 && u.step >= 28).sort((a, b) => (/dose/i.test(b.name) ? 1 : 0) - (/dose/i.test(a.name) ? 1 : 0) || b.thr - a.thr);
+  const first = Math.max(0, units.indexOf(late[0]));
+  const alpha = PARTS.map(() => 1), alphaTo = PARTS.map(() => 1);
+  const REST = () => `Each point is ${per === 1 ? "one unit" : per + " units"} (near-silent units left out) with ≥10× firing rate on that part of a dose, at its step. Ringed points are units you can open.`;
+  function show() {
+    const u = sel >= 0 ? units[sel] : null, h = u && touched ? u.j : hot >= 0 ? hot : sticky, dim = u && touched ? 0.38 : 0.1;
+    PARTS.forEach((p, j) => { alphaTo[j] = h < 0 || j === h ? 1 : dim; p.btn.style.opacity = h < 0 || j === h ? 1 : 0.55; p.btn.setAttribute("aria-pressed", String(j === h)); });
+    if (!env0) return;
+    env0.line.innerHTML = h < 0 ? REST() : `<strong>${PARTS[h].total.toLocaleString("en-US")} units</strong> with ≥10× firing rate on ${PARTS[h].plural} vs. other tokens, near-silent units left out; half at or before step ${PARTS[h].median} of 36.`;
+    const card = (html, x, y, pin) => {
+      const { W, H } = env0, w = pin && env0.small ? W - geo.R - 4 : Math.min(270, W * 0.74); pop.innerHTML = html; pop.style.width = w + "px"; pop.style.opacity = 1;
+      const left = clamp(x - w / 2, 6, Math.max(6, W - geo.R - w + 10)), below = y < H * 0.5;
+      pop.style.left = (pin ? (env0.small ? 6 : geo.L + 4) : left) + "px"; pop.style.top = pin ? (pin === "top" ? "8px" : "") : below ? y + 14 + "px" : ""; pop.style.bottom = pin ? (pin === "top" ? "" : "8px") : below ? "" : H - y + 14 + "px";
+    };
+    if (u) card(`<b style="color:${PARTS[u.j].color}">${esc(u.name)}</b><i>step ${u.step} of 36 · ${u.end} end of neuron ${u.n.toLocaleString("en-US")}</i><p>${esc(u.plain)}</p><p class="ex">${marked(u.ex)}</p>`, u.x, u.y);
+    else if (h >= 0) {
+      const p = PARTS[h], e = p.ex;
+      card(`<b style="color:${p.color}">${p.total.toLocaleString("en-US")} units for ${p.plural}</b><i>near-silent units left out · half by step ${p.median} of 36 · middle half at steps ${p.q1} to ${p.q3}</i><p class="ex"><strong>${esc(e.name)}</strong> (step ${e.step})<br>${marked(e.ex)}</p>`, e.x, e.y, geo.Y(p.median) > env0.H * 0.5 ? "top" : "bottom");
+    } else pop.style.opacity = 0;
+    env0.request();
+  }
+  PARTS.forEach((p, j) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "lab chip"; b.textContent = p.word; b.style.setProperty("--c", p.color); b.setAttribute("aria-pressed", "false"); wrap.appendChild(b); p.btn = b;
+    b.addEventListener("pointerenter", (e) => { if (e.pointerType !== "touch") { act(); sel = -1; hot = j; show(); } });
+    b.addEventListener("pointerleave", () => { if (hot === j) { hot = -1; show(); } });
+    b.addEventListener("focus", () => { if (b.matches(":focus-visible")) { act(); sel = -1; hot = j; show(); } });
+    b.addEventListener("blur", () => { if (hot === j) { hot = -1; show(); } });
+    b.addEventListener("click", (e) => { e.stopPropagation(); act(); sel = -1; sticky = sticky === j ? -1 : j; hot = -1; show(); });
+  });
+  const near = (env, reach) => { let best = -1, d = reach * reach; units.forEach((u, i) => { const q = (u.x - env.px) ** 2 + (u.y - env.py) ** 2; if (q < d) { d = q; best = i; } }); return best; };
+
+  const piece = {
+    wide: 0.66, narrow: 1.12,
+    build(env) {
+      const { W, H, small } = env, r = rng(13);
+      const L = small ? 40 : 48, R = small ? 102 : 136, T = 14, B = 14, bh = (H - T - B) / 36, Y = (step) => H - B - (step - 0.5) * bh;
+      geo = { W, H, L, R, T, B, bh, Y }; env0 = env; per = small ? 2 : 1; wrap.classList.toggle("small", small);
+      let c, g;
+      [c, g] = layer(env); ground = c;
+      const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, "#10142f"); gr.addColorStop(0.55, "#171d44"); gr.addColorStop(1, "#1f2757");
+      g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      g.strokeStyle = "rgba(190,205,255,0.16)"; g.lineWidth = 1; g.setLineDash([1, 6]); g.lineCap = "round";
+      for (const s of [1, 12, 24, 36]) { g.beginPath(); g.moveTo(L, Y(s)); g.lineTo(W - R, Y(s)); g.stroke(); }
+      layers = PARTS.map((p) => {
+        const [cv, cx] = layer(env); cx.fillStyle = p.color; cx.globalAlpha = 0.85; cx.beginPath();
+        for (let s = 0; s < 36; s++) {
+          let m = p.counts[s] / per; m = Math.floor(m) + (r() < m - Math.floor(m) ? 1 : 0);
+          for (let q = 0; q < m; q++) { const z = (small ? 1.05 : 1.3) * (0.75 + r() * 0.7), x = L + r() * (W - L - R), y = Y(s + 1) + (r() - 0.5) * bh * 0.86; cx.rect(x - z / 2, y - z / 2, z, z); }
+        }
+        cx.fill(); return cv;
+      });
+      units.forEach((u) => { const f = Math.sin(u.n * 12.9898 + u.step * 78.233) * 43758.5453; u.x = L + ((u.n + 0.5) / 12288) * (W - L - R); u.y = Y(u.step) + (f - Math.floor(f) - 0.5) * bh * 0.5; });
+      ticks.forEach((t, i) => env.label(t, 6, Y([1, 12, 24, 36][i])));
+      const order = PARTS.map((p, j) => ({ j, y: Y(p.median) })).sort((a, b) => a.y - b.y), gap = small ? 27 : 31;
+      for (let i = 1; i < order.length; i++) if (order[i].y - order[i - 1].y < gap) order[i].y = order[i - 1].y + gap;
+      order[order.length - 1].y = Math.min(order[order.length - 1].y, H - 22);
+      for (let i = order.length - 2; i >= 0; i--) if (order[i + 1].y - order[i].y < gap) order[i].y = order[i + 1].y - gap;
+      order.forEach((o) => { PARTS[o.j].ly = o.y; env.label(PARTS[o.j].btn, W - R + (small ? 12 : 20), o.y); });
+      cue.style.width = R - (small ? 18 : 30) + "px"; env.label(cue, W - R + (small ? 12 : 20), order[0].y - (small ? 20 : 24));
+      if (!touched && demo !== 1) sel = first;
+      show();
+    },
+    frame(env, dt) {
+      const { ctx, W, H } = env, { L, R, Y } = geo; let busy = false;
+      const rate = still ? 1 : 1 - Math.exp(-dt * 11);
+      PARTS.forEach((p, j) => { const d = alphaTo[j] - alpha[j]; if (Math.abs(d) > 0.004) { alpha[j] += d * rate; busy = true; } else alpha[j] = alphaTo[j]; });
+      if (intro < 1) { intro = Math.min(1, intro + dt / 2.6); busy = true; }
+      else if (demo === 0) { if (touched) demo = 2; else { demo = 1; demoT = 0; sel = -1; } }
+      if (demo === 1) {
+        demoT += dt; const k = Math.floor(demoT / 1.3); busy = true;
+        if (k >= PARTS.length) { demo = 2; hot = -1; sel = first; show(); } else if (hot !== k) { hot = k; show(); }
+      }
+      const rise = smooth(intro * 1.1), u0 = sel >= 0 ? units[sel] : null, h = u0 && touched ? u0.j : hot >= 0 ? hot : sticky;
+      const mark = u0 || (h >= 0 ? PARTS[h].ex : null), glow = h >= 0 ? 1 - alpha[(h + 1) % PARTS.length] : 0;
+      ctx.drawImage(ground, 0, 0, W, H);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, H * (1 - rise), W, H); ctx.clip();
+      if (h >= 0) { const p = PARTS[h]; ctx.globalAlpha = 0.16 * glow; ctx.fillStyle = p.color; ctx.fillRect(L, Y(p.q3) - geo.bh / 2, W - L - R, Y(p.q1) - Y(p.q3) + geo.bh); }
+      PARTS.forEach((p, j) => { ctx.globalAlpha = alpha[j]; ctx.drawImage(layers[j], 0, 0, W, H); });
+      if (h >= 0 && glow > 0.01) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.75 * glow; ctx.drawImage(layers[h], 0, 0, W, H); ctx.globalCompositeOperation = "source-over"; }
+      for (const u of units) {
+        const on = u === mark;
+        ctx.globalAlpha = on ? 1 : 0.25 + 0.65 * alpha[u.j]; ctx.strokeStyle = PARTS[u.j].color; ctx.lineWidth = on ? 2 : 1.1;
+        ctx.beginPath(); ctx.arc(u.x, u.y, on ? 6 : W < 520 ? 2.9 : 3.5, 0, 6.2832); ctx.stroke();
+        if (on) { ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(u.x, u.y, 2.2, 0, 6.2832); ctx.fill(); }
+      }
+      ctx.restore(); ctx.lineCap = "round";
+      PARTS.forEach((p, j) => {
+        const y = Y(p.median), on = smooth((rise * 36 - p.median) / 2 + 0.5);
+        ctx.globalAlpha = on * (h < 0 || j === h ? 1 : 0.3); ctx.strokeStyle = p.color; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(W - R + 3, y); ctx.lineTo(W - R + 9, y); ctx.lineTo(W - R + (W < 520 ? 9 : 17), p.ly); ctx.stroke();
+        if (j === h) { ctx.globalAlpha = 0.8; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.setLineDash([]); }
+        p.btn.style.visibility = on > 0.05 ? "visible" : "hidden";
+      });
+      ctx.globalAlpha = 1; pop.style.visibility = intro < 1 ? "hidden" : "visible";
+      return busy;
+    },
+    pointer(env) {
+      if (env.touch || held) return; const { L, R } = geo;
+      if (env.px < L - 6 || env.px > env.W - R + 4) return;
+      act(); const i = near(env, 34); wrap.style.cursor = i >= 0 ? "pointer" : "default"; if (i !== sel) { sel = i; show(); }
+    },
+    tap(env, e) {
+      if (e.target.closest("button")) return; act();
+      const i = near(env, env.touch ? 40 : 30); held = !env.touch && i >= 0 && i === sel ? !held : false; sel = i; show();
+    },
+    leave() { if (!held && !env0.touch && sel !== -1) { sel = -1; show(); } },
+    intro() { intro = 0; demo = 0; },
+    settle() { if (intro >= 1) return false; intro = 1; demo = 2; if (!touched) sel = first; show(); return true; },
+  };
+  stage(sec, piece);
+  wrap.addEventListener("keydown", (e) => {
+    const d = e.key === "ArrowUp" || e.key === "ArrowRight" ? 1 : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -1 : 0;
+    if (e.key === "Escape") { sel = -1; held = false; show(); return; }
+    if (!d || e.target !== wrap) return; e.preventDefault(); act(); held = true;
+    sel = ((sel < 0 ? first : sel + d) + units.length) % units.length; show();
+  });
+  });
+</script>
