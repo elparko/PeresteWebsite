@@ -1,8 +1,0 @@
----
-interface Props {
-  q?: number;
-}
-const { q } = Astro.props;
----
-
-<span class="todo-fact" data-placeholder>[<slot />{q ? `, question ${q}` : ""}]</span>

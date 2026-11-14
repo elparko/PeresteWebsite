@@ -252,7 +252,7 @@ const scope = {};
     function frame() {
       raf = 0;
       if (dead || !env || document.hidden) return;
-      const animating = piece.animated && !reduced && visible;
+      const animating = piece.animated && opts.animated !== false && !reduced && visible;
       const now = performance.now();
       if (animating && !ptr.on && now - lastDraw < 30) return request();
       lastDraw = now;

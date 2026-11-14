@@ -32,7 +32,7 @@ const path = Astro.url.pathname.endsWith("/") ? Astro.url.pathname : `${Astro.ur
           <a
             href={item.href}
             class={`nav-link text-sm font-medium ${active ? "text-brand-ink" : "text-brand-muted"}`}
-            aria-current={active ? "page" : undefined}
+            aria-current={path === item.href ? "page" : active ? "true" : undefined}
           >
             {item.label}
           </a>
@@ -41,7 +41,7 @@ const path = Astro.url.pathname.endsWith("/") ? Astro.url.pathname : `${Astro.ur
     </nav>
 
     <div class="flex items-center gap-1.5">
-      <a href="mailto:parker@pereste.com" class="btn-primary text-xs md:text-sm" aria-label="Contact Pereste">
+      <a href="mailto:parker@pereste.com" class="btn-primary text-xs md:text-sm max-[359px]:hidden" aria-label="Contact Pereste">
         Contact
       </a>
       <button
@@ -70,7 +70,7 @@ const path = Astro.url.pathname.endsWith("/") ? Astro.url.pathname : `${Astro.ur
                 class={`pressable flex items-center justify-between rounded-2xl px-3 py-3.5 text-lg font-medium ${
                   active ? "text-brand-ink" : "text-brand-ink/80"
                 }`}
-                aria-current={active ? "page" : undefined}
+                aria-current={path === item.href ? "page" : active ? "true" : undefined}
               >
                 {item.label}
                 {active && <span class="h-1.5 w-1.5 rounded-full bg-brand-accent" aria-hidden="true"></span>}
@@ -129,7 +129,7 @@ const path = Astro.url.pathname.endsWith("/") ? Astro.url.pathname : `${Astro.ur
     position: relative;
     transition: color var(--dur-hover) ease;
   }
-  .nav-link[aria-current="page"]::after {
+  .nav-link[aria-current]::after {
     content: "";
     position: absolute;
     left: 50%;

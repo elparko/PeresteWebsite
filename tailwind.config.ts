@@ -33,6 +33,7 @@ const config: Config = {
           muted: "#5A6472",
           line: "#E3E8EF",
           accent: "#0F9BA8",
+          "accent-text": "#0A6F79",
           "accent-soft": "#E6F4F6",
           "teal-light": "#4FC3D0",
           "teal-pale": "#8CCFDB",

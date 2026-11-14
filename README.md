@@ -16,7 +16,7 @@ It is built with [Astro](https://astro.build) and [Tailwind CSS](https://tailwin
 │   ├── logos/                     logos and the Pereste mark
 │   └── robots.txt
 ├── src/
-│   ├── components/                Header, Footer, PageOpening, GlyphArt, Placeholder and others
+│   ├── components/                Header, Footer, PageOpening, GlyphArt and others
 │   ├── content/research/          research posts written in MDX
 │   ├── data/                      conditions, research items, posts, social cards
 │   ├── layouts/                   Base, Legal, Post
@@ -47,7 +47,6 @@ The site requires Node 20 or later.
 ## Shared pieces
 
 - The glyph art pieces (the open capsule, the headland and the name field) are JavaScript modules in `src/scripts/glyph/`, and `src/components/GlyphArt.astro` mounts one on a page.
-- `src/components/Placeholder.astro` shows an amber marker where a fact is not yet confirmed. Every marker must be replaced or removed before the site goes live.
 - The painting at the foot of every page lives in `public/images/art/`, in WebP and JPEG at desktop and phone sizes.
 
 Brand colors and fonts live in `tailwind.config.ts` (`brand.*`), and `src/styles/global.css` applies them. Changing those two files changes the look of every page.

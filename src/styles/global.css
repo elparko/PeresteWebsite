@@ -98,19 +98,7 @@
 
   /* Short technical label placed on or beside a drawing. */
   .label-mono {
-    @apply font-mono text-[0.72rem] font-medium uppercase tracking-[0.12em] text-brand-accent;
-  }
-
-  /* A fact the site cannot state yet. Visible on purpose: every one of these
-     must be replaced or removed before the branch goes live. */
-  .todo-fact {
-    @apply font-mono text-[0.8em] font-medium;
-    background: #fbefd9;
-    color: #8a4a00;
-    padding: 0.1em 0.4em;
-    border-radius: 3px;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
+    @apply font-mono text-[0.72rem] font-medium uppercase tracking-[0.12em] text-brand-accent-text;
   }
 
   /* Pressable elements: feedback lives on the press and it is instant. */

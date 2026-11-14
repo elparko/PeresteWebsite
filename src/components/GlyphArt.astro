@@ -35,15 +35,15 @@ const { piece, label, options = {}, narrow, pointer, ground = true, class: class
     const load = loaders[el.dataset.glyph ?? ""];
     if (!load) continue;
     const start = async () => {
-      const [m] = await Promise.all([load(), document.fonts.load('500 14px "DM Mono"').catch(() => null)]);
+      const m = await load();
       const options = JSON.parse(el.dataset.glyphOptions || "{}");
-      if (el.dataset.glyphNarrow && el.clientWidth < 600) Object.assign(options, JSON.parse(el.dataset.glyphNarrow));
+      if (el.dataset.glyphNarrow && matchMedia("(max-width: 639px)").matches) Object.assign(options, JSON.parse(el.dataset.glyphNarrow));
       const target = el.dataset.glyphPointer ? el.closest(el.dataset.glyphPointer) : null;
       if (target) options.pointerTarget = target;
       if (el.dataset.glyphGround === "1") el.style.background = m.ground;
       m.mount(el, options);
     };
-    start();
+    start().catch(() => {});
   }
 </script>
 

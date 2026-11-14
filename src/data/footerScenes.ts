@@ -1,5 +1,6 @@
 export interface FooterScene {
-  /* Path without extension; the footer adds .webp and .jpg, and "-phone" for narrow screens. */
+  /* Path without extension. The footer loads <src>.webp, <src>-1200.webp and <src>.jpg,
+     and <src>-phone.webp and <src>-phone.jpg on narrow screens. */
   src: string;
   alt: string;
   width: number;

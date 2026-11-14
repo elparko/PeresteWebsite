@@ -9,7 +9,7 @@ const research = researchItems;
 
 <Base
   title="Pereste Health"
-  description="Pereste Health builds Pereste Guide, a voice app that explains a patient's own health record in plain language for rural chronic care, and publishes safety research on the AI models used in healthcare."
+  description="Pereste Health builds Pereste Guide, a voice app in development that explains a patient's own health record in plain language for rural chronic care, and publishes safety research on the AI models used in healthcare."
 >
   <section class="home-top">
     <div class="container-page">
@@ -22,7 +22,7 @@ const research = researchItems;
 
   {/* Two halves of equal size: Guide on a light ground, Research on navy. */}
   <section class="split" aria-label="The two sides of Pereste">
-    <a href="/guide/" class="half half-guide" data-half>
+    <a href="/guide/" class="half half-guide" data-half aria-labelledby="half-guide-cta half-guide-label">
       <GlyphArt
         piece="name-field"
         label="Rows of the word Pereste, with two cones of brighter letters forming a lighthouse's twin beams."
@@ -37,11 +37,11 @@ const research = researchItems;
         }}
       />
       <div class="half-inner">
-        <p class="label-mono">Guide · for patients</p>
+        <p class="label-mono" id="half-guide-label">Guide · for patients</p>
         <div class="half-stage">
           <div class="phone">
             <div class="device device-sm">
-              <img src="/images/app-home.png" alt="The Guide app's home screen, showing a patient's own lab result and next visit." width="720" height="1558" loading="eager" decoding="async" />
+              <img src="/images/app-home.webp" alt="The Guide app's home screen, showing a patient's own lab result and next visit." width="720" height="1558" loading="eager" decoding="async" />
             </div>
             <span class="pin pin-a">own records</span>
             <span class="pin pin-b">plain words, out loud</span>
@@ -53,14 +53,14 @@ const research = researchItems;
             Pereste Guide is a voice app, in development, that explains a patient's own health record in
             plain language, for people managing chronic conditions in rural and underserved care.
           </p>
-          <span class="btn-primary">See Guide</span>
+          <span class="btn-primary" id="half-guide-cta">See Guide</span>
         </div>
       </div>
     </a>
 
-    <a href="/research/" class="half half-research" data-half>
+    <a href="/research/" class="half half-research" data-half aria-labelledby="half-research-cta half-research-label">
       <div class="half-inner">
-        <p class="label-mono">Research · on models</p>
+        <p class="label-mono" id="half-research-label">Research · on models</p>
         <div class="half-stage">
           <GlyphArt
             piece="headland"
@@ -74,11 +74,11 @@ const research = researchItems;
         </div>
         <div class="half-foot">
           <p>
-            Our research tests the language models deployed in healthcare: how they represent medications,
-            when they give advice they should not, and how to keep what they say faithful to the
-            medication order.
+            Our research studies the language models used in healthcare: how they represent medications,
+            how they tell a request for advice from a request for education, and how to keep medication
+            instructions faithful to the patient's orders.
           </p>
-          <span class="btn-inverse">Read the research</span>
+          <span class="btn-inverse" id="half-research-cta">Read the research</span>
         </div>
       </div>
     </a>
@@ -89,7 +89,7 @@ const research = researchItems;
       <div class="band-grid">
         <div>
           <p class="label-mono mb-4">Guide</p>
-          <h2>Your care, explained out loud.</h2>
+          <h2>What Guide reads, and what it does not do.</h2>
         </div>
         <div>
           <dl class="facts">
@@ -120,7 +120,7 @@ const research = researchItems;
       label=""
       class="band-field"
       ground={false}
-      options={{ figure: false, interactive: false, fieldAlpha: 0.1 }}
+      options={{ figure: false, interactive: false, animated: false, fieldAlpha: 0.1 }}
     />
     <div class="container-page">
       <div class="band-head">
@@ -146,7 +146,7 @@ const research = researchItems;
         ))}
       </ul>
       <p class="join">
-        Both lines of work come from the same group. The research is meant to inform how Guide is built.
+        The research is meant to inform how Pereste Guide is built.
       </p>
       <a href="/research/" class="link-arrow link-light mt-8">All research</a>
     </div>
@@ -173,6 +173,13 @@ const research = researchItems;
     display: block;
     overflow: hidden;
     isolation: isolate;
+  }
+  .half:focus-visible {
+    outline-offset: -6px;
+    border-radius: 0;
+  }
+  .half-research:focus-visible {
+    outline-color: theme("colors.brand.teal-pale");
   }
   .half-guide {
     background: #f6f8fa;
@@ -280,7 +287,13 @@ const research = researchItems;
     }
   }
   @media (max-width: 639px) {
+    .phone {
+      text-align: center;
+    }
     .pin {
+      position: static;
+      display: inline-block;
+      margin: 0.6rem 0.15rem 0;
       font-size: 0.62rem;
       padding: 0.3rem 0.4rem;
     }

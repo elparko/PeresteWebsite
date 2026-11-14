@@ -5,19 +5,19 @@ import ConditionChips from "../components/ConditionChips.astro";
 
 const screens = [
   {
-    src: "/images/app-labs.png",
+    src: "/images/app-labs.webp",
     alt: "The Guide labs screen, showing A1C and both blood pressure numbers, each on a range bar with a short plain-language note.",
     label: "Labs",
     body: "It shows A1C, blood pressure and the other results on a range, with a plain-language note on each one.",
   },
   {
-    src: "/images/app-medicines.png",
+    src: "/images/app-medicines.webp",
     alt: "The Guide medicines screen, listing each medicine with what it is for.",
     label: "Medicines",
-    body: "It explains what each medicine is for and when to take it, in everyday words instead of the label's.",
+    body: "It explains what each medicine is for and reads back when the patient's medication orders say to take it, in everyday words.",
   },
   {
-    src: "/images/app-visits.png",
+    src: "/images/app-visits.webp",
     alt: "The Guide visits screen, showing the next appointment with its reason, doctor and clinic.",
     label: "Visits",
     body: "It lists the coming visits, says why each one matters, and helps the patient prepare questions.",
@@ -40,7 +40,7 @@ const screens = [
       <div class="phone">
         <div class="device">
           <img
-            src="/images/app-home.png"
+            src="/images/app-home.webp"
             alt="The Guide app's home screen, showing a patient's own A1C result and an upcoming eye exam."
             width="720"
             height="1558"
@@ -130,7 +130,7 @@ const screens = [
         </div>
         <div>
           <dt class="label-mono">Care team decides</dt>
-          <dd>Decisions about care stay with the patient and their physician.</dd>
+          <dd>Decisions about care stay with the patient and their care team.</dd>
         </div>
         <div>
           <dt class="label-mono">Emergencies</dt>
@@ -143,17 +143,13 @@ const screens = [
   <section class="band">
     <div class="container-page split-grid">
       <div>
-        <p class="label-mono mb-4">Access</p>
-        <h2>How it will reach patients.</h2>
+        <p class="label-mono mb-4">Status</p>
+        <h2>Status and availability.</h2>
       </div>
       <dl class="rows rows-light">
         <div>
-          <dt class="label-mono">Enrollment</dt>
-          <dd>Patients will enroll through a participating clinic. Guide is not sold directly to consumers.</dd>
-        </div>
-        <div>
-          <dt class="label-mono">Status</dt>
-          <dd>Guide is in development. It is not yet in use with patients.</dd>
+          <dt class="label-mono">Through clinics</dt>
+          <dd>Guide is being built for clinics to offer to their patients. It will not be sold directly to consumers.</dd>
         </div>
         <div>
           <dt class="label-mono">Apps</dt>
@@ -181,10 +177,10 @@ const screens = [
           </li>
           <li>
             <a href="/research/dosegate/" class="link-arrow">DoseGate</a>
-            <p>An output layer that fills every medication reference from the patient's medication orders or blocks the output.</p>
+            <p>An output layer that fills each dose, route and frequency from the patient's medication orders, or blocks the output.</p>
           </li>
         </ul>
-        <p class="body">This research and Guide come from the same group. The research is meant to inform how Guide is built.</p>
+        <p class="body">Some of this research asks questions Guide has to answer, such as how to tell advice from education. It is meant to inform how Guide is built.</p>
         <a href="/research/" class="link-arrow">All research</a>
       </div>
     </div>
@@ -248,7 +244,13 @@ const screens = [
     }
   }
   @media (max-width: 639px) {
+    .phone {
+      text-align: center;
+    }
     .pin {
+      position: static;
+      display: inline-block;
+      margin: 0.6rem 0.15rem 0;
       font-size: 0.62rem;
       padding: 0.3rem 0.4rem;
     }
