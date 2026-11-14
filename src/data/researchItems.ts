@@ -31,7 +31,7 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-14",
     kind: "Findings",
     image: "/images/research/tile-danger.webp",
-    alt: "Two sets of strings, one for dangerous messages with an urgency reading of 4.46 and one for harmless messages at 0.13, above 200 fine strings for the units that best predict danger, spread from step 8 to step 32.",
+    alt: "Two sets of strings drawn in depth, one for dangerous messages with an urgency reading of 4.46 and one for harmless messages at 0.13, above a plane from which 200 fine strings hang for the units that best predict danger, from step 8 to step 32.",
   },
   {
     href: "/research/medication-neuron-atlas/",
