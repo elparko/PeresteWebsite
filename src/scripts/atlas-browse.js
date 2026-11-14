@@ -112,8 +112,8 @@ const TERMS = [
   ["Strong score and threshold score", "Claude Haiku, given only the card, sorted held-out tokens into firing and not firing. The score is balanced accuracy, the mean of the share of firing tokens caught and the share of quiet tokens rejected; chance is 0.50. The strong score uses the held-out strongest contexts; the threshold score uses random firing tokens, most of them near the threshold."],
   ["String-matching baseline", "The same test without a card: a token counts as firing if it is the same token as one highlighted in the contexts the writer saw. A card is useful to the extent that it beats this."],
   ["Wrong-unit control", "The same test scored with another unit's card. It should sit near chance; a card that only sounds plausible for drug label text would score above it. It also runs above chance when the other unit happens to fire on the same kind of token."],
-  ["Near-silent", "A unit whose largest activation size (ignoring sign) anywhere in the corpus is below 0.05. Its threshold is set from its own values, so it still fires on a share of tokens, but on noise; its data are shown without a card."],
-  ["Selection reason and ratio", "About 31,000 units were selected for a card because they fire more on a token type, in a label section, in one drug class's labels, or in label text generally. The ratio is the firing rate there divided by the rate in the comparison text named with it (other tokens, other label sections, other labels, or web text)."],
+  ["Near-silent", "A unit whose largest activation size (ignoring sign) anywhere in the corpus is below 0.05. Its threshold is set from its own values, so it still fires on a share of tokens, at very small values: a repeatable but tiny signal, mostly at positions inside words. 502 near-silent units had cards written before they were excluded from the selection; the page shows their data but not their cards, and the cards stay in the public data files."],
+  ["Selection reason and ratio", "30,529 units (about 30,500) were selected for a card because they fire more on a token type, in a label section, in one drug class's labels, or in label text generally. The ratio is the firing rate there divided by the rate in the comparison text named with it (other tokens, other label sections, other labels, or web text)."],
   ["Lift", "For a drug or drug class: the unit's firing rate in that label text divided by its rate in the rest of the corpus. It says where in the label wording the unit fires, not anything about the drug."],
   ["Token type", "Each token is tagged by simple rules as a drug name, a frequency or timing phrase, a dose unit (mg, mL), a dose number (the 5 in 5 mg), another number, a route, a dosage form, or other. A few tags are wrong."],
 ];
@@ -666,8 +666,8 @@ export function startAtlas(root) {
   }
   function silentNote(u, hadCard) {
     return note("warn", [el("b", null, "Near-silent unit, shown for completeness. "),
-      `Its largest activation size anywhere in the corpus is ${Math.abs(u.max_activation)}, below the cut of 0.05. Its threshold is set from its own values, so it still fires on a share of tokens, but on noise; its rates and contexts are data only.`
-      + (hadCard ? " A card was written before the cut was set; it is not shown, because it would describe noise." : "")]);
+      `Its largest activation size anywhere in the corpus is ${Math.abs(u.max_activation)}, below the cut of 0.05. Its threshold is set from its own values, so it still fires on a share of tokens, at very small values: a repeatable but tiny signal, mostly at positions inside words. Its rates and contexts are shown as data.`
+      + (hadCard ? " A card was written for it before near-silent units were excluded from the selection. The page does not show that card, because a signal this small says little about the unit; the card stays in the public data files." : "")]);
   }
   function repeatNotes(u) {
     const c = u.check || {}, out = [];
@@ -881,7 +881,7 @@ export function startAtlas(root) {
     const c = u.near_silent ? null : u.card;
     if (c) card.appendChild(header(u, { text: c.name }, c.plain, "Card written by Claude Sonnet from 10 of the unit's 20 strongest contexts. Claude Haiku scored it on the other 10, on 10 everyday firing tokens and on 10 quiet tokens."));
     else card.appendChild(header(u, { text: u.near_silent ? "Near-silent unit" : "No card", muted: true },
-      u.near_silent ? null : u.flagged ? "This unit was selected but has no card. Its data are below." : "Only the roughly 31,000 selected units have a card. This unit's data are below.", null));
+      u.near_silent ? null : u.flagged ? "This unit was selected but has no card. Its data are below." : "Only the 30,529 selected units have a card. This unit's data are below.", null));
     const notes = el("div", "ab-notes");
     if (u.featured) notes.appendChild(note("info", [el("b", null, `Featured: ${u.featured.theme}. `), "A separate AI reviewer read all 20 of this unit's strongest contexts and kept it for this theme because the card fits them."]));
     if (u.near_silent) notes.appendChild(silentNote(u, !!u.card));
@@ -927,7 +927,7 @@ export function startAtlas(root) {
     if (c) card.appendChild(trustBlock(u));
     const sb = sameBlock(u);
     if (sb) card.appendChild(sb);
-    if (u.summaryOnly) card.appendChild(block("Contexts", [el("p", "ab-cap", "Strongest contexts are published for the roughly 31,000 selected or carded units. For the other units the site keeps the rates above, to stay small.")]));
+    if (u.summaryOnly) card.appendChild(block("Contexts", [el("p", "ab-cap", "Strongest contexts are published for the 30,529 selected units and for the 502 near-silent units that had an early card. For the other units the site keeps the rates above, to stay small.")]));
     const ef = examplesFold(u);
     if (ef) card.appendChild(ef);
     card.appendChild(techFold(u));
