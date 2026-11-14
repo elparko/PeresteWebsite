@@ -31,7 +31,7 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-14",
     kind: "Findings",
     image: "/images/research/tile-danger.webp",
-    alt: "Two sets of strings drawn in depth, one for dangerous messages with an urgency reading of 4.46 and one for harmless messages at 0.13, above a plane from which 200 fine strings hang for the units that best predict danger, from step 8 to step 32.",
+    alt: "A bar chart of six ways of changing the model's state at the reply position and how much each changed the urgency gap. Replacing the whole reply position and replacing only the attention output each lowered the gap by 1.86. Replacing all 294,912 feed-forward neurons changed it by +0.025, and silencing 200 chosen units changed it by +0.005 and by −0.027.",
   },
   {
     href: "/research/medication-neuron-atlas/",
