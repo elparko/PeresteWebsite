@@ -1,0 +1,130 @@
+---
+title: "A neuron atlas of medication text in an open language model"
+description: "A searchable map of where the 884,736 units of the open model Qwen3-8B respond to drug names, doses, dose units, routes and frequencies in FDA drug labels. 30,529 of them have a written description, and each description was tested on examples its writer never saw."
+date: 2026-11-13
+author: "Parker Smith"
+tag: "Resource"
+draft: false
+toc: true
+---
+
+import UnitCard from "../../components/research/atlas/UnitCard.astro";
+import LayerExplorer from "../../components/research/atlas/LayerExplorer.astro";
+import AtlasExplainer from "../../components/research/atlas/AtlasExplainer.astro";
+
+export const ATLAS_URL = "/research/medication-neuron-atlas/browse/";
+export const PDF_URL = "/research/medication-neuron-atlas/medication-neuron-atlas.pdf";
+
+<p class="atl-lead">Methotrexate taken weekly and methotrexate taken daily differ by one word on a label.</p>
+
+For rheumatoid arthritis and psoriasis, methotrexate is a standard treatment taken once a week. For these conditions, the same tablets taken daily by mistake can cause life-threatening harm, including suppression of the bone marrow and ulcers of the mouth and gut. The mix-up is well documented and sometimes fatal: of 106 methotrexate errors reported to the FDA from 1997 to 2001, 25 ended in death, and confusion about the weekly schedule was the most common type of error ([Moore and colleagues, 2004](https://pubmed.ncbi.nlm.nih.gov/15287234/)).
+
+Medical tools are now being built on general-purpose language models, the kind of model that runs chat assistants, and those tools read labels, answer medication questions and draft instructions. A team can test whether a tool's output is correct, but what the model has learned about medication text is still opaque. **This atlas maps what one open model, [Qwen3-8B](https://arxiv.org/abs/2505.09388), responds to in medication text.** It covers all 884,736 of the model's units (the high and the low ends of its 442,368 neurons, explained under Terms) and records, for each, where in 2,400 FDA drug labels it responds, on which kinds of words, in which label sections, and at which of the model's processing steps. A unit's card, a short written description of what it responds to, lets a reader recognize its strongest firing, mostly through the words involved, but says little about its firing on ordinary text. The test behind that statement, with its scores, is described below.
+
+The atlas is not a test of whether the model gives safe or correct medication advice, and nothing in it should guide patient care. It shows where responses to medication text appear inside the model. It does not show that those responses control what the model says.
+
+<p class="atl-cta"><a href={ATLAS_URL} class="btn-primary">Open the atlas<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></p>
+
+Two posts on what the atlas shows are coming soon. *What has a language model learned about a dose?* follows the parts of a dosing instruction through the model and lists what it has units for and what is missing. *Do the units that predict a message's danger control the model's urgency reading?* tests, mostly on the smaller Qwen3.5-4B, whether switching off units that predict a message's danger changes the model's urgency reading, with positive controls. The <a href={PDF_URL}>technical report (PDF)</a> gives the full methods and the source of every number.
+
+<AtlasExplainer title="Each part of a dose has its own units, at its own depth in the model" />
+
+<details class="atl-terms">
+<summary>Terms used here</summary>
+
+**Token.** The piece of text a language model reads at each step: usually a word or part of a word. "Take 5 mg twice daily" is read as tokens such as "Take", " 5", " mg", " twice" and " daily", and a long drug name is often split into several tokens.
+
+**Layer, or processing step.** A language model does not read a sentence and answer in one move. Every token passes through the same fixed sequence of processing steps, 36 in this model, always in the same order. Each step takes the model's working notes about that token and refines them: at the first step the notes hold little more than the token itself, and after the last step the model must commit to the next token it will write. The technical name for a step is a layer. A laboratory is a fair comparison up to a point: accessioning comes first and only establishes what the specimen is, and interpretation comes last and depends on everything before it. Unlike a laboratory, nobody assigned a job to each step; we measure where things show up. Layers are numbered 0 to 35 in the technical literature and in unit names such as L23N10618-high (shown below); these posts count them as steps 1 to 36, so layer 0 is step 1.
+
+**Neuron.** One of 12,288 small computing elements in the feed-forward part of each step, which processes each token on its own (the attention part, by contrast, passes information between tokens). Qwen3-8B has 442,368 such neurons.
+
+**Activation.** The number a neuron computes at a given token. It can be strongly positive or strongly negative.
+
+**Pole, or unit.** The high values or the low values of one neuron, treated as separate parts because the two ends can respond to unrelated text, following [recent work](https://www.goodfire.com/research/neurons-as-an-interpretable-basis). The model has 884,736 poles, and these posts call a pole a unit. A unit named L23N10618-high is the high end of neuron 10,618 in layer 23, which is step 24 (its technical pole name is L23N10618+). "Unit" in this sense is unrelated to dose units such as mg and mL.
+
+**Firing threshold and firing.** A unit fires at a token when its neuron's activation passes a fixed cutoff: above the 97th percentile of that neuron's values on a reference text (a million tokens of drug labels and educational web text) for a high unit, or below the 3rd percentile for a low unit. This is closer to a lab value crossing its reference limit than to a nerve impulse: every unit fires on about 30 of every 1,000 tokens of ordinary text by construction, its expected rate, and the question is where.
+
+**Selective.** A unit is selective for a kind of text when it fires there much more often than elsewhere; the rule used is stated where it applies.
+
+**Near-silent unit.** A unit whose largest activation anywhere in the corpus stays below 0.05, while most units reach well above that. Because firing is defined relative to each neuron's own range, a near-silent unit still fires on about 30 of every 1,000 tokens, on very small values.
+
+**Strongest contexts.** The 20 places in the corpus where a unit's activation was most extreme, each kept as a short passage with the firing token marked.
+
+**Card.** A short written description of a unit, written by an AI model (Claude Sonnet 5.5) from 10 of the unit's 20 strongest contexts; the other 10 are kept back for the test described next.
+
+**Held-out test, strong score and threshold score.** A card could sound right and still be wrong, so each one was tested: a second AI model (Claude Haiku 5.5), given only the card, had to pick out passages where the unit fires, using passages the card's writer never saw. Test material kept from the writer in this way is called held out. The second model reads the card and 30 passages and marks those on which it expects the unit to fire. Ten are the strongest contexts the writer did not see, ten are the unit's ordinary firing sampled across its range, and ten are places where it does not fire. The strong score is the balanced accuracy for strongest contexts against quiet places, that is, the mean of the share of strongest contexts marked and the share of quiet places left unmarked; the threshold score is the same for ordinary firing against quiet places. Chance is 0.50, and a card at 0.70 or more is called usable.
+
+**Tokens its output promotes.** The vocabulary tokens whose likelihood a unit's output most raises, read from the model's weights. This was not tested and is often uninterpretable, so a list such as "safely, safe" says nothing about safety.
+
+**Wrong-unit control.** The same 30 passages scored with the card of a different unit, like a control arm: a card should beat a description written for something else.
+
+**String-matching baseline.** A rule with no card and no AI model: mark a test passage as firing when its marked word is the same word the unit fired on in the contexts the writer saw. It shows how much of a score could come from word identity alone.
+
+</details>
+
+## What is in the atlas?
+
+We ran 10,002,874 tokens through the model, in passages of up to 256 tokens. About 8 million tokens came from 2,400 United States prescription drug labels in the [openFDA](https://open.fda.gov/apis/drug/label/) collection, one label for each distinct combination of active ingredients, from six sections: dosage and administration, warnings, drug interactions, overdosage, boxed warnings and contraindications. About 2 million came from general educational web text in [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu), as a contrast. Every token was also given a type by fixed rules: drug name, dose number (the "5" in "5 mg"), dose unit (the "mg"), frequency or timing ("twice daily", "as needed"), route, dosage form, other number, or other.
+
+For every unit, the atlas records how often it fired in every passage, and from that its rate per 1,000 tokens of each token type, of each label section and of each drug class; its 20 strongest contexts; and the words its output pushes the model toward. For the 30,529 selected units, the most selective for a token type, a label section, a drug class or label text against web text, it also holds a card and that card's scores. The public browser shows strongest contexts only for the selected units and keeps rates for the rest; the full arrays will be released separately.
+
+## Where does the model handle each part of a dose?
+
+At different steps for different parts. Take the phrase "warfarin 5 mg orally once daily". Half of the units selective for drug names such as warfarin have appeared by step 6 of 36, but half of those for the number in a dose, the 5, only by step 28, close to where the model chooses the next word. Routes, dose units and frequency fall in between (Figure 1).
+
+How to read Figure 1: each row is one part of the phrase; its bar spans the steps where the middle half of the units for that kind of word sit, and the dark tick is the step by which half of them have appeared. What it means: units for drug names appear by step 6 and units for dose numbers only near the end, so a study of the first few steps alone would miss most of the units for dose numbers. Near-silent units are left out; with them, there would be about twice as many drug-name units, and the 2,116 extra units all sit in steps 2 to 5. A findings post that is coming soon explains the rule behind the bars and its caveats, and the <a href={PDF_URL}>technical report</a> gives the details.
+
+<LayerExplorer number={1} phraseOnly />
+
+## How do you read a unit in the atlas?
+
+Search the atlas for a drug, a word, a label section or a unit name, and open a unit's record. Each record has two kinds of evidence, and they answer different questions. The firing rates answer where the unit fires most of the time: per 1,000 tokens of each token type and each label section. The card and the strongest contexts answer what its strongest firing looks like. The two often differ, because a unit is selected for its everyday firing but its card is written from 10 of its 20 most extreme moments. Below each card, the atlas states whether those strongest contexts agree with each reason the unit was selected.
+
+The unit below shows a clear case. L23N10618-high fires on 551 of every 1,000 dose-unit tokens in the corpus, against about 18 of every 1,000 tokens of the plain "other" type. Its card says it fires on mg, or a similar measure, right after a dose number, and 16 of its 20 strongest contexts are exactly that, across 19 labels.
+
+<UnitCard pole="L23N10618+" open />
+
+Some cards also describe a unit's ordinary firing, not only its peaks. L11N863-high fires on words for lowering, stopping or changing a drug, such as "discontinue", "reduce" and "stop", and its card reached a threshold score of 0.90.
+
+<UnitCard pole="L11N863+" />
+
+Others describe very little. Of the 30,529 cards, 1,096 state that the unit has no clear pattern, and those scored 0.621 on the strong score. The card below is one of them: its strongest contexts are scattered spots in label text.
+
+<UnitCard pole="L17N7119-" />
+
+These three cards were chosen to show the range. The first two come from a shortlist of 56 units whose strongest contexts, drawn from at least 10 labels, two AI reviewers read against the card (described in a findings post that is coming soon), so they score higher than a typical card.
+
+## How far can you trust a card?
+
+For a unit's strongest firing, reasonably; for its everyday firing, very little; and mostly because of the words involved. A card could sound right and still be wrong, so each one was scored on the held-out test described in the terms: a second model, given only the card, picked out passages where the unit fires from passages the card's writer never saw. Across the 30,529 cards, the strong score was 0.856, against 0.783 for the string-matching baseline and 0.50 for chance, and 89% of cards reached 0.70. The threshold score, for ordinary firing, was 0.556, against 0.516 for the baseline, and only 13% of cards reached 0.70. A card therefore lets a reader recognize a unit's strongest firing, mostly through the tokens involved, and tell it apart from unrelated units (a card written for a unit of a different word type scored 0.511 on the same passages, though one for a unit of the same type scored 0.623), but it adds only about 0.07 over string matching on the strongest firing and about 0.04 on ordinary firing.
+
+A card is not evidence that the unit represents the idea it names. One card's score rests on 20 test passages and has an uncertainty of about 0.1, so two cards must differ by about 0.2 to 0.3 before the difference means much. The <a href={PDF_URL}>technical report</a> gives the full score analysis, including the wrong-unit control and the test passages that repeat a sentence the writer saw.
+
+## What can the atlas not tell you?
+
+**It is not a test of whether the model gives safe or correct medication advice, and it cannot tell you that a unit controls anything.** A unit that fires on dose numbers or on contraindication text is a place where a response appears; nothing here shows it to be a switch that governs what the model says, and a handful of such units is not a medication safety filter. A post that is coming soon reports a related test, mostly on the smaller Qwen3.5-4B, in which units chosen because they predicted how dangerous a message was, not the atlas units, were silenced.
+
+It covers one model, and may not hold for others. Its text is drug label prose and educational web text, with no chat, patient writing or clinical notes. It records feed-forward units only. Token types come from rules checked by hand on 45 tokens each, and at most 2 of each 45 were wrong. Associations with label sections and drug classes are weaker than those with token types, and a class link reflects the wording of a few labels rather than the class's pharmacology; the technical report explains why and how the selection rules should change. AI models wrote and scored the cards, and no clinician has blind-coded any test item. Nothing here shows that the atlas is clinically valid, that it makes a model safer, or that it is useful for patient care.
+
+## Read more
+
+<p class="atl-cta"><a href={ATLAS_URL} class="btn-primary">Open the atlas<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></p>
+
+- *What has a language model learned about a dose?* (coming soon). Where each part of a dosing instruction appears across the 36 steps, and what the model has units for and what is missing.
+- *Do the units that predict a message's danger control the model's urgency reading?* (coming soon). The pilot that silenced the units that best predicted a message's danger, and a follow-up on the smaller Qwen3.5-4B that tested, with positive controls, whether silencing at that point could have worked at all.
+- The data behind the atlas browser are public at [github.com/elparko/medication-neuron-atlas-data](https://github.com/elparko/medication-neuron-atlas-data).
+- <a href={PDF_URL}>Technical report (PDF)</a>: full methods, the audit trail, agreement between the two machines the atlas was computed on, near-silent units, the selection rules and their limitation, and the complete analysis of the card scores.
+
+## Acknowledgements
+
+This work was inspired by Goodfire's research on neurons as an interpretable basis (Tigges and colleagues, 2026).
+
+## References
+
+Tigges C, Kowal M, McGrath T, Lewis O, Cammarata N. Neurons as an interpretable basis. Goodfire; 10 November 2026. [https://www.goodfire.com/research/neurons-as-an-interpretable-basis](https://www.goodfire.com/research/neurons-as-an-interpretable-basis)
+
+Yang A, Li A, Yang B, et al. Qwen3 technical report. *arXiv* 2505.09388; 2025. [https://arxiv.org/abs/2505.09388](https://arxiv.org/abs/2505.09388)
+
+Kass-Hout TA, Xu Z, Mohebbi M, et al. OpenFDA: an innovative platform providing access to a wealth of FDA's publicly available data. *J Am Med Inform Assoc* 2016;23(3):596–600. [https://doi.org/10.1093/jamia/ocv153](https://doi.org/10.1093/jamia/ocv153)
+
+Penedo G, Kydlíček H, Ben Allal L, et al. The FineWeb datasets: decanting the web for the finest text data at scale. *Advances in Neural Information Processing Systems 37*; 2024. [https://arxiv.org/abs/2406.17557](https://arxiv.org/abs/2406.17557)

@@ -1,0 +1,36 @@
+{
+  "about": "Words and colours for AtlasExplainer.astro. Dot counts come from layers.json, types[type].r10_loud: units that fire on that kind of word at least ten times as often as on other words, near-silent units left out, per step (the same series as the overview's Figure 1).",
+  "unitsPerDot": 5,
+  "phrase": [
+    {
+      "word": "warfarin",
+      "type": "Drug name",
+      "plural": "drug names",
+      "color": "#3f518f"
+    },
+    {
+      "word": "5",
+      "type": "Dose number",
+      "plural": "dose numbers",
+      "color": "#c46a1b"
+    },
+    {
+      "word": "mg",
+      "type": "Dose unit",
+      "plural": "dose units",
+      "color": "#0f8794"
+    },
+    {
+      "word": "orally",
+      "type": "Route",
+      "plural": "routes",
+      "color": "#8a4fa3"
+    },
+    {
+      "word": "once daily",
+      "type": "Frequency or timing",
+      "plural": "frequency or timing words",
+      "color": "#4d8b31"
+    }
+  ]
+}

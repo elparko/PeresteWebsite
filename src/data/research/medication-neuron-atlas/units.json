@@ -1,0 +1,1018 @@
+{
+ "model": "claude-sonnet-5-5",
+ "scored": true,
+ "source": "atlas/cards/full_*.jsonl and T7/describe/full_*/cards_sonnet.json (23d6573)",
+ "units": [
+  {
+   "pole": "L23N10618+",
+   "layer_index": 23,
+   "sign": "+",
+   "neuron": 10618,
+   "card": {
+    "name": "Unit mg right after a dose number",
+    "no_clear_pattern": false,
+    "fires_on": "The unit 'mg' (or its last letter, or a similar unit like GBq) written right after a dose number in dosing instructions. It is strongest in recommended-dose statements and tables.",
+    "modes": [
+     {
+      "label": "mg after dose number",
+      "description": "The unit mg directly follows a number in a recommended dose, often before /kg, /m2 or 'per kg'.",
+      "example": "Recommended Intravenous PJIA Dosage Every 4 Weeks Patients less than 30 kg weight 10<< mg>> per kg Patients at or above 3"
+     },
+     {
+      "label": "Split or rare units",
+      "description": "The final letter of a unit split into pieces, or a less common unit such as GBq, after a number.",
+      "example": "or VYNDAMAX 61 mg (one 61-m<<g>> tafamidis capsule) orally once"
+     }
+    ],
+    "writes": "No clear link to the promoted tokens; the suppressed tokens (total, normalized) hint it steers away from summary or total wording after the unit.",
+    "plain": "It lights up on the unit, usually mg, that comes straight after a dose amount.",
+    "evidence": [
+     "the patient first receives two tablets (400 mg; 332<< mg>> of quinidine base) of qu",
+     "BC locally advanced or metastatic: 60<< mg>>/m 2 to 100",
+     "The starting dose is 0.375<< mg>> given once per day."
+    ]
+   },
+   "contexts": [
+    {
+     "v": 6.34,
+     "text": " atrial fibrillation/flutter to sinus rhythm. In one reported regimen, the patient first receives two tablets (400 mg; 332<< mg>> of quinidine base) of qu"
+    },
+    {
+     "v": 6.06,
+     "text": " may be increased to a maximum recommended total daily dosage of three tablets per day (45 mg of pioglitazone and 2,5<<5>>0 mg of metformin HCl"
+    },
+    {
+     "v": 5.84,
+     "text": " Arthritis ( 2.5 ) Recommended Intravenous PJIA Dosage Every 4 Weeks Patients less than 30 kg weight 10<< mg>> per kg Patients at or above 3"
+    },
+    {
+     "v": 5.78,
+     "text": " the diuretic it may be possible to reduce the dose of lisinopril. Patients whose blood pressures are adequately controlled with 25 mg<< of>> daily hydrochlorothiazide, but"
+    },
+    {
+     "v": 5.62,
+     "text": "ylaxis). Administer intravenously (IV) over 1 hr every 3 weeks. BC locally advanced or metastatic: 60<< mg>>/m 2 to 100"
+    },
+    {
+     "v": 5.5,
+     "text": "BRIO 1 gram Provides 400 mg imipenem, 400 mg cilastatin, and 200<< mg>>"
+    },
+    {
+     "v": 5.47,
+     "text": "g tafamidis meglumine capsules) orally once daily or VYNDAMAX 61 mg (one 61-m<<g>> tafamidis capsule) orally once"
+    },
+    {
+     "v": 5.41,
+     "text": "5.3) ] . Children 1 to < 6 Years of Age The dose range is 0.05 to 0.4<< mg>>/kg per day. The recommended starting dose"
+    },
+    {
+     "v": 5.31,
+     "text": "13 Injection from its container and administer 10-20 mCi (0.368 – 0.736 GB<<q>>) of Ammonia N 1"
+    },
+    {
+     "v": 5.28,
+     "text": " than 2 years ZERBAXA 60 mg/kg Provides 40 mg/kg ceftolozane and 20 mg<</kg>> tazobactam. up to"
+    }
+   ],
+   "lens": [
+    " PageSize",
+    " andre",
+    "aket",
+    "abol",
+    " Celt",
+    "Ban",
+    " Ban",
+    " opp"
+   ],
+   "scores": {
+    "score_top": 0.9,
+    "score": 0.85,
+    "control_score_top": 0.45,
+    "control_score": 0.35,
+    "verbatim": 1.0,
+    "hits_top": 8,
+    "n_top": 10,
+    "hits": 7,
+    "n_fire": 10,
+    "false_alarms": 0,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 0.75,
+    "baseline_threshold": 0.55
+   },
+   "fires_per_1000_overall": 31.54,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 67.29,
+    "Boxed warning": 13.18,
+    "Contraindications": 12.53,
+    "Drug interactions": 19.49,
+    "Overdosage": 18.37,
+    "Warnings": 17.98,
+    "General web text": 11.2
+   },
+   "fires_per_1000_by_type": {
+    "Other": 18.19,
+    "Drug name": 50.01,
+    "Frequency or timing": 154.04,
+    "Dose unit": 550.9,
+    "Dose number": 307.4,
+    "Other number": 40.58,
+    "Route": 64.49,
+    "Dosage form": 61.5
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "token type unit (ratio 20.0)",
+   "strict": {
+    "token type": true
+   },
+   "class_tokens": null
+  },
+  {
+   "pole": "L19N432+",
+   "layer_index": 19,
+   "sign": "+",
+   "neuron": 432,
+   "card": {
+    "name": "Hours in every-N-hours dosing",
+    "no_clear_pattern": false,
+    "fires_on": "The time unit (hours, h, intervals) right after a number in a repeating-dose phrase such as \"every 6 hours\" or \"q6 to 8h\". It responds in dosing directions that set a regular schedule.",
+    "modes": [
+     {
+      "label": "Every N hours",
+      "description": "The word hours after \"every\" and a number in a dosing schedule.",
+      "example": "Administer levoleucovorin for injection 7.5 mg (approximately 5 mg/m 2 ) intravenously every 6<< hours>> until methotrexate level is less"
+     },
+     {
+      "label": "Abbreviated or interval forms",
+      "description": "The abbreviation h after q and a number, or the word intervals after a number of minutes.",
+      "example": "TETANUS Intramuscular or Intravenous: 1 / 4 mg / lb body weight q6 to 8<<h>>. When given intravenously, dil"
+     }
+    ],
+    "writes": "It seems to push toward what follows a fixed interval, such as \"until\" or \"for\", and away from words about spacing doses evenly.",
+    "plain": "It lights up on the time unit in phrases like \"every 6 hours\" that tell how often to repeat a dose.",
+    "evidence": [
+     "It is suggested that 100 mg of folinic acid be administered intravenously every 3<< hours>> for 24 hours and then every",
+     "2 DOSAGE AND ADMINISTRATION • Day 1: Instill one drop every two<< hours>> in the affected eye(s) while awake",
+     "repeated doses may be administered at 20-minute<< intervals>> as needed."
+    ]
+   },
+   "contexts": [
+    {
+     "v": 11.38,
+     "text": " hours before operation. TETANUS Intramuscular or Intravenous: 1 / 4 mg / lb body weight q6 to 8<<h>>. When given intravenously, dil"
+    },
+    {
+     "v": 11.12,
+     "text": "2 /day by continuous intravenous infusion (Days 1-7) or 100 mg/m 2 intravenous every 12<< hours>> (Days 1-7). The"
+    },
+    {
+     "v": 11.12,
+     "text": " received an overdose of vincristine sulfate. It is suggested that 100 mg of folinic acid be administered intravenously every 3<< hours>> for 24 hours and then every"
+    },
+    {
+     "v": 11.0,
+     "text": " the antibodies, meaning they'd had mono in the past. The remainder, 143 students, visited the university clinic every 8<< weeks>> for an average of three years, to"
+    },
+    {
+     "v": 10.06,
+     "text": "2 DOSAGE AND ADMINISTRATION • Day 1: Instill one drop every two<< hours>> in the affected eye(s) while awake"
+    },
+    {
+     "v": 10.0,
+     "text": ": o The usual dosage is 200 mg on the first day of treatment (administered 100 mg every 12<< hours>>) followed by a maintenance dose of "
+    },
+    {
+     "v": 9.88,
+     "text": " to 1 mg (see Individualization of Dosage ). In the event of resedation, repeated doses may be administered at 20-minute<< intervals>> as needed. For repeat treatment, no"
+    },
+    {
+     "v": 9.81,
+     "text": ". There are no available data for ERBITUX exposure in pregnant women. In an animal reproduction study, intravenous administration of cetuximab once<< weekly>> to pregnant cynomolgus monkeys during"
+    },
+    {
+     "v": 9.81,
+     "text": "2 DOSAGE AND ADMINISTRATION Day 1: Instill one drop every two<< hours>> in the affected eye(s) while awake"
+    },
+    {
+     "v": 9.75,
+     "text": "yclate delayed-release tablet is 200 mg on the first day of treatment (administered 100 mg every 12<< hours>>), followed by a maintenance dose of "
+    }
+   ],
+   "lens": [
+    "直到",
+    "/Area",
+    " Reyn",
+    " Awareness",
+    "芸",
+    "fully",
+    "oard",
+    " Beginner"
+   ],
+   "scores": {
+    "score_top": 1.0,
+    "score": 0.7,
+    "control_score_top": 0.85,
+    "control_score": 0.7,
+    "verbatim": 1.0,
+    "hits_top": 10,
+    "n_top": 10,
+    "hits": 4,
+    "n_fire": 10,
+    "false_alarms": 0,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 0.9,
+    "baseline_threshold": 0.5
+   },
+   "fires_per_1000_overall": 26.88,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 48.93,
+    "Boxed warning": 17.85,
+    "Contraindications": 7.9,
+    "Drug interactions": 12.22,
+    "Overdosage": 23.21,
+    "Warnings": 19.59,
+    "General web text": 17.59
+   },
+   "fires_per_1000_by_type": {
+    "Other": 24.65,
+    "Drug name": 8.45,
+    "Frequency or timing": 653.84,
+    "Dose unit": 43.78,
+    "Dose number": 25.33,
+    "Other number": 20.68,
+    "Route": 28.75,
+    "Dosage form": 9.54
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "token type frequency (ratio 28.2)",
+   "strict": {
+    "token type": true
+   },
+   "class_tokens": null
+  },
+  {
+   "pole": "L11N863+",
+   "layer_index": 11,
+   "sign": "+",
+   "neuron": 863,
+   "card": {
+    "name": "Reducing or stopping a drug",
+    "no_clear_pattern": false,
+    "fires_on": "Verbs and linking words about lowering, stopping or changing a drug, such as discontinue, reduce, adjusting, or 'of' after 'Reduction or Discontinuation'. It fires just before the drug name or dose is named.",
+    "modes": [
+     {
+      "label": "Inside discontinue",
+      "description": "The word 'continue' completes 'discontinue' in an instruction to stop a drug.",
+      "example": "Do not rapidly reduce or abruptly dis<<continue>> Levorphanol Tartrate Tablets"
+     },
+     {
+      "label": "Link after reduction or discontinuation",
+      "description": "'of' or 'for' follows a reduce or stop phrase and leads to the drug or condition.",
+      "example": "Reduction or discontinuance<< of>> immunosuppression may cause the lesions"
+     },
+     {
+      "label": "Dose-change verbs",
+      "description": "Verbs like reduce, increasing or adjusting appear after 'starting or' or 'resume or'.",
+      "example": "withhold ALUNBRIG, then resume or<< reduce>> dose."
+     }
+    ],
+    "writes": "It seems to push toward words about abrupt change or tightening, such as 'abruptly', but the effect is weak.",
+    "plain": "It lights up where the label talks about lowering, stopping or changing a drug's dose.",
+    "evidence": [
+     "Do not rapidly reduce or abruptly dis<<continue>> Levorphanol Tartrate Tablets",
+     "2.6 Safe Reduction or Discontinuation<< of>> Methadone Hydrochloride Oral Solution",
+     "Steroids may be<< reduced>> gradually in patients who respond to methot"
+    ]
+   },
+   "contexts": [
+    {
+     "v": 12.56,
+     "text": " Do not rapidly reduce or abruptly dis<<continue>> Levorphanol Tartrate Tablets"
+    },
+    {
+     "v": 12.44,
+     "text": " carbidopa, levodopa and entacapone tablets dosing because hyperpyrexia has been reported in patients who suddenly discontinue or<< reduce>> their use of levodopa [see"
+    },
+    {
+     "v": 12.19,
+     "text": " Reduction or discontinuance<< of>> immunosuppression may cause the lesions"
+    },
+    {
+     "v": 12.19,
+     "text": " mg intravenous infusion on relapse, and consider resuming or<< increasing>> the glucocorticoid dose based on"
+    },
+    {
+     "v": 12.06,
+     "text": "agulants Dis<<continue>> SAVAYSA and start the parent"
+    },
+    {
+     "v": 11.75,
+     "text": "icosteroid therapy. 5.6 Patients with Co-morbid Asthma Advise patients with co-morbid asthma not to adjust or<< stop>> their asthma treatments without consultation with their physicians"
+    },
+    {
+     "v": 11.56,
+     "text": "APIBLYK injection. Reduce or stop RAPIBLYK injection<< for>> bradyarrhythmia. 5"
+    },
+    {
+     "v": 11.31,
+     "text": ". ( 2.3 ) Do not rapidly reduce or abruptly dis<<continue>> buprenorphine transdermal"
+    },
+    {
+     "v": 11.25,
+     "text": "ocrine, or electrolyte disorders; or uncontrolled epilepsy). Inform patients of the risk of myopathy and rhabdomyolysis when starting or<< increasing>> the atorvastatin calcium dosage"
+    },
+    {
+     "v": 11.19,
+     "text": "ocrine, or electrolyte disorders; or uncontrolled epilepsy). Inform patients of the risk of myopathy and rhabdomyolysis when starting or<< increasing>> the atorvastatin calcium dosage"
+    }
+   ],
+   "lens": [
+    " abruptly",
+    "缩",
+    "收紧",
+    " MUT",
+    "供给侧",
+    "��索",
+    "架子",
+    "indi"
+   ],
+   "scores": {
+    "score_top": 0.95,
+    "score": 0.9,
+    "control_score_top": 0.4,
+    "control_score": 0.45,
+    "verbatim": 1.0,
+    "hits_top": 10,
+    "n_top": 10,
+    "hits": 9,
+    "n_fire": 10,
+    "false_alarms": 1,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 0.85,
+    "baseline_threshold": 0.65
+   },
+   "fires_per_1000_overall": 33.08,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 50.64,
+    "Boxed warning": 30.08,
+    "Contraindications": 11.91,
+    "Drug interactions": 39.4,
+    "Overdosage": 12.92,
+    "Warnings": 38.36,
+    "General web text": 2.41
+   },
+   "fires_per_1000_by_type": {
+    "Other": 36.8,
+    "Drug name": 25.05,
+    "Frequency or timing": 33.29,
+    "Dose unit": 60.18,
+    "Dose number": 8.78,
+    "Other number": 1.93,
+    "Route": 2.88,
+    "Dosage form": 25.15
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "medication text (ratio 16.9)",
+   "strict": {
+    "medication text": true
+   },
+   "class_tokens": null
+  },
+  {
+   "pole": "L12N4866-",
+   "layer_index": 12,
+   "sign": "-",
+   "neuron": 4866,
+   "card": {
+    "name": "Inhibitor or inducer of enzymes",
+    "no_clear_pattern": false,
+    "fires_on": "The words inhibitor, inducer (often split as indu-cers) and inhibiting in drug-interaction text, usually right after 'or', 'an' or 'strong' and before an enzyme such as CYP3A4.",
+    "modes": [
+     {
+      "label": "Inhibitor/inducer wording",
+      "description": "Inhibitor or inducer (including split forms) naming a drug's effect on CYP enzymes or transporters.",
+      "example": "Avoid CYP3A4 inhibitors or<< indu>>cers. ( 7.1 )"
+     },
+     {
+      "label": "Stray non-drug case",
+      "description": "Occasional title word like director in news text, with no drug link.",
+      "example": "according to education experts Rick Hess,<< director>> of education policy studies"
+     }
+    ],
+    "writes": "no clear output effect",
+    "plain": "It lights up on the words inhibitor and inducer when a label describes how one drug changes enzymes that handle other drugs.",
+    "evidence": [
+     "Prasugrel tablets can be administered with drugs that are inducers or<< inhibitors>> of cytochrome P45",
+     "Omeprazole acts as an<< inhibitor>> of CYP2C19.",
+     "7.2 Drugs Inducing or Inhib<<iting>> CYP3A Enzymes R"
+    ]
+   },
+   "contexts": [
+    {
+     "v": -7.78,
+     "text": " other opioid agonists. 7.4 Other Concomitant Medications Prasugrel tablets can be administered with drugs that are inducers or<< inhibitors>> of cytochrome P45"
+    },
+    {
+     "v": -7.56,
+     "text": " consult the prescribing information of any drug which is co-prescribed with digoxin for potential drug interaction information. • PGP Inducers/In<<hib>>itors: Drugs that induce or inhibit P"
+    },
+    {
+     "v": -7.5,
+     "text": " and Inducers: Monitor patients starting or ending CYP3A4 inhibitors or<< indu>>cers for potential over-or under- dos"
+    },
+    {
+     "v": -7.44,
+     "text": "7 DRUG INTERACTIONS Isavuconazole is a sensitive substrate of CYP3A4. CYP3A4 inhibitors or<< indu>>cers may alter the plasma concentrations of is"
+    },
+    {
+     "v": -7.41,
+     "text": " , Contraindications (4) , and Clinical Pharmacology (12.3) ]. 7.2 Drugs Inducing or Inhib<<iting>> CYP3A Enzymes R"
+    },
+    {
+     "v": -7.28,
+     "text": "7 DRUG INTERACTIONS Terbinafine is an<< inhibitor>> of CYP450 2"
+    },
+    {
+     "v": -7.25,
+     "text": "-induced respiratory depression. Frequently evaluate patients on concurrent therapy closely. ( 7 ) C YP 3 A 4 Inhibitors/Induc<<ers>> : Initiating CYP3A4"
+    },
+    {
+     "v": -7.25,
+     "text": " Rilpivirine is primarily metabolized by cytochrome P450 (CYP)3A, and drugs that induce or<< inhibit>> CYP3A may thus affect the"
+    },
+    {
+     "v": -7.22,
+     "text": "ium, consider use of alternative anti-platelet therapy [ see Clinical Pharmacology (12.3) ]. Omeprazole acts as an<< inhibitor>> of CYP2C19."
+    },
+    {
+     "v": -7.19,
+     "text": "azolam metabolism is hydroxylation catalyzed by cytochrome P450 3A (CYP3A). Drugs that<< inhibit>> this metabolic pathway may have a profound effect"
+    }
+   ],
+   "lens": [
+    "前台",
+    "sic",
+    "(front",
+    "Accessory",
+    "副主任",
+    " divisions",
+    "都喜欢",
+    "Adjust"
+   ],
+   "scores": {
+    "score_top": 1.0,
+    "score": 0.6,
+    "control_score_top": 1.0,
+    "control_score": 0.65,
+    "verbatim": 1.0,
+    "hits_top": 10,
+    "n_top": 10,
+    "hits": 2,
+    "n_fire": 10,
+    "false_alarms": 0,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 0.85,
+    "baseline_threshold": 0.5
+   },
+   "fires_per_1000_overall": 39.96,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 21.77,
+    "Boxed warning": 39.04,
+    "Contraindications": 62.87,
+    "Drug interactions": 115.2,
+    "Overdosage": 62.59,
+    "Warnings": 37.89,
+    "General web text": 12.24
+   },
+   "fires_per_1000_by_type": {
+    "Other": 39.18,
+    "Drug name": 74.72,
+    "Frequency or timing": 6.9,
+    "Dose unit": 18.39,
+    "Dose number": 6.26,
+    "Other number": 24.98,
+    "Route": 5.34,
+    "Dosage form": 19.45
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "section drug_interactions (ratio 3.5)",
+   "strict": {
+    "section": true
+   },
+   "class_tokens": null
+  },
+  {
+   "pole": "L16N428-",
+   "layer_index": 16,
+   "sign": "-",
+   "neuron": 428,
+   "card": {
+    "name": "Nitrates and 'contraindicated in'",
+    "no_clear_pattern": false,
+    "fires_on": "The 'itr' inside 'nitrates' in drug-interaction text about PDE5 inhibitors, and the word 'in' right after 'contraindicated' in contraindication lists.",
+    "modes": [
+     {
+      "label": "Inside nitrates",
+      "description": "The 'itr' part of 'nitrates' in sildenafil, vardenafil or avanafil interaction text.",
+      "example": "Sildenafil tablets was shown to potentiate the hypotensive effects of n<<itr>>ates and its administration in patients who use"
+     },
+     {
+      "label": "Contraindicated in",
+      "description": "The word 'in' directly after 'are contraindicated' at the start of a contraindications section.",
+      "example": "CONTRAINDICATIONS Rivastigmine tartrate capsules are contraindicated<< in>> patients with: • known hypersensitivity to"
+     }
+    ],
+    "writes": "It lowers the odds of 'safe' words, which fits text that warns against use.",
+    "plain": "It fires on 'nitrates' in interaction warnings and on 'in' after 'contraindicated', both places where a ban on use is stated.",
+    "evidence": [
+     "hypotensive effects of n<<itr>>ates and its administration in patients who use",
+     "Isosorbide mononitrate is contraindicated<< in>> patients who are allergic to it.",
+     "Concomitant use of sildenafil with n<<itr>>ates in any form is contraind"
+    ]
+   },
+   "contexts": [
+    {
+     "v": -12.0,
+     "text": " without food. 2.3 Dosage Adjustments in Specific Situations Sildenafil tablets was shown to potentiate the hypotensive effects of n<<itr>>ates and its administration in patients who use"
+    },
+    {
+     "v": -11.31,
+     "text": " and/or intermittently is therefore contraindicated. After patients have taken sildenafil tablets, it is unknown when n<<itr>>ates, if necessary, can be safely"
+    },
+    {
+     "v": -10.56,
+     "text": ". 2.2 Use with Food Avanafil tablets may be taken with or without food. 2.3 Concomitant Medications N<<itr>>ates Concomitant use of nitr"
+    },
+    {
+     "v": -10.44,
+     "text": " patients who use nitric oxide donors such as organic nitrates or organic nitrites in any form is therefore contraindicated [see Contrain<<dic>>ations (4.1) , Drug"
+    },
+    {
+     "v": -10.44,
+     "text": "7 DRUG INTERACTIONS Nitrates Concomitant use of sildenafil with n<<itr>>ates in any form is contraind"
+    },
+    {
+     "v": -10.44,
+     "text": " to identify potential underlying causes, as well as treatment options. Before prescribing avanafil, it is important to note the following: • Patients should not<< use>> avanafil if sexual activity is in"
+    },
+    {
+     "v": -10.44,
+     "text": "CONTRAINDICATIONS Perphenazine products are contraindicated<< in>> comatose or greatly obtunded patients"
+    },
+    {
+     "v": -10.31,
+     "text": "CONTRAINDICATIONS Isosorbide dinitrate is contraindicated<< in>> patients who are allergic to isosorb"
+    },
+    {
+     "v": -10.31,
+     "text": "chloride Orally Disintegrating Tablets Nitrates: Concomitant use of vardenafil hydrochloride orally disintegrating tablets and n<<itr>>ates is contraindicated. The"
+    },
+    {
+     "v": -10.25,
+     "text": " (7.1) , and Clinical Pharmacology (12.2) ]. 4.2 Hypersensitivity Reactions Sildenafil tablets are<< contr>>aindicated in patients with a known"
+    }
+   ],
+   "lens": [
+    " safely",
+    " safe",
+    "Safe",
+    "-safe",
+    " Safe",
+    "safe",
+    ".safe",
+    "安全"
+   ],
+   "scores": {
+    "score_top": 0.95,
+    "score": 0.85,
+    "control_score_top": 0.45,
+    "control_score": 0.4,
+    "verbatim": 1.0,
+    "hits_top": 10,
+    "n_top": 10,
+    "hits": 8,
+    "n_fire": 10,
+    "false_alarms": 1,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 0.85,
+    "baseline_threshold": 0.5
+   },
+   "fires_per_1000_overall": 37.59,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 39.18,
+    "Boxed warning": 48.56,
+    "Contraindications": 179.08,
+    "Drug interactions": 47.35,
+    "Overdosage": 41.5,
+    "Warnings": 41.83,
+    "General web text": 0.88
+   },
+   "fires_per_1000_by_type": {
+    "Other": 39.34,
+    "Drug name": 51.51,
+    "Frequency or timing": 15.09,
+    "Dose unit": 18.19,
+    "Dose number": 8.62,
+    "Other number": 11.23,
+    "Route": 41.82,
+    "Dosage form": 14.76
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "section contraindications (ratio 4.3); medication text (ratio 52.9)",
+   "strict": {
+    "section": true,
+    "medication text": true
+   },
+   "class_tokens": null
+  },
+  {
+   "pole": "L15N8563-",
+   "layer_index": 15,
+   "sign": "-",
+   "neuron": 8563,
+   "card": {
+    "name": "Serious infections in boxed warnings",
+    "no_clear_pattern": false,
+    "fires_on": "The word infection(s), or the start of INFECTIONS in capitals, right after \"serious\" in boxed warnings about immune-suppressing drugs. Also fires on related infection terms like latent tuberculosis.",
+    "modes": [
+     {
+      "label": "Infections after serious",
+      "description": "The word infections or infection right after \"serious\" in a risk statement.",
+      "example": "Patients treated with infliximab products are at increased risk for developing serious<< infections>> that may lead to hospitalization or death"
+     },
+     {
+      "label": "Capitalized INFECTIONS in warning titles",
+      "description": "The inner piece of INFECTIONS split in an all-caps boxed warning heading.",
+      "example": "WARNING: RISK OF SERIOUS IN<<FE>>CTIONS See full prescribing information for complete boxed"
+     },
+     {
+      "label": "Other infection terms",
+      "description": "Infection-related words in the same warnings, such as latent tuberculosis or a comma in a list of infection types.",
+      "example": "Treatment of latent<< tuberculosis>> infection prior to therapy with TNF-block"
+     }
+    ],
+    "writes": "no clear output effect",
+    "plain": "It lights up on the word infections in warnings that immune-lowering drugs raise the risk of serious infections.",
+    "evidence": [
+     "Patients treated with infliximab products are at increased risk for developing serious<< infections>> that may lead to hospitalization or death",
+     "WARNING: SERIOUS MENINGOCOCCAL IN<<FE>>CTIONS See full prescribing information for complete boxed",
+     "7 DRUG INTERACTIONS • Abatacept: Increased risk of serious<< infection>> ( 5.1 , 5"
+    ]
+   },
+   "contexts": [
+    {
+     "v": -12.62,
+     "text": " KEVZARA prior to initiating therapy in patients with chronic or recurrent infection. WARNING: RISK OF SERIOUS IN<<FE>>CTIONS See full prescribing information for complete boxed"
+    },
+    {
+     "v": -10.69,
+     "text": "ous and arterial thrombosis with XELJANZ vs. TNF blockers in RA patients. ( 5.5 ) SERIOUS IN<<FE>>CTIONS Patients treated with XELJAN"
+    },
+    {
+     "v": -10.62,
+     "text": " young adult males. ( 5.2 ) SERIOUS INFECTIONS Patients treated with infliximab products are at increased risk for developing serious<< infections>> that may lead to hospitalization or death"
+    },
+    {
+     "v": -10.56,
+     "text": " SOLIRIS REMS [see Warnings and Precautions (5.2) ]. WARNING: SERIOUS MENINGOCOCCAL IN<<FE>>CTIONS See full prescribing information for complete boxed"
+    },
+    {
+     "v": -10.44,
+     "text": ": SERIOUS INFECTIONS CAUSED BY ENCAPSULATED BACTERIA VOYDEYA, a complement inhibitor, increases the risk of serious<< infections>>, especially those caused by encapsulated bacteria"
+    },
+    {
+     "v": -10.25,
+     "text": ": SERIOUS INFECTIONS CAUSED BY ENCAPSULATED BACTERIA FABHALTA, a complement inhibitor, increases the risk of serious<< infections>>, especially those caused by encapsulated bacteria"
+    },
+    {
+     "v": -10.19,
+     "text": ": SERIOUS INFECTIONS CAUSED BY ENCAPSULATED BACTERIA EMPAVELI, a complement inhibitor, increases the risk of serious<< infections>>, especially those caused by encapsulated bacteria"
+    },
+    {
+     "v": -10.12,
+     "text": ". ( 5.13 ) 5.1 Serious Infections Patients treated with infliximab products are at increased risk for developing serious<< infections>> involving various organ systems and sites that may"
+    },
+    {
+     "v": -10.12,
+     "text": " if infection is suspected [see Warnings and Precautions (5.1) ] . WARNING: SERIOUS MENINGOCOCCAL IN<<FE>>CTIONS See full prescribing information for complete boxed"
+    },
+    {
+     "v": -10.06,
+     "text": " confirmed significant hematologic abnormalities. 5.8 Use with Biological Disease-Modifying Antirheumatic Drugs (Biological DMARDs) Serious<< infections>> were seen in clinical studies with concurrent use"
+    }
+   ],
+   "lens": [
+    "慎重",
+    "尚",
+    " GG",
+    "โม",
+    "离开了",
+    "有一定的",
+    "Installed",
+    "新西"
+   ],
+   "scores": {
+    "score_top": 1.0,
+    "score": 0.55,
+    "control_score_top": 0.6,
+    "control_score": 0.7,
+    "verbatim": 1.0,
+    "hits_top": 10,
+    "n_top": 10,
+    "hits": 1,
+    "n_fire": 10,
+    "false_alarms": 0,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 0.95,
+    "baseline_threshold": 0.5
+   },
+   "fires_per_1000_overall": 51.65,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 21.4,
+    "Boxed warning": 103.96,
+    "Contraindications": 152.83,
+    "Drug interactions": 92.89,
+    "Overdosage": 14.11,
+    "Warnings": 91.42,
+    "General web text": 2.15
+   },
+   "fires_per_1000_by_type": {
+    "Other": 57.79,
+    "Drug name": 46.2,
+    "Frequency or timing": 1.78,
+    "Dose unit": 1.01,
+    "Dose number": 1.72,
+    "Other number": 10.09,
+    "Route": 21.22,
+    "Dosage form": 5.36
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "medication text (ratio 29.8)",
+   "strict": {
+    "medication text": true
+   },
+   "class_tokens": null
+  },
+  {
+   "pole": "L26N4114-",
+   "layer_index": 26,
+   "sign": "-",
+   "neuron": 4114,
+   "card": {
+    "name": "Is/are before excreted in breast milk",
+    "no_clear_pattern": false,
+    "fires_on": "The verb \"is\" or \"are\" right after a drug name in nursing-mother or pregnancy sections, where the next words are about excretion in milk or crossing the placenta.",
+    "modes": [
+     {
+      "label": "Nursing mothers: drug is excreted",
+      "description": "\"is\" or \"are\" after a drug name under a Nursing Mothers heading, before \"excreted in human milk\".",
+      "example": "Nursing Mothers Amitriptyline<< is>> ex"
+     },
+     {
+      "label": "Placenta and tissue passage",
+      "description": "\"are\" in a list of verbs describing how a drug crosses the placenta and reaches fetal tissues or milk.",
+      "example": "tetracyclines cross the placenta,<< are>> found in fetal tissues"
+     }
+    ],
+    "writes": "It adds little that is clear; promoted tokens loosely relate to safety and passing through the body.",
+    "plain": "It fires on the little verb after a drug name when the label is about to say the drug passes into breast milk or across the placenta.",
+    "evidence": [
+     "Nursing Mothers Risk Summary Diazepam<< is>> present in breastmilk.",
+     "because sulfonamides cross the placenta and<< are>> excreted in breast milk",
+     "Usage in Nursing Mothers Lithium<< is>> excreted in human milk."
+    ]
+   },
+   "contexts": [
+    {
+     "v": -64.0,
+     "text": "0-14) includes a period of brain development that takes place during the third trimester of pregnancy in humans. Nursing Mothers Risk Summary Diazepam<< is>> present in breastmilk. There are"
+    },
+    {
+     "v": -62.75,
+     "text": " to shorten labor. Monitor neonates exposed to opioid analgesics during labor for signs of excess sedation and respiratory depression. Nursing Mothers Hydrocodone<< is>> present in human milk. The developmental and"
+    },
+    {
+     "v": -60.75,
+     "text": ". This reaction was shown to be reversible when the drug was discontinued. Results of animal studies indicate that tetracyclines cross the placenta,<< are>> found in fetal tissues, and can have"
+    },
+    {
+     "v": -60.25,
+     "text": ". This reaction was shown to be reversible when the drug was discontinued. Results of animal studies indicate that tetracyclines cross the placenta,<< are>> found in fetal tissues, and can have"
+    },
+    {
+     "v": -58.5,
+     "text": ". This reaction was shown to be reversible when the drug was discontinued. Results of animal studies indicate that tetracyclines cross the placenta,<< are>> found in fetal tissues, and can have"
+    },
+    {
+     "v": -57.75,
+     "text": " on neurobehavioral and immunological function) in animals following prenatal exposure to benzodiazepines. Nursing Mothers: Risk Summary Clonazepam<< is>> excreted in human milk. There"
+    },
+    {
+     "v": -56.5,
+     "text": " pregnant while taking this drug, the patient should be apprised by their physician of the potential hazard to the fetus. Usage in Nursing Mothers Lithium<< is>> excreted in human milk. Nursing"
+    },
+    {
+     "v": -56.25,
+     "text": ". This reaction was shown to be reversible when the drug was discontinued. Results of animal studies indicate that tetracyclines cross the placenta,<< are>> found in fetal tissues, and can have"
+    },
+    {
+     "v": -55.75,
+     "text": " treatment of congenital toxoplasmosis). In pregnancy at term and during the nursing period, because sulfonamides cross the placenta and<< are>> excreted in breast milk and may"
+    },
+    {
+     "v": -55.75,
+     "text": " opioid analgesics during labor for signs of excess sedation and respiratory depression. Nursing Mothers Available data from lactation studies indicate that oxycodone<< is>> present in breastmilk and that doses"
+    }
+   ],
+   "lens": [
+    "穿过",
+    " safety",
+    "穿越",
+    "安全",
+    " brain",
+    "全身",
+    " Safety",
+    " safely"
+   ],
+   "scores": {
+    "score_top": 0.9,
+    "score": 0.55,
+    "control_score_top": 0.65,
+    "control_score": 0.6,
+    "verbatim": 1.0,
+    "hits_top": 8,
+    "n_top": 10,
+    "hits": 1,
+    "n_fire": 10,
+    "false_alarms": 0,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 1.0,
+    "baseline_threshold": 0.6
+   },
+   "fires_per_1000_overall": 45.1,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 29.26,
+    "Boxed warning": 88.03,
+    "Contraindications": 60.34,
+    "Drug interactions": 70.87,
+    "Overdosage": 58.5,
+    "Warnings": 70.6,
+    "General web text": 6.71
+   },
+   "fires_per_1000_by_type": {
+    "Other": 45.04,
+    "Drug name": 64.72,
+    "Frequency or timing": 16.63,
+    "Dose unit": 62.35,
+    "Dose number": 20.69,
+    "Other number": 31.7,
+    "Route": 17.03,
+    "Dosage form": 30.23
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "medication text (ratio 8.2)",
+   "strict": {
+    "medication text": true
+   },
+   "class_tokens": null
+  },
+  {
+   "pole": "L17N7119-",
+   "layer_index": 17,
+   "sign": "-",
+   "neuron": 7119,
+   "card": {
+    "name": "Scattered spots in drug label text",
+    "no_clear_pattern": true,
+    "fires_on": "No single word or setting; it fires on varied spots in drug-label text, such as 'of' after an age range, partway through words like prothrombin, reconstituted or diuretic, and the space or digit before a number.",
+    "modes": [
+     {
+      "label": "Partway through medical words",
+      "description": "Fires on a middle piece of a longer drug or lab term.",
+      "example": "patients, prothrombin time should be determined before starting simvastatin and frequently enough during early therapy to ensure that no significant alteration of pro<<th>>rombin time occurs."
+     },
+     {
+      "label": "Before a number",
+      "description": "Fires on a space or digit just ahead of a threshold or count.",
+      "example": "airment Dosage adjustment is recommended in patients with renal impairment who have an eGFR less than<< >>50 mL/min/1.7"
+     }
+    ],
+    "writes": "no clear output effect",
+    "plain": "It does not track one clear idea; it fires on assorted spots in label text.",
+    "evidence": [
+     "For pediatric patients 2 to 5 years<< of>> age: one 4-mg chew",
+     "Storage of the Reconstituted and Diluted Solutions Re<<const>>ituted vials, as described above",
+     "reduce the<< di>>uretic dose or increase salt intake cautiously"
+    ]
+   },
+   "contexts": [
+    {
+     "v": -5.38,
+     "text": "able tablet. For pediatric patients 2 to 5 years<< of>> age: one 4-mg chew"
+    },
+    {
+     "v": -5.38,
+     "text": "able tablet. For pediatric patients 2 to 5 years<< of>> age: one 4-mg chew"
+    },
+    {
+     "v": -5.06,
+     "text": " • Train patients using continuous subcutaneous insulin infusion pump therapy to administer insulin by injection and have alternate insulin therapy available in case of pump failure. •<< Admin>>ister Insulin Aspart by continuous sub"
+    },
+    {
+     "v": -5.0,
+     "text": "3 g/kg/day Pediatric patients 12 to 17 years<< of>> age 1 g/kg/day 3"
+    },
+    {
+     "v": -4.91,
+     "text": "5.3 ) • MACE has occurred with CIBINQO<<.>> Higher rate of MACE (defined as"
+    },
+    {
+     "v": -4.59,
+     "text": " risk of PML, TYRUKO is available only under a restricted distribution program, the TY<<R>>UKO REMS Program. In multiple"
+    },
+    {
+     "v": -4.59,
+     "text": " may be administered to patients taking nonsteroidal anti-inflammatory drugs (NSAIDs). In a 3-year, controlled, clinical study (n=<<2>>027) during which a majority"
+    },
+    {
+     "v": -4.59,
+     "text": "ycin content) Azithromycin concentration after constitution 9 mL (300 mg) 15 mL (300 mg) <<1>>00 mg/5 mL 9"
+    },
+    {
+     "v": -4.5,
+     "text": ". Storage of the Reconstituted and Diluted Solutions Re<<const>>ituted vials, as described above"
+    },
+    {
+     "v": -4.5,
+     "text": " daily with or without food in combination with other ant<<ire>>trovirals [see Clinical Pharmacology"
+    }
+   ],
+   "lens": [
+    "服务质量",
+    " service",
+    "的服务",
+    " Service",
+    "服务水平",
+    "Service",
+    "請求",
+    "慷慨"
+   ],
+   "scores": {
+    "score_top": 0.6,
+    "score": 0.7,
+    "control_score_top": 0.5,
+    "control_score": 0.5,
+    "verbatim": 1.0,
+    "hits_top": 5,
+    "n_top": 10,
+    "hits": 7,
+    "n_fire": 10,
+    "false_alarms": 3,
+    "n_quiet": 10
+   },
+   "baseline": {
+    "baseline_strong": 0.6,
+    "baseline_threshold": 0.55
+   },
+   "fires_per_1000_overall": 38.38,
+   "fires_per_1000_by_section": {
+    "Dosage and administration": 47.32,
+    "Boxed warning": 43.72,
+    "Contraindications": 55.49,
+    "Drug interactions": 56.81,
+    "Overdosage": 37.39,
+    "Warnings": 44.08,
+    "General web text": 1.82
+   },
+   "fires_per_1000_by_type": {
+    "Other": 29.51,
+    "Drug name": 138.84,
+    "Frequency or timing": 12.71,
+    "Dose unit": 17.73,
+    "Dose number": 30.43,
+    "Other number": 26.19,
+    "Route": 68.61,
+    "Dosage form": 81.62
+   },
+   "in_flagged_set": true,
+   "flag_reasons": "medication text (ratio 26.2)",
+   "strict": {
+    "medication text": true
+   },
+   "class_tokens": null
+  }
+ ]
+}

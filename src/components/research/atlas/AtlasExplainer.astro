@@ -1,0 +1,260 @@
+---
+import "../../../styles/research-explainers.css";
+import layers from "../../../data/research/medication-neuron-atlas/layers.json";
+import info from "../../../data/research/medication-neuron-atlas/atlas-explainer.json";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const n = (v: number) => v.toLocaleString("en-US");
+const PER = info.unitsPerDot;
+
+const words = info.phrase.map((p) => {
+  const counts = (layers.types as Record<string, { r10_loud: number[] }>)[p.type].r10_loud;
+  const peak = counts.indexOf(Math.max(...counts));
+  return {
+    word: p.word,
+    color: p.color,
+    dots: counts.map((c) => Math.round(c / PER)),
+    line: `<strong>${n(counts.reduce((a, b) => a + b, 0))} units</strong> with ≥10× firing rate on ${p.plural} vs. other tokens; most at step ${peak + 1} of 36.`,
+  };
+});
+const rest = `1 dot = ${PER} units, at their step (1 to 36). Point at a word.`;
+const summary = `${title}. ${info.phrase.map((p, i) => `${p.word}: ${words[i].line.replace(/<[^>]+>/g, "")}`).join(" ")}`;
+---
+
+<figure class="ax" data-ax data-words={JSON.stringify(words)} data-rest={rest}>
+  <figcaption class="ax-title">{title}</figcaption>
+  <div class="ax-stage" data-ax-stage>
+    <canvas class="ax-canvas" role="img" aria-label={summary}></canvas>
+    {words.map((w, i) => (
+      <button type="button" class="ax-word" data-ax-word={i} aria-pressed="false" style={`--c:${w.color}`}>{w.word}</button>
+    ))}
+  </div>
+  <p class="ax-line" data-ax-line aria-live="polite">{rest}</p>
+</figure>
+
+<script>
+  type Word = { word: string; color: string; dots: number[]; line: string };
+  type Dot = { c: number; s: number; x: number; y: number; r: number; d: number };
+
+  document.querySelectorAll<HTMLElement>("[data-ax]").forEach((fig) => {
+    const words: Word[] = JSON.parse(fig.dataset.words!);
+    const rest = fig.dataset.rest!;
+    const stage = fig.querySelector<HTMLElement>("[data-ax-stage]")!;
+    const canvas = stage.querySelector("canvas")!;
+    const ctx = canvas.getContext("2d")!;
+    const line = fig.querySelector<HTMLElement>("[data-ax-line]")!;
+    const buttons = [...fig.querySelectorAll<HTMLButtonElement>("[data-ax-word]")];
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const STEPS = 36;
+    const YAW = 0.3;
+    const COL = 1;
+    const GAP = 0.42;
+    const DEPTH = 1.25;
+    const SPAN = words.length * COL + (words.length - 1) * GAP;
+    const colX = (c: number) => -SPAN / 2 + c * (COL + GAP);
+
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    const dots: Dot[] = [];
+    words.forEach((w, c) =>
+      w.dots.forEach((count, s) => {
+        for (let k = 0; k < count; k++)
+          dots.push({ c, s, x: colX(c) + 0.06 + rnd() * (COL - 0.12), y: (rnd() - 0.5) * (DEPTH - 0.12), r: 0.75 + rnd() * 0.5, d: rnd() });
+      }),
+    );
+    dots.sort((a, b) => a.s - b.s || b.y - a.y);
+
+    let W = 0, H = 0, scale = 1, rise = 1, baseY = 0, dpr = 1;
+    let yaw = -YAW, yawTo = -YAW, tilt = 0.3, tiltTo = 0.3;
+    let picked = -1, hover = -1, shown = -1;
+    const glow = words.map(() => 1);
+    let intro = 1;
+    let started = 0, frame = 0, visible = false;
+
+    const project = (x: number, y: number, z: number): [number, number] => {
+      const cx = Math.cos(yaw), sx = Math.sin(yaw);
+      return [W / 2 + (x * cx - y * sx) * scale, baseY + (x * sx + y * cx) * scale * tilt - z * rise];
+    };
+    const hex = (color: string, a: number) => {
+      const v = parseInt(color.slice(1), 16);
+      return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`;
+    };
+
+    const draw = () => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const on = shown >= 0;
+      const x0 = -SPAN / 2 - 0.12, x1 = SPAN / 2 + 0.12, y0 = -DEPTH / 2, y1 = DEPTH / 2;
+
+      if (on) {
+        const a = colX(shown), b = a + COL;
+        const [p1x, p1y] = project(a, y1, 0), [p2x, p2y] = project(b, y1, 0);
+        const [p3x, p3y] = project(b, y1, STEPS + 1.5), [p4x, p4y] = project(a, y1, STEPS + 1.5);
+        const g = ctx.createLinearGradient(0, p1y, 0, p4y);
+        g.addColorStop(0, hex(words[shown].color, 0.16 * glow[shown]));
+        g.addColorStop(1, hex(words[shown].color, 0));
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.lineTo(p3x, p3y); ctx.lineTo(p4x, p4y);
+        ctx.fill();
+      }
+
+      let di = 0;
+      for (let s = 0; s < STEPS; s++) {
+        const z = s + 1;
+        const major = s === 0 || s === 11 || s === 23 || s === 35;
+        const c = [project(x0, y0, z), project(x1, y0, z), project(x1, y1, z), project(x0, y1, z)];
+        ctx.beginPath();
+        ctx.moveTo(c[0][0], c[0][1]);
+        for (let k = 1; k < 4; k++) ctx.lineTo(c[k][0], c[k][1]);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.fill();
+        ctx.strokeStyle = major ? "rgba(35,44,84,0.34)" : "rgba(35,44,84,0.11)";
+        ctx.lineWidth = major ? 0.9 : 0.6;
+        ctx.stroke();
+        if (major) {
+          ctx.fillStyle = "rgba(90,100,114,0.95)";
+          ctx.font = "500 10px Montserrat, ui-sans-serif, system-ui, sans-serif";
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(s === 35 ? "step 36" : String(s + 1), c[3][0] - 7, c[3][1]);
+        }
+        for (; di < dots.length && dots[di].s === s; di++) {
+          const d = dots[di];
+          const t = Math.min(1, Math.max(0, (intro * 1.6 - (s / STEPS) * 0.6 - d.d * 0.25) / 0.75));
+          if (t <= 0) continue;
+          const e = 1 - Math.pow(1 - t, 3);
+          const [px, py] = project(d.x, d.y, z * e);
+          const w = glow[d.c];
+          const alpha = (on ? 0.2 + 0.8 * w : 0.85) * Math.min(1, t * 3);
+          ctx.fillStyle = on && w < 0.5 ? `rgba(120,130,150,${alpha * 0.9})` : hex(words[d.c].color, alpha);
+          const r = d.r * (W < 520 ? 1.05 : 1.3) * (on ? 0.8 + 0.45 * w : 1);
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, 6.2832);
+          ctx.fill();
+        }
+      }
+
+      buttons.forEach((b, c) => {
+        const [px, py] = project(colX(c) + COL / 2, y1, 0);
+        b.style.transform = `translate(${px.toFixed(1)}px, ${(py + 10).toFixed(1)}px) translateX(-50%)`;
+      });
+    };
+
+    const tick = (now: number) => {
+      frame = 0;
+      if (!started) {
+        started = now;
+        if (!still) intro = 0;
+      }
+      let moving = false;
+      if (intro < 1) {
+        intro = Math.min(1, (now - started) / 2200);
+        moving = true;
+      }
+      const ease = still ? 1 : 0.12;
+      yaw += (yawTo - yaw) * ease;
+      tilt += (tiltTo - tilt) * ease;
+      if (Math.abs(yawTo - yaw) > 0.0005 || Math.abs(tiltTo - tilt) > 0.0005) moving = true;
+      glow.forEach((g, c) => {
+        const to = shown < 0 || shown === c ? 1 : 0;
+        glow[c] = g + (to - g) * (still ? 1 : 0.18);
+        if (Math.abs(to - glow[c]) > 0.004) moving = true;
+      });
+      draw();
+      if (moving && visible) frame = requestAnimationFrame(tick);
+    };
+    const kick = () => {
+      if (!frame && visible) frame = requestAnimationFrame(tick);
+    };
+    const size = () => {
+      const box = stage.getBoundingClientRect();
+      W = box.width;
+      H = box.height;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      scale = (W * 0.8) / (SPAN * Math.cos(YAW) + DEPTH * Math.sin(YAW));
+      const lean = ((SPAN / 2 + 0.12) * Math.sin(YAW + 0.25) + DEPTH / 2) * scale * 0.37;
+      baseY = H - 40 - lean;
+      rise = (baseY - lean - 6) / STEPS;
+      draw();
+    };
+
+    const show = () => {
+      const next = hover >= 0 ? hover : picked;
+      if (next === shown) return;
+      shown = next;
+      if (shown >= 0) fig.dataset.on = String(shown);
+      else delete fig.dataset.on;
+      buttons.forEach((b, c) => b.setAttribute("aria-pressed", String(c === shown)));
+      line.innerHTML = shown >= 0 ? words[shown].line : rest;
+      kick();
+    };
+    const columnAt = (px: number, py: number) => {
+      if (py < 8 || py > H) return -1;
+      const z = Math.max(0, Math.min(STEPS, (baseY - py) / rise));
+      let best = -1, dist = Infinity;
+      words.forEach((_, c) => {
+        const d = Math.abs(project(colX(c) + COL / 2, 0, z)[0] - px);
+        if (d < dist) { dist = d; best = c; }
+      });
+      return dist < (COL + GAP) * scale * 0.55 ? best : -1;
+    };
+
+    stage.addEventListener("pointermove", (e) => {
+      const box = stage.getBoundingClientRect();
+      const px = e.clientX - box.left, py = e.clientY - box.top;
+      yawTo = -YAW + (px / W - 0.5) * 0.5;
+      tiltTo = 0.3 + (py / H - 0.5) * 0.14;
+      if (e.pointerType !== "touch") hover = columnAt(px, py);
+      show();
+      kick();
+    });
+    stage.addEventListener("pointerleave", () => {
+      hover = -1;
+      yawTo = -YAW;
+      tiltTo = 0.3;
+      show();
+      kick();
+    });
+    stage.addEventListener("click", (e) => {
+      const word = (e.target as HTMLElement).closest<HTMLElement>("[data-ax-word]");
+      const box = stage.getBoundingClientRect();
+      const c = word ? Number(word.dataset.axWord) : columnAt(e.clientX - box.left, e.clientY - box.top);
+      picked = c === picked ? -1 : c;
+      hover = -1;
+      show();
+    });
+    buttons.forEach((b, c) => {
+      b.addEventListener("focus", () => {
+        if (!b.matches(":focus-visible")) return;
+        picked = c;
+        show();
+      });
+      b.addEventListener("keydown", (e) => {
+        const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (e.key === "Escape") {
+          picked = -1;
+          show();
+        }
+        if (!dir) return;
+        e.preventDefault();
+        buttons[(c + dir + buttons.length) % buttons.length].focus();
+      });
+    });
+
+    new ResizeObserver(size).observe(stage);
+    new IntersectionObserver((entries) => {
+      visible = entries.some((e) => e.isIntersecting);
+      kick();
+    }).observe(stage);
+    size();
+  });
+</script>

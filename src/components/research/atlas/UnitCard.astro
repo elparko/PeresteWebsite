@@ -1,0 +1,115 @@
+---
+import "../../../styles/research.css";
+import "../../../styles/research-atlas.css";
+import data from "../../../data/research/medication-neuron-atlas/units.json";
+
+interface Props {
+  pole: string;
+  open?: boolean;
+  contexts?: number;
+}
+
+const { pole, open = false, contexts = 5 } = Astro.props;
+const unit = data.units.find((u) => u.pole === pole);
+if (!unit) throw new Error(`No unit ${pole} in units.json`);
+const card = unit.card;
+
+const marked = (text: string) =>
+  text.split(/(<<[^>]*>>)/).map((part) =>
+    part.startsWith("<<") ? { mark: true, text: part.slice(2, -2) } : { mark: false, text: part },
+  );
+const rows = (rates: Record<string, number>) => {
+  const max = Math.max(...Object.values(rates), 1e-9);
+  return Object.entries(rates).map(([label, value]) => ({ label, value, width: (value / max) * 100 }));
+};
+const fmt = (v: number) => (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2));
+const sign = unit.sign === "+" ? "positive" : "negative";
+const friendly = unit.pole.slice(0, -1) + (unit.sign === "+" ? "-high" : "-low");
+const sc = unit.scores;
+const TYPE_WORDS: Record<string, string> = { drug: "drug names", frequency: "frequency or timing phrases", unit: "dose units", dose_number: "dose numbers",
+  number: "other numbers", route: "routes", form: "dosage forms" };
+const reason = (r: string) => {
+  let m = r.match(/^token type (\w+) \(ratio ([\d.]+)\)$/);
+  if (m) return `it fires ${m[2]} times as often on ${TYPE_WORDS[m[1]] ?? m[1]} as on other tokens`;
+  m = r.match(/^section (\w+) \(ratio ([\d.]+)\)$/);
+  if (m) return `it fires ${m[2]} times as often in ${m[1].replaceAll("_", " ")} sections as in other label sections`;
+  m = r.match(/^medication text \(ratio ([\d.]+)\)$/);
+  if (m) return `it fires ${m[1]} times as often in label text as in web text`;
+  m = r.match(/^drug class (.+) \(lift ([\d.]+)\)$/);
+  if (m) return `it fires ${m[2]} times as often in labels of the class ${m[1].replace(" [EPC]", "")} as in other labels`;
+  return r;
+};
+const reasons = (unit.flag_reasons || "").split("; ").filter(Boolean).map(reason);
+const list = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+const strictNote = (strict: Record<string, boolean> = {}) => {
+  const agree = Object.keys(strict).filter((k) => strict[k]);
+  const not = Object.keys(strict).filter((k) => !strict[k]);
+  const a = agree.length ? ` Its strongest contexts agree with the ${list(agree)} ${agree.length > 1 ? "reasons" : "reason"}.` : "";
+  const n = not.length ? ` The ${list(not)} ${not.length > 1 ? "reasons describe" : "reason describes"} everyday firing only.` : "";
+  return a + n;
+};
+---
+
+<details class="atl-unit" open={open}>
+  <summary>
+    <span class="atl-unit-id">Unit {friendly} · step {unit.layer_index + 1} of 36 · pole {unit.pole}</span>
+    <span class="atl-unit-name">{card.name}</span>
+    <span class="atl-unit-open">Open the unit's card and measured firing</span>
+  </summary>
+  <div class="atl-unit-body">
+    <div>
+      <h4>Where it fires, as the card states it</h4>
+      <p>
+        {marked(card.fires_on).map((p) => (p.mark ? <span class="atl-mark">{p.text}</span> : p.text))}
+      </p>
+    </div>
+
+    <div>
+      <h4>Its strongest contexts in the corpus (activation, then the text, with the firing token marked)</h4>
+      <ol class="atl-ctx">
+        {unit.contexts.slice(0, contexts).map((c) => (
+          <li>
+            <span class="atl-v">{c.v.toFixed(2)}</span>
+            {marked(c.text).map((p) => (p.mark ? <span class="atl-mark">{p.text}</span> : p.text))}
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <div class="atl-rates">
+      <div>
+        <h4>Firing per 1,000 tokens of each type</h4>
+        {rows(unit.fires_per_1000_by_type).map((r) => (
+          <div class="atl-rate">
+            <span>{r.label}</span>
+            <span class="rfig-track"><span class="rfig-seg" style={`width:${r.width}%;background:#0F9BA8`}></span></span>
+            <span>{fmt(r.value)}</span>
+          </div>
+        ))}
+      </div>
+      <div>
+        <h4>Firing per 1,000 tokens of each section</h4>
+        {rows(unit.fires_per_1000_by_section).map((r) => (
+          <div class="atl-rate">
+            <span>{r.label}</span>
+            <span class="rfig-track"><span class="rfig-seg" style={`width:${r.width}%;background:#3F518F`}></span></span>
+            <span>{fmt(r.value)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <h4>Tokens its output promotes (read from the model's weights, untested, often meaningless)</h4>
+      <div class="atl-lens">{unit.lens.map((t) => <code>{t}</code>)}</div>
+    </div>
+
+    <p class="atl-note">
+      Fires on {fmt(unit.fires_per_1000_overall)} of every 1,000 corpus tokens.
+      {unit.in_flagged_set
+        ? ` Selected for the atlas because ${reasons.join(", and ")}.${strictNote(unit.strict)}${unit.class_tokens != null && unit.class_tokens < 20000 ? ` Its drug class has ${unit.class_tokens.toLocaleString("en-US")} tokens of label text, below the 20,000 at which the atlas presents a class link as pharmacology.` : ""}`
+        : " Not one of the 30,529 selected units; shown as an example from development."}
+      {" "}The card was written by Claude Sonnet 5.5 from 10 of the 20 strongest contexts and scored by Claude Haiku 5.5 on the other 10. Strong score {sc.score_top.toFixed(2)} (recognized {sc.hits_top} of {sc.n_top} held-out strongest contexts, wrongly marked {sc.false_alarms} of {sc.n_quiet} quiet places); threshold score {sc.score.toFixed(2)} (recognized {sc.hits} of {sc.n_fire} tokens of ordinary firing); {unit.baseline ? `string-matching baseline ${unit.baseline.baseline_strong.toFixed(2)} and ${unit.baseline.baseline_threshold.toFixed(2)}; ` : ""}wrong-unit control {sc.control_score_top.toFixed(2)} and {sc.control_score.toFixed(2)}; chance 0.50. One card's score rests on 20 test items and has a standard error of about 0.1, so small differences between cards mean little.
+    </p>
+  </div>
+</details>

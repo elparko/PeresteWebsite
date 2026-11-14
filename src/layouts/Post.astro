@@ -1,6 +1,8 @@
 ---
 import Base from "./Base.astro";
 import { formatDate } from "../data/posts";
+import PostContents from "../components/research/PostContents.astro";
+import type { MarkdownHeading } from "astro";
 
 interface Props {
   title: string;
@@ -9,9 +11,13 @@ interface Props {
   updated?: Date;
   author: string;
   tag: string;
+  toc?: boolean;
+  headings?: MarkdownHeading[];
 }
 
-const { title, description, date, updated, author, tag } = Astro.props;
+const { title, description, date, updated, author, tag, toc = false, headings = [] } = Astro.props;
+const sections = toc ? headings.filter((h) => h.depth === 2) : [];
+const showContents = sections.length >= 3;
 ---
 
 <Base title={`${title} · Pereste`} description={description} type="article">
@@ -43,9 +49,18 @@ const { title, description, date, updated, author, tag } = Astro.props;
     </header>
 
     <div class="container-page pb-24">
-      <div class="prose-page mx-auto">
-        <slot />
-      </div>
+      {showContents ? (
+        <div class="post-with-contents">
+          <PostContents headings={sections} />
+          <div class="prose-page mx-auto">
+            <slot />
+          </div>
+        </div>
+      ) : (
+        <div class="prose-page mx-auto">
+          <slot />
+        </div>
+      )}
       <div class="hairline mx-auto mt-16 pt-8 max-w-prose">
         <a href="/research" class="link-arrow">All research</a>
       </div>

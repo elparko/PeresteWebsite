@@ -11,6 +11,7 @@ const research = defineCollection({
     author: z.string().default("Pereste Health"),
     tag: z.string().default("Research"),
     draft: z.boolean().default(false),
+    toc: z.boolean().default(false),
   }),
 });
 

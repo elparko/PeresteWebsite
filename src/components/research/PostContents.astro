@@ -1,0 +1,276 @@
+---
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+---
+
+<aside class="post-contents-side" data-post-contents>
+  <nav aria-label="Contents">
+    <p class="post-contents-title" aria-hidden="true">Contents</p>
+    <ol>
+      {headings.map((h) => (
+        <li><a href={`#${h.slug}`} data-slug={h.slug}>{h.text}</a></li>
+      ))}
+    </ol>
+  </nav>
+</aside>
+
+<details class="post-contents-top" data-post-contents>
+  <summary>Contents</summary>
+  <nav aria-label="Contents">
+    <ol>
+      {headings.map((h) => (
+        <li><a href={`#${h.slug}`} data-slug={h.slug}>{h.text}</a></li>
+      ))}
+    </ol>
+  </nav>
+</details>
+
+<style is:global>
+  .post-with-contents {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .post-with-contents > .prose-page {
+    width: 100%;
+  }
+  .post-with-contents .prose-page h2[id] {
+    scroll-margin-top: 6rem;
+  }
+  .post-with-contents .prose-page h2[tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  .post-contents-side {
+    display: none;
+  }
+
+  .post-contents-top {
+    margin: 0 auto 2.5rem;
+    width: 100%;
+    max-width: 68ch;
+    border-top: 1px solid theme("colors.brand.line");
+    border-bottom: 1px solid theme("colors.brand.line");
+  }
+  .post-contents-top summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: theme("colors.brand.muted");
+  }
+  .post-contents-top summary::-webkit-details-marker {
+    display: none;
+  }
+  .post-contents-top summary::after {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-25%) rotate(45deg);
+    transition: transform var(--dur-menu) var(--ease-out);
+  }
+  .post-contents-top[open] summary::after {
+    transform: translateY(25%) rotate(-135deg);
+  }
+  .post-contents-top ol {
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+  }
+  .post-contents-top a {
+    display: block;
+    padding: 0.4rem 0;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: theme("colors.brand.ink");
+    overflow-wrap: anywhere;
+  }
+  .post-contents-top a:hover {
+    color: theme("colors.brand.accent");
+  }
+
+  @media (min-width: 1280px) {
+    .post-with-contents {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 68ch) minmax(0, 1fr);
+      column-gap: 2rem;
+    }
+    .post-with-contents > .prose-page {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .post-contents-top {
+      display: none;
+    }
+    .post-contents-side {
+      display: block;
+      grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
+    }
+    .post-contents-side nav {
+      position: sticky;
+      top: 6rem;
+      max-height: calc(100vh - 7.5rem);
+      overflow-y: auto;
+      padding-bottom: 1rem;
+    }
+    .post-contents-title {
+      margin: 0 0 0.75rem;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: theme("colors.brand.muted");
+    }
+    .post-contents-side ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-left: 1px solid theme("colors.brand.line");
+    }
+    .post-contents-side a {
+      display: block;
+      margin-left: -1px;
+      padding: 0.375rem 0 0.375rem 0.875rem;
+      border-left: 2px solid transparent;
+      font-size: 0.8125rem;
+      line-height: 1.35;
+      color: theme("colors.brand.muted");
+      transition:
+        color var(--dur-hover) ease,
+        border-color var(--dur-hover) ease;
+    }
+    .post-contents-side a:hover {
+      color: theme("colors.brand.ink");
+    }
+    .post-contents-side a:focus-visible {
+      outline-offset: -2px;
+    }
+    .post-contents-side a[aria-current="location"] {
+      color: theme("colors.brand.ink");
+      border-left-color: theme("colors.brand.accent");
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .post-contents-top summary::after,
+    .post-contents-side a {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-post-contents] a[data-slug]")];
+  const slugs = [...new Set(links.map((a) => a.dataset.slug!))];
+  const headings = slugs
+    .map((s) => document.getElementById(s))
+    .filter((h): h is HTMLElement => h !== null);
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const sideNav = document.querySelector<HTMLElement>(".post-contents-side nav");
+
+  let current: string | null | undefined;
+  let pinned: string | null = null;
+
+  const setActive = (slug: string | null) => {
+    if (slug === current) return;
+    current = slug;
+    for (const a of links) {
+      if (a.dataset.slug === slug) a.setAttribute("aria-current", "location");
+      else a.removeAttribute("aria-current");
+    }
+    const link = sideNav?.querySelector<HTMLElement>(`a[data-slug="${slug}"]`);
+    if (sideNav && link && sideNav.scrollHeight > sideNav.clientHeight) {
+      const box = sideNav.getBoundingClientRect();
+      const r = link.getBoundingClientRect();
+      if (r.top < box.top) sideNav.scrollTop -= box.top - r.top;
+      else if (r.bottom > box.bottom) sideNav.scrollTop += r.bottom - box.bottom;
+    }
+  };
+
+  const atBottom = () => window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+
+  const update = () => {
+    if (pinned) return setActive(pinned);
+    const line = window.innerHeight * (atBottom() ? 1 : 0.35);
+    let slug: string | null = null;
+    for (const h of headings) {
+      if (h.getBoundingClientRect().top <= line) slug = h.id;
+      else break;
+    }
+    setActive(slug);
+  };
+
+  let queued = false;
+  const schedule = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      update();
+    });
+  };
+  const lineObserver = new IntersectionObserver(schedule, { rootMargin: "0px 0px -65% 0px" });
+  headings.forEach((h) => lineObserver.observe(h));
+  const jumpObserver = new IntersectionObserver(schedule);
+  const prose = headings[0]?.closest(".prose-page");
+  if (prose) [...prose.children].forEach((el) => jumpObserver.observe(el));
+  update();
+
+  let clickScrolling = false;
+  let settleTimer = 0;
+  const settle = () => {
+    clickScrolling = false;
+    clearTimeout(settleTimer);
+  };
+  const unpin = () => {
+    if (!pinned) return;
+    pinned = null;
+    update();
+  };
+  window.addEventListener("scrollend", settle);
+  window.addEventListener("scroll", () => {
+    if (clickScrolling) {
+      clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(settle, 150);
+    } else {
+      unpin();
+    }
+  }, { passive: true });
+  window.addEventListener("popstate", () => {
+    settle();
+    unpin();
+  });
+
+  for (const a of links) {
+    a.addEventListener("click", (event) => {
+      const target = document.getElementById(a.dataset.slug!);
+      if (!target || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      a.closest("details")?.removeAttribute("open");
+      clickScrolling = true;
+      clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(settle, 150);
+      target.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+      if (location.hash === `#${target.id}`) history.replaceState(null, "", `#${target.id}`);
+      else history.pushState(null, "", `#${target.id}`);
+      if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+      pinned = target.id;
+      setActive(pinned);
+    });
+  }
+</script>

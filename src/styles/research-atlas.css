@@ -1,0 +1,404 @@
+/* Figures and unit cards for the medication neuron atlas post. Builds on research.css. */
+.atl-controls {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.atl-controls [hidden] {
+  display: none;
+}
+.atl-controls .rfig-tabs {
+  margin-bottom: 0;
+}
+.atl-select {
+  font: inherit;
+  font-size: 0.8rem;
+  width: 100%;
+  max-width: 34rem;
+  padding: 0.55rem 2.25rem 0.55rem 0.8rem;
+  border: 1px solid #e3e8ef;
+  border-radius: 0.75rem;
+  background:
+    #ffffff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23232C54' stroke-width='1.5'/%3E%3C/svg%3E")
+    no-repeat right 0.8rem center;
+  color: #232c54;
+  appearance: none;
+}
+.atl-readout,
+.prose-page .rfig .atl-readout {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #232c54;
+}
+
+/* Column chart: one column per layer or per tenth. */
+.atl-cols {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: 2px;
+  height: 11rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #c5cbd3;
+}
+.atl-col {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1px;
+  outline: none;
+}
+.atl-bar {
+  width: 100%;
+  min-height: 1px;
+  border-radius: 2px 2px 0 0;
+  background: #0f9ba8;
+  transition: height var(--dur-hover, 150ms) ease;
+}
+.atl-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+}
+.atl-stack .atl-bar {
+  border-radius: 0;
+}
+.atl-stack .atl-bar:first-child {
+  border-radius: 2px 2px 0 0;
+}
+.atl-bar--silent {
+  background: #c5cbd3;
+  min-height: 0;
+}
+.atl-bar--muted {
+  background: #c5cbd3;
+}
+.atl-col[aria-current="true"] .atl-bar {
+  background: #232c54;
+}
+.atl-col[aria-current="true"] .atl-bar--muted {
+  background: #8a93a3;
+}
+.atl-col:focus-visible {
+  outline: 2px solid #232c54;
+  outline-offset: 2px;
+}
+.atl-axis {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 2px;
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  color: #5a6472;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.atl-axis span {
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+.atl-axis-label {
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: #5a6472;
+}
+.atl-hline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1.5px dashed #c46a1b;
+  pointer-events: none;
+}
+.atl-plot {
+  position: relative;
+}
+.atl-range {
+  width: 100%;
+  max-width: 34rem;
+  accent-color: #232c54;
+}
+.atl-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin-top: 0.9rem;
+  font-size: 0.75rem;
+  color: #232c54;
+}
+.atl-key .rfig-swatch::before {
+  background: var(--c);
+}
+.atl-key-line::before {
+  content: "";
+  width: 1rem;
+  border-top: 1.5px dashed #c46a1b;
+  display: inline-block;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+/* Limit rows: measured value against its limit. */
+.atl-limit {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: #232c54;
+}
+
+/* Dot rows for the tagger check: one dot per token read. */
+.atl-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.atl-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0f9ba8;
+}
+.atl-dot--err {
+  background: #c46a1b;
+}
+
+/* Unit cards that open inline. */
+.atl-unit {
+  margin: 1.75rem 0;
+  border: 1px solid #e3e8ef;
+  border-radius: 1.25rem;
+  background: #ffffff;
+}
+.atl-unit > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1rem 1.25rem;
+  display: grid;
+  gap: 0.2rem;
+}
+.atl-unit > summary::-webkit-details-marker {
+  display: none;
+}
+.atl-unit-id {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #0f9ba8;
+  font-variant-numeric: tabular-nums;
+}
+.atl-unit-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #232c54;
+  line-height: 1.35;
+}
+.atl-unit-open {
+  font-size: 0.75rem;
+  color: #5a6472;
+}
+.atl-unit[open] .atl-unit-open {
+  display: none;
+}
+.atl-unit-body {
+  padding: 0 1.25rem 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+.prose-page .atl-unit p,
+.atl-unit p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #232c54;
+}
+.atl-unit h4,
+.prose-page .atl-unit h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #5a6472;
+}
+.atl-ctx {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+.prose-page .atl-ctx li,
+.atl-ctx li {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #232c54;
+  overflow-wrap: anywhere;
+}
+.atl-ctx .atl-v {
+  display: inline-block;
+  min-width: 3.2rem;
+  font-variant-numeric: tabular-nums;
+  color: #5a6472;
+}
+.atl-mark {
+  background: #e6f4f6;
+  border-radius: 4px;
+  padding: 0 0.15rem;
+  font-weight: 600;
+}
+.atl-rates {
+  display: grid;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .atl-rates {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.atl-rate {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr) 3.5rem;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.72rem;
+  color: #232c54;
+  margin-top: 0.3rem;
+}
+.atl-rate .rfig-track {
+  height: 0.7rem;
+}
+.atl-rate span:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #5a6472;
+}
+.atl-note,
+.prose-page .atl-unit .atl-note {
+  font-size: 0.75rem;
+  color: #5a6472;
+}
+.atl-lens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.atl-lens code {
+  font-size: 0.72rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background: #f1f4f7;
+  color: #232c54;
+  white-space: pre;
+}
+.atl-pending {
+  margin: 2rem 0;
+  padding: 1rem 1.25rem;
+  border: 1.5px dashed #c46a1b;
+  border-radius: 1rem;
+}
+.prose-page .atl-pending p,
+.atl-pending p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #232c54;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atl-bar {
+    transition: none;
+  }
+}
+
+/* Long reference URLs in the post must wrap on a phone. */
+.prose-page a[href^="http"] { overflow-wrap: anywhere; }
+
+/* Opening view of the layer explorer: one row per kind of word on a shared depth axis. */
+.atl-overview { display: grid; gap: 0.35rem; }
+.atl-orow { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) 4.5rem; gap: 0.5rem; align-items: end; }
+.atl-olabel { font-size: 0.75rem; font-weight: 500; color: #232c54; line-height: 1.2; align-self: center; }
+.atl-ocols { position: relative; display: flex; align-items: flex-end; gap: 1px; height: 2.2rem; border-bottom: 1px solid #c5cbd3; }
+.atl-ocol { flex: 1 1 0; min-width: 0; background: #0f9ba8; opacity: 0.55; }
+.atl-omed { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #232c54; }
+.atl-onote { font-size: 0.65rem; color: #5a6472; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.atl-oaxis { display: flex; font-size: 0.65rem; color: #5a6472; }
+.atl-oaxis > span { flex: 1 1 0; min-width: 0; overflow: visible; white-space: nowrap; }
+.atl-orow--axis { align-items: start; }
+@media (max-width: 639px) {
+  .atl-orow { grid-template-columns: 5.5rem minmax(0, 1fr) 3.4rem; gap: 0.35rem; }
+  .atl-olabel { font-size: 0.68rem; }
+}
+
+/* Phrase view: the default view of the layer explorer. */
+.atl-phrase { display: grid; gap: 0.45rem; }
+.atl-pipe { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; font-size: 0.72rem; color: #232c54; }
+.atl-pipe-box { border: 1px solid #232c54; border-radius: 0.5rem; padding: 0.35rem 0.55rem; text-align: center; line-height: 1.3; background: #fff; }
+.atl-pipe-box em { font-style: normal; color: #5a6472; }
+.atl-pipe-box--wide { flex: 1 1 9rem; background: #eef2f6; }
+.atl-pipe-arrow { color: #5a6472; }
+.atl-prow { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 4.5rem; gap: 0.5rem; align-items: center; }
+.atl-plabel { font-size: 0.8rem; line-height: 1.2; color: #232c54; text-align: right; }
+.atl-plabel span { font-size: 0.68rem; color: #5a6472; }
+.atl-ptrack { position: relative; height: 1rem; border-bottom: 1px solid #e3e8ef; }
+.atl-pbar { position: absolute; top: 0.15rem; bottom: 0.15rem; background: #0f9ba8; border-radius: 2px; }
+.atl-pmid { position: absolute; top: -0.1rem; bottom: -0.1rem; width: 2px; background: #232c54; }
+@media (max-width: 639px) {
+  .atl-prow { grid-template-columns: 4.6rem minmax(0, 1fr) 3.6rem; gap: 0.35rem; }
+  .atl-pipe { font-size: 0.66rem; }
+}
+
+.atl-overview[hidden], .atl-phrase[hidden] { display: none; }
+
+.atl-cta { margin: 1.5rem 0; }
+.prose-page .atl-cta a.btn-primary {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.9rem 2rem;
+  font-size: 1.125rem;
+}
+.atl-lead,
+.prose-page .atl-lead {
+  margin: 1.5rem auto 1.75rem;
+  max-width: 34rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #232c54;
+  text-wrap: balance;
+}
+
+.prose-page .atl-terms {
+  margin: 2rem 0;
+  border-top: 1px solid #e3e8ef;
+  border-bottom: 1px solid #e3e8ef;
+}
+.prose-page .atl-terms > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #232c54;
+}
+.prose-page .atl-terms > summary::-webkit-details-marker {
+  display: none;
+}
+.prose-page .atl-terms > summary::after {
+  content: "+";
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+.prose-page .atl-terms[open] > summary::after {
+  content: "\2212";
+}

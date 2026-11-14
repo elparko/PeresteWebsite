@@ -1,0 +1,297 @@
+---
+import Figure from "../Figure.astro";
+import "../../../styles/research-atlas.css";
+import data from "../../../data/research/medication-neuron-atlas/layers.json";
+
+interface Props {
+  number: number;
+  phraseOnly?: boolean;
+}
+const phraseOnly = Astro.props.phraseOnly ?? false;
+const CAP_FULL = "How to read this: in the opening view, each row is one part of the phrase “warfarin 5 mg orally once daily”, and its bar shows the processing steps (1 to 36) where the middle half of the units that respond to that kind of word sit; the dark tick is the step by which half of them have appeared. What it means: units for drug names appear in the first few steps, and units for the number in a dose only near the end, close to where the model chooses the next word. A unit counts when it fires on that kind of word at least ten times as often as on other words; near-silent units, whose values stay close to zero, are left out; and because a dose number is defined as the number before a dose unit, part of its position near the end is built into the definition. The 3 times button loosens the rule to three times the rate on other words; the order of drug names before dose numbers holds, but the peak step for dose units, other numbers and dosage forms changes. The second view shows the counts at every step for each kind of word, each row scaled to its own busiest step. The other buttons show one kind of word, section or class at a time: each column is one of the 36 steps; its height is the number of units in that step that meet the rule stated above the chart. Gray marks near-silent units, whose largest value anywhere in the corpus is below 0.05; because firing is defined by each unit's own percentiles, they still fire on 3% of words, and they cluster in steps 2 to 5. They are left out of the atlas's selections. High and low units are combined, and one unit can count for more than one type, section or class. Counts come from the full corpus (9,959,288 tokens; the first token of each passage is not counted), not only from the 30,529 selected units. Drug classes are shown with their number of labels because classes with very few labels gather many selective units from the wording of those labels alone.";
+const CAP_SHORT = "How to read this: each row is one part of the phrase “warfarin 5 mg orally once daily”, and its bar shows the processing steps (1 to 36) where the middle half of the units that respond to that kind of word sit; the dark tick is the step by which half of them have appeared. What it means: units for drug names appear in the first few steps, and units for the number in a dose only near the end, close to where the model chooses the next word. A unit counts when it fires on that kind of word at least ten times as often as on other words; near-silent units, whose values stay close to zero, are left out; and because a dose number is defined as the number before a dose unit, part of its position near the end is built into the definition.";
+
+type Series = Record<string, number[]>;
+const groups: Record<string, { label: string; items: Record<string, Series>; thresholds: string[]; note: string }> = {
+  types: {
+    label: "Token types",
+    items: Object.fromEntries(Object.entries(data.types).map(([k, v]) => [k, v as Series])),
+    thresholds: ["r10", "r3"],
+    note: "fires on at least 0.5% of tokens of the type, at {t} times or more its rate on all other tokens",
+  },
+  sections: {
+    label: "Label sections",
+    items: Object.fromEntries(Object.entries(data.sections).map(([k, v]) => [k, v as Series])),
+    thresholds: ["r3", "r10"],
+    note: "fires on at least 0.5% of the section's tokens, at {t} times or more its rate in the other label sections",
+  },
+  classes: {
+    label: "Drug classes",
+    items: Object.fromEntries(Object.entries(data.classes).map(([k, v]) => [k, { lift3: v.poles, lift3_loud: v.poles_loud }])),
+    thresholds: ["lift3"],
+    note: "fires at least 50 times in the class's labels, at 3 times or more its rate in all other labels",
+  },
+};
+const classInfo = Object.fromEntries(Object.entries(data.classes).map(([k, v]) => [k, { labels: v.labels, tokens: v.tokens }]));
+const payload = { groups, classInfo };
+
+const initial = { group: "phrase", item: "Drug name", threshold: "r10" };
+const PLURAL: Record<string, string> = { "Drug name": "Drug names", "Dosage form": "Dosage forms", Route: "Routes", "Dose unit": "Dose units (mg, mL)",
+  "Frequency or timing": "Frequency or timing", "Other number": "Other numbers", "Dose number": "Dose numbers" };
+const overview = Object.entries(data.types as Record<string, Series>)
+  .filter(([k]) => k in PLURAL)
+  .map(([k, v]) => {
+    const y = v.r10_loud;
+    const total = y.reduce((a, b) => a + b, 0);
+    let c = 0, median = 0;
+    for (let i = 0; i < y.length; i++) { c += y[i]; if (c >= total / 2) { median = i; break; } }
+    return { key: k, label: PLURAL[k], y, total, median, max: Math.max(...y, 1) };
+  })
+  .sort((a, b) => a.median - b.median);
+const quant = (y: number[], q: number) => {
+  const total = y.reduce((a, b) => a + b, 0);
+  let c = 0;
+  for (let i = 0; i < y.length; i++) { c += y[i]; if (c >= total * q) return i; }
+  return y.length - 1;
+};
+const PHRASE: [string, string, string][] = [["Drug name", "warfarin", "drug name"], ["Route", "orally", "route"], ["Dose unit", "mg", "dose unit"],
+  ["Frequency or timing", "once daily", "frequency"], ["Dose number", "5", "dose number"]];
+const phrase = PHRASE.map(([k, word, kind]) => {
+  const y = (data.types as Record<string, Series>)[k].r10_loud;
+  return { word, kind, q1: quant(y, 0.25) + 1, mid: quant(y, 0.5) + 1, q3: quant(y, 0.75) + 1 };
+}).sort((a, b) => a.mid - b.mid);
+const pct = (step: number) => ((step - 1) / 36) * 100;
+const values = groups.types.items["Drug name"].r10;
+const loudValues = groups.types.items["Drug name"].r10_loud;
+const max = Math.max(...values, 1);
+const layers = Array.from({ length: 36 }, (_, i) => i);
+const n = (v: number) => v.toLocaleString("en-US");
+const describe = (item: string, all: number[], loud: number[], rule: string) => {
+  const sum = (v: number[], a: number, b: number) => v.slice(a, b).reduce((x, y) => x + y, 0);
+  const total = sum(all, 0, 36), kept = sum(loud, 0, 36);
+  if (!total) return `${item}: no unit meets this rule (a unit ${rule}).`;
+  const peak = loud.indexOf(Math.max(...loud));
+  const silentNote = total === kept ? "None is near-silent." : `${n(total - kept)} of them are near-silent (largest value below 0.05), shown in gray.`;
+  return `${item}: ${n(total)} units meet the rule (a unit ${rule}). ${silentNote} ${total === kept ? "Of these" : "Of the other"} ${n(kept)}, ${n(sum(loud, 0, 12))} are in steps 1 to 12, ${n(sum(loud, 12, 24))} in steps 13 to 24 and ${n(sum(loud, 24, 36))} in steps 25 to 36, with the most at step ${peak + 1} (${n(loud[peak])}).`;
+};
+const readout = describe("Drug name", values, loudValues, groups.types.note.replace("{t}", "10"));
+---
+
+<Figure
+  number={Astro.props.number}
+  title="Units selective for drug names sit in the first few steps; units selective for dose numbers sit near the last"
+  caption={phraseOnly ? CAP_SHORT : CAP_FULL}
+>
+  <div data-atl-layers>
+    <script type="application/json" data-atl-payload set:html={JSON.stringify(payload)} />
+    <div class="atl-controls" hidden={phraseOnly}>
+      <div class="rfig-tabs" role="group" aria-label="What to select by">
+        <button type="button" class="rfig-tab" data-atl-group="phrase" aria-pressed="true">The phrase</button>
+        <button type="button" class="rfig-tab" data-atl-group="overview" aria-pressed="false">All kinds of word, with counts</button>
+        {Object.entries(groups).map(([key, g]) => (
+          <button type="button" class="rfig-tab" data-atl-group={key} aria-pressed={String(key === initial.group)}>
+            {g.label}
+          </button>
+        ))}
+      </div>
+      <span data-atl-detail-controls hidden>
+      <label class="sr-only" for="atl-layer-item">Choose one</label>
+      <select id="atl-layer-item" class="atl-select" data-atl-item>
+        {Object.keys(groups.types.items).map((k) => <option value={k} selected={k === initial.item}>{k}</option>)}
+      </select>
+      <div class="rfig-tabs" role="group" aria-label="Selectivity threshold" data-atl-thresholds>
+        <button type="button" class="rfig-tab" data-atl-threshold="r10" aria-pressed="true">10 times</button>
+        <button type="button" class="rfig-tab" data-atl-threshold="r3" aria-pressed="false">3 times</button>
+      </div>
+      </span>
+    </div>
+    <p class="atl-readout" data-atl-readout aria-live="polite">At which steps do the units for each part of the phrase sit? Half of the units for drug names have appeared by step {phrase[0].mid} of 36; half of the units for the number in a dose only by step {phrase[phrase.length - 1].mid}.</p>
+    <div class="atl-phrase" data-atl-phrase>
+      <div class="atl-pipe" aria-hidden="true">
+        <span class="atl-pipe-box">Text goes in<br /><em>"warfarin 5 mg orally"</em></span>
+        <span class="atl-pipe-arrow">→</span>
+        <span class="atl-pipe-box atl-pipe-box--wide">36 processing steps, in order<br /><em>each step refines the model's notes</em></span>
+        <span class="atl-pipe-arrow">→</span>
+        <span class="atl-pipe-box">Next word out<br /><em>"once daily"</em></span>
+      </div>
+      {phrase.map((r) => (
+        <div class="atl-prow">
+          <span class="atl-plabel"><strong>{r.word}</strong><br /><span>({r.kind})</span></span>
+          <span class="atl-ptrack" aria-label={`${r.word}: middle half of units at steps ${r.q1} to ${r.q3}, half by step ${r.mid}`}>
+            <span class="atl-pbar" style={`left:${pct(r.q1)}%;width:${pct(r.q3 + 1) - pct(r.q1)}%`}></span>
+            <span class="atl-pmid" style={`left:calc(${pct(r.mid) + 100 / 72}% - 1px)`}></span>
+          </span>
+          <span class="atl-onote">steps {r.q1} to {r.q3}</span>
+        </div>
+      ))}
+      <div class="atl-prow atl-orow--axis" aria-hidden="true">
+        <span class="atl-plabel"></span>
+        <span class="atl-oaxis">{layers.map((l) => <span>{l === 0 || (l + 1) % 6 === 0 ? l + 1 : ""}</span>)}</span>
+        <span class="atl-onote"></span>
+      </div>
+      <p class="atl-axis-label">Processing step, from reading the text (step 1) to choosing the next word (step 36)</p>
+    </div>
+    <div class="atl-overview" data-atl-overview hidden>
+      {overview.map((r) => (
+        <div class="atl-orow">
+          <span class="atl-olabel">{r.label}</span>
+          <span class="atl-ocols" aria-label={`${r.label}: half of ${r.total.toLocaleString("en-US")} units by step ${r.median + 1}`}>
+            {r.y.map((v) => <span class="atl-ocol" style={`height:${(v / r.max) * 100}%`}></span>)}
+            <span class="atl-omed" style={`left:calc(${((r.median + 0.5) / 36) * 100}% - 1px)`}></span>
+          </span>
+          <span class="atl-onote">half by step {r.median + 1}<br />{r.total.toLocaleString("en-US")} units</span>
+        </div>
+      ))}
+      <div class="atl-orow atl-orow--axis" aria-hidden="true">
+        <span class="atl-olabel"></span>
+        <span class="atl-oaxis">{layers.map((l) => <span>{l === 0 || (l + 1) % 6 === 0 ? l + 1 : ""}</span>)}</span>
+        <span class="atl-onote"></span>
+      </div>
+      <p class="atl-axis-label">Processing step, from reading the text (step 1) to choosing the next word (step 36)</p>
+    </div>
+    <div data-atl-detail hidden>
+    <div class="atl-cols" data-atl-cols>
+      {layers.map((l) => (
+        <span
+          class="atl-col rfig-hit"
+          tabindex="0"
+          data-tip={`Step ${l + 1}\n${values[l].toLocaleString("en-US")} units, ${(values[l] - loudValues[l]).toLocaleString("en-US")} near-silent`}
+          aria-label={`Step ${l + 1}: ${values[l]} units`}
+        >
+          <span class="atl-stack">
+            <span class="atl-bar atl-bar--silent" style={`height:${((values[l] - loudValues[l]) / max) * 100}%`}></span>
+            <span class="atl-bar" style={`height:${(loudValues[l] / max) * 100}%`}></span>
+          </span>
+        </span>
+      ))}
+    </div>
+    <div class="atl-axis" aria-hidden="true">
+      {layers.map((l) => <span>{l === 0 || (l + 1) % 6 === 0 ? l + 1 : ""}</span>)}
+    </div>
+    <p class="atl-axis-label">Processing step, from reading the text (step 1) to choosing the next word (step 36)</p>
+    <div class="atl-key">
+      <span class="rfig-swatch" style="--c:#0F9BA8">Units with real activation</span>
+      <span class="rfig-swatch" style="--c:#C5CBD3">Near-silent units (largest value below 0.05)</span>
+    </div>
+    </div>
+  </div>
+</Figure>
+
+<script>
+  type Series = Record<string, number[]>;
+  type Payload = {
+    groups: Record<string, { label: string; items: Record<string, Series>; thresholds: string[]; note: string }>;
+    classInfo: Record<string, { labels: number; tokens: number }>;
+  };
+  const n = (v: number) => v.toLocaleString("en-US");
+  const THRESHOLD: Record<string, string> = { r10: "10", r3: "3", lift3: "3" };
+
+  document.querySelectorAll<HTMLElement>("[data-atl-layers]").forEach((root) => {
+    const payload = JSON.parse(root.querySelector("[data-atl-payload]")!.textContent!) as Payload;
+    const select = root.querySelector<HTMLSelectElement>("[data-atl-item]")!;
+    const groupButtons = root.querySelectorAll<HTMLButtonElement>("[data-atl-group]");
+    const thresholdBox = root.querySelector<HTMLElement>("[data-atl-thresholds]")!;
+    const readout = root.querySelector<HTMLElement>("[data-atl-readout]")!;
+    const cols = root.querySelectorAll<HTMLElement>(".atl-col");
+    const state = { group: "phrase", item: "Drug name", threshold: "r10" };
+    const phraseBox = root.querySelector<HTMLElement>("[data-atl-phrase]")!;
+    const overviewBox = root.querySelector<HTMLElement>("[data-atl-overview]")!;
+    const detailBox = root.querySelector<HTMLElement>("[data-atl-detail]")!;
+    const detailControls = root.querySelector<HTMLElement>("[data-atl-detail-controls]")!;
+    const overviewText = readout.textContent;
+    const defaults: Record<string, string> = { types: "Drug name", sections: "Dosage and administration", classes: "Opioid Agonist" };
+
+    const label = (group: string, item: string) => {
+      if (group !== "classes") return item;
+      const c = payload.classInfo[item];
+      return `${item} (${c.labels} labels, ${n(c.tokens)} tokens)`;
+    };
+
+    const fillSelect = () => {
+      const items = Object.keys(payload.groups[state.group].items);
+      select.innerHTML = "";
+      for (const item of items) {
+        const o = document.createElement("option");
+        o.value = item;
+        o.textContent = label(state.group, item);
+        o.selected = item === state.item;
+        select.append(o);
+      }
+    };
+
+    const fillThresholds = () => {
+      const ts = payload.groups[state.group].thresholds;
+      thresholdBox.hidden = ts.length < 2;
+      thresholdBox.innerHTML = "";
+      for (const t of ts) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "rfig-tab";
+        b.textContent = `${THRESHOLD[t]} times`;
+        b.setAttribute("aria-pressed", String(t === state.threshold));
+        b.addEventListener("click", () => {
+          state.threshold = t;
+          fillThresholds();
+          draw();
+        });
+        thresholdBox.append(b);
+      }
+    };
+
+    const draw = () => {
+      const g = payload.groups[state.group];
+      const values = g.items[state.item][state.threshold];
+      const loud = g.items[state.item][state.threshold + "_loud"];
+      const max = Math.max(...values, 1);
+      const total = values.reduce((a, b) => a + b, 0);
+      const kept = loud.reduce((a, b) => a + b, 0);
+      const peak = loud.indexOf(Math.max(...loud));
+      const third = (a: number, b: number) => loud.slice(a, b).reduce((x, y) => x + y, 0);
+      cols.forEach((col, l) => {
+        const [silentBar, loudBar] = col.querySelectorAll<HTMLElement>(".atl-bar");
+        silentBar.style.height = `${((values[l] - loud[l]) / max) * 100}%`;
+        loudBar.style.height = `${(loud[l] / max) * 100}%`;
+        col.dataset.tip = `Step ${l + 1}\n${n(values[l])} units, ${n(values[l] - loud[l])} near-silent`;
+        col.setAttribute("aria-label", `Step ${l + 1}: ${values[l]} units, ${values[l] - loud[l]} near-silent`);
+      });
+      const note = state.item.startsWith("All label text") ? "fires on at least 0.5% of label tokens, at {t} times or more its rate in general web text" : g.note;
+      const rule = note.replace("{t}", THRESHOLD[state.threshold]);
+      const silentNote = total === kept ? "None is near-silent." : `${n(total - kept)} of them are near-silent (largest value below 0.05), shown in gray.`;
+      readout.textContent =
+        total === 0
+          ? `${state.item}: no unit meets this rule (a unit ${rule}).`
+          : `${state.item}: ${n(total)} units meet the rule (a unit ${rule}). ${silentNote} ${total === kept ? "Of these" : "Of the other"} ${n(kept)}, ${n(third(0, 12))} are in steps 1 to 12, ${n(third(12, 24))} in steps 13 to 24 and ${n(third(24, 36))} in steps 25 to 36, with the most at step ${peak + 1} (${n(loud[peak])}).`;
+    };
+
+    groupButtons.forEach((b) =>
+      b.addEventListener("click", () => {
+        state.group = b.dataset.atlGroup!;
+        groupButtons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        const isPhrase = state.group === "phrase";
+        const isOverview = state.group === "overview";
+        phraseBox.hidden = !isPhrase;
+        overviewBox.hidden = !isOverview;
+        detailBox.hidden = isPhrase || isOverview;
+        detailControls.hidden = isPhrase || isOverview;
+        if (isPhrase) {
+          readout.textContent = overviewText;
+          return;
+        }
+        if (isOverview) {
+          readout.textContent = "Each row is one kind of word, scaled to its own busiest step; the dark tick marks the step by which half of its units have appeared.";
+          return;
+        }
+        state.item = defaults[state.group];
+        state.threshold = payload.groups[state.group].thresholds[0];
+        groupButtons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        fillSelect();
+        fillThresholds();
+        draw();
+      }),
+    );
+    select.addEventListener("change", () => {
+      state.item = select.value;
+      draw();
+    });
+  });
+</script>
