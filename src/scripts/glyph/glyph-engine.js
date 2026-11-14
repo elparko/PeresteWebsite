@@ -51,11 +51,28 @@ const scope = {};
     t = Math.max(0, Math.min(1, t));
     return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")";
   }
+  // A function t -> css color between two palette colors, in 33 precomputed steps.
+  function ramp(a, b) {
+    const steps = [];
+    for (let i = 0; i <= 32; i++) steps.push(mix(a, b, i / 32));
+    return function (t) {
+      return steps[Math.round(Math.max(0, Math.min(1, t)) * 32)];
+    };
+  }
   const clamp = (v, a, b) => Math.max(a === undefined ? 0 : a, Math.min(b === undefined ? 1 : b, v));
   const smooth = (a, b, v) => {
     const t = clamp((v - a) / (b - a), 0, 1);
     return t * t * (3 - 2 * t);
   };
+  // Critically damped spring on an angle: moves o.ang toward target by the shortest way,
+  // carrying its speed in o.vel, so the motion starts and stops without a jump in speed.
+  // Exact for any time step.
+  function springAngle(o, target, w, dt) {
+    const d = Math.atan2(Math.sin(target - o.ang), Math.cos(target - o.ang));
+    const e = Math.exp(-w * dt), tmp = (o.vel - w * d) * dt;
+    o.ang = o.ang + d + (tmp - d) * e;
+    o.vel = (o.vel - w * tmp) * e;
+  }
 
   function inTri(px, py, ax, ay, bx, by, cx, cy) {
     const d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by);
@@ -109,13 +126,18 @@ const scope = {};
     cv.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block";
     host.appendChild(cv);
     const ctx = cv.getContext("2d");
+    // A piece that gives rest(tok, env) names each token's resting style. Those are drawn once into
+    // a second canvas, and a frame then draws only the tokens whose style differs from rest. On a
+    // phone this cuts the glyphs drawn per frame to a fraction.
+    let base = null, bctx = null, hasBase = false, g = ctx;
     const mono = opts.font || MONO;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ptr = { x: 0, y: 0, tx: 0, ty: 0, on: false, k: 0, seen: false };
     const quietRects = opts.quiet || [];
     const quietStrength = piece.quietStrength === undefined ? 0.82 : piece.quietStrength;
-    let env = null, toks = [], raf = 0, timer = 0, visible = true, dpr = 1, geo = null, dead = false, lastDraw = 0;
-    const t0 = performance.now();
+    let env = null, toks = [], raf = 0, timer = 0, visible = true, dpr = 1, geo = null, dead = false;
+    let lastStep = 0, clock = 0, dt = 0, cost = 0, odd = false, half = false;
+    const state = {};
 
     function quiet(x, y) {
       let q = 0;
@@ -200,60 +222,174 @@ const scope = {};
         compact: opts.compact === undefined ? w < 520 : opts.compact,
         view: opts.view || "large", reduced: reduced, t: 0, px: null, py: null, pk: 0,
         P: P, hash: hash, noise: noise, mix: mix, clamp: clamp, smooth: smooth, logoPart: logoPart, mask: mask,
-        ctx: ctx, MONO: mono, opts: opts,
+        ctx: ctx, MONO: mono, opts: opts, state: state, dt: 0, busy: false, ease: ease, fade: fadeTok,
       };
       toks = piece.tokens ? piece.tokens(env) : piece.mode === "cells" ? cellTokens() : wordTokens();
       if (piece.tokens) geo = env.geo;
       env.geo = geo;
       if (piece.setup) piece.setup(env, toks);
+      buildBase();
+    }
+
+    // Fraction of the way to a target to move this frame, for a rate per second.
+    // Time-based, so easing takes the same time at any frame rate.
+    function ease(rate) {
+      return reduced ? 1 : 1 - Math.exp(-rate * dt);
+    }
+    // Ease a number stored on a token toward a target, so a glyph that changes state
+    // cross-fades over a few frames. The first value is taken at once.
+    let fRate = 0, fDt = -1, fEase = 0;
+    function fadeTok(tok, key, target, rate) {
+      let v = tok[key];
+      if (v === target) return v;
+      if (v === undefined) return (tok[key] = target);
+      if (rate !== fRate || dt !== fDt) {
+        fRate = rate;
+        fDt = dt;
+        fEase = ease(rate);
+      }
+      v += (target - v) * fEase;
+      if (Math.abs(target - v) < 0.004) v = target;
+      else env.busy = true;
+      tok[key] = v;
+      return v;
+    }
+
+    let font = "", qn = 0;
+    const qText = [], qX = [], qY = [], qA = [], qC = [];
+    // Draw one style for a token. paint() may return one style or a list of them, drawn in order.
+    function put(tok, s, q, cells) {
+      if (s.bg) {
+        const ba = (s.bgAlpha === undefined ? 1 : s.bgAlpha) * q * q;
+        if (ba > 0.004) {
+          g.globalAlpha = ba;
+          g.fillStyle = s.bg;
+          if (cells) {
+            const gap = s.gap === undefined ? 1 : s.gap, c = geo.c;
+            g.fillRect(tok.x - c / 2 + gap, tok.y - c / 2 + gap, c - 2 * gap, c - 2 * gap);
+          } else if (piece.split) {
+            // Snap the left and right edges to device pixels, so neighbouring letter tiles meet
+            // exactly: no seam when opaque and no darker stripe where two fading tiles would overlap.
+            const x0 = Math.round(tok.x0 * dpr) / dpr, x1 = Math.round((tok.x0 + tok.w) * dpr) / dpr;
+            g.fillRect(x0, tok.y - geo.lh / 2 + 1, x1 - x0, geo.lh - 2);
+          } else {
+            g.fillRect(tok.x0 - geo.cw / 2, tok.y - geo.lh / 2 + 1, tok.w + geo.cw, geo.lh - 2);
+          }
+        }
+      }
+      const text = s.text === undefined ? tok.text : s.text;
+      if (!text || text === " " || !s.color) return;
+      const a = (s.alpha === undefined ? 1 : s.alpha) * q;
+      if (a <= 0.004) return;
+      // Medium-weight glyphs at the normal size are queued and drawn together after the loop,
+      // so the canvas font is set twice a frame instead of at every change of weight.
+      if (s.weight === 500 && !s.size) {
+        qText[qn] = text;
+        qX[qn] = cells ? tok.x : tok.x0;
+        qY[qn] = tok.y + 0.5;
+        qA[qn] = a;
+        qC[qn++] = s.color;
+        return;
+      }
+      const want = (s.weight || 400) + " " + (s.size || geo.fs) + "px " + mono;
+      if (want !== font) g.font = font = want;
+      g.globalAlpha = a;
+      g.fillStyle = s.color;
+      g.fillText(text, cells ? tok.x : tok.x0, tok.y + 0.5);
+    }
+
+    function flush() {
+      if (!qn) return;
+      g.font = "500 " + geo.fs + "px " + mono;
+      let color = "";
+      for (let n = 0; n < qn; n++) {
+        g.globalAlpha = qA[n];
+        if (qC[n] !== color) g.fillStyle = color = qC[n];
+        g.fillText(qText[n], qX[n], qY[n]);
+      }
+      qn = 0;
+      g.globalAlpha = 1;
+    }
+    // Remove a token's resting glyph from the frame before drawing it in another state.
+    function erase(tok, cells) {
+      if (cells) ctx.clearRect(tok.x - geo.c / 2, tok.y - geo.c / 2, geo.c, geo.c);
+      else if (piece.split) {
+        const x0 = Math.round(tok.x0 * dpr) / dpr, x1 = Math.round((tok.x0 + tok.w) * dpr) / dpr;
+        ctx.clearRect(x0, tok.y - geo.lh / 2, x1 - x0, geo.lh);
+      } else ctx.clearRect(tok.x0 - geo.cw / 2, tok.y - geo.lh / 2, tok.w + geo.cw, geo.lh);
+    }
+    function buildBase() {
+      hasBase = false;
+      if (!env || !piece.rest || !piece.animated || opts.animated === false || reduced) return;
+      if (!base) {
+        base = document.createElement("canvas");
+        bctx = base.getContext("2d");
+      }
+      base.width = cv.width;
+      base.height = cv.height;
+      const cells = geo.kind === "cells";
+      g = bctx;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.textBaseline = "middle";
+      g.textAlign = cells ? "center" : "left";
+      font = "";
+      qn = 0;
+      for (let n = 0; n < toks.length; n++) {
+        const tok = toks[n], s = piece.rest(tok, env);
+        tok.base = s || null;
+        if (s) put(tok, s, 1 - quiet(tok.x, tok.y) * quietStrength, cells);
+      }
+      flush();
+      g = ctx;
+      font = "";
+      hasBase = true;
     }
 
     function draw() {
       if (!env) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, env.w, env.h);
       ctx.globalAlpha = 1;
+      ctx.clearRect(0, 0, env.w, env.h);
+      if (hasBase) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(base, 0, 0);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
       if (piece.before) piece.before(ctx, env);
       ctx.textBaseline = "middle";
       const cells = geo.kind === "cells";
       ctx.textAlign = cells ? "center" : "left";
-      let font = "";
+      font = "";
+      qn = 0;
       for (let n = 0; n < toks.length; n++) {
         const tok = toks[n];
         const s = piece.paint(tok, env);
-        if (!s) continue;
-        const fade = 1 - quiet(tok.x, tok.y) * quietStrength;
-        if (s.bg) {
-          ctx.globalAlpha = (s.bgAlpha === undefined ? 1 : s.bgAlpha) * fade * fade;
-          ctx.fillStyle = s.bg;
-          if (cells) {
-            const g = s.gap === undefined ? 1 : s.gap, c = geo.c;
-            ctx.fillRect(tok.x - c / 2 + g, tok.y - c / 2 + g, c - 2 * g, c - 2 * g);
-          } else if (piece.split) {
-            ctx.fillRect(tok.x0 - 0.3, tok.y - geo.lh / 2 + 1, tok.w + 0.6, geo.lh - 2);
-          } else {
-            ctx.fillRect(tok.x0 - geo.cw / 2, tok.y - geo.lh / 2 + 1, tok.w + geo.cw, geo.lh - 2);
-          }
+        if (hasBase) {
+          if (s === tok.base) continue;
+          if (tok.base) erase(tok, cells);
         }
-        const text = s.text === undefined ? tok.text : s.text;
-        if (!text || text === " " || !s.color) continue;
-        const a = (s.alpha === undefined ? 1 : s.alpha) * fade;
-        if (a <= 0.004) continue;
-        const want = (s.weight || 400) + " " + (s.size || geo.fs) + "px " + mono;
-        if (want !== font) ctx.font = font = want;
-        ctx.globalAlpha = a;
-        ctx.fillStyle = s.color;
-        ctx.fillText(text, cells ? tok.x : tok.x0, tok.y + 0.5);
+        if (!s) continue;
+        const q = 1 - quiet(tok.x, tok.y) * quietStrength;
+        if (s.length === undefined) put(tok, s, q, cells);
+        else for (let l = 0; l < s.length; l++) put(tok, s[l], q, cells);
       }
+      flush();
       ctx.globalAlpha = 1;
       if (piece.after) piece.after(ctx, env);
     }
 
-    // Advance the pointer state and draw once. Returns true when another frame is wanted.
+    // Advance the clock and the pointer state and draw once. Returns true when another frame is wanted.
+    // All motion is driven by dt, the real time since the last draw, so it runs at the same speed at
+    // any frame rate. The clock stops while the piece is off screen and resumes where it left.
     function step() {
       const animating = piece.animated && opts.animated !== false && !reduced && visible;
-      lastDraw = performance.now();
-      env.t = reduced ? piece.restT || 0 : (lastDraw - t0) / 1000;
+      const now = performance.now(), gap = (now - lastStep) / 1000;
+      dt = reduced || !lastStep ? 0 : gap > 0.25 ? 1 / 60 : gap;
+      lastStep = now;
+      clock += dt;
+      env.t = reduced ? piece.restT || 0 : clock;
+      env.dt = dt;
+      env.busy = false;
       let on = ptr.on;
       if (!on && piece.idle && animating) {
         const p = piece.idle(env);
@@ -268,25 +404,31 @@ const scope = {};
           }
         }
       }
-      const ease = reduced ? 1 : 0.14;
-      ptr.x += (ptr.tx - ptr.x) * ease;
-      ptr.y += (ptr.ty - ptr.y) * ease;
-      ptr.k += ((on ? 1 : 0) - ptr.k) * (reduced ? 1 : 0.1);
+      const e = ease(9);
+      ptr.x += (ptr.tx - ptr.x) * e;
+      ptr.y += (ptr.ty - ptr.y) * e;
+      ptr.k += ((on ? 1 : 0) - ptr.k) * ease(6);
       env.pk = ptr.k < 0.004 ? 0 : ptr.k;
       env.px = env.pk ? ptr.x : null;
       env.py = env.pk ? ptr.y : null;
       env.pointerLive = ptr.on;
       draw();
+      cost += (performance.now() - now - cost) * 0.1;
       const settling = Math.abs(ptr.tx - ptr.x) + Math.abs(ptr.ty - ptr.y) > 0.3 || Math.abs((on ? 1 : 0) - ptr.k) > 0.004;
-      return animating || (settling && visible);
+      return animating || ((settling || env.busy) && visible);
     }
     function frame() {
       raf = 0;
       clearTimeout(timer);
       timer = 0;
       if (dead || !env || document.hidden) return;
-      const animating = piece.animated && opts.animated !== false && !reduced && visible;
-      if (animating && !ptr.on && performance.now() - lastDraw < 30) return request();
+      // Draw on every animation frame. Only if drawing is slow on this device (over 11 ms on
+      // average, until it is back under 6 ms) draw every second frame, at an even pace, so the
+      // page itself keeps its frame rate.
+      if (cost > 11) half = true;
+      else if (cost < 6) half = false;
+      odd = !odd;
+      if (half && odd) return request();
       if (step()) request();
     }
     // Frames normally come from requestAnimationFrame. Some browsers stop delivering them
@@ -317,12 +459,12 @@ const scope = {};
     }
 
     const target = opts.pointerTarget || host;
-    function onMove(e) {
+    function trackAt(cx, cy) {
       if (!env) return;
       const r = host.getBoundingClientRect();
       if (!r.width) return;
-      ptr.tx = ((e.clientX - r.left) * env.w) / r.width;
-      ptr.ty = ((e.clientY - r.top) * env.h) / r.height;
+      ptr.tx = ((cx - r.left) * env.w) / r.width;
+      ptr.ty = ((cy - r.top) * env.h) / r.height;
       if (!ptr.seen) {
         ptr.x = ptr.tx;
         ptr.y = ptr.ty;
@@ -331,12 +473,48 @@ const scope = {};
       ptr.on = true;
       request();
     }
-    function onLeave() {
+    function release() {
       ptr.on = false;
       request();
     }
+    // A mouse or pen is followed at once. A touch is usually the start of a scroll, and reacting to
+    // it makes the piece twitch toward the finger on every scroll. So a touch is followed only once
+    // it has been held for 140 ms, or, for a tap, from the moment the finger lifts and for 0.9 s after.
+    let touchDown = false, touchLive = false, touchTimer = 0, touchX = 0, touchY = 0;
+    function onMove(e) {
+      if (e.pointerType !== "touch") return trackAt(e.clientX, e.clientY);
+      touchX = e.clientX;
+      touchY = e.clientY;
+      if (e.type === "pointerdown") {
+        touchDown = true;
+        touchLive = false;
+        clearTimeout(touchTimer);
+        touchTimer = setTimeout(function () {
+          if (!touchDown || dead) return;
+          touchLive = true;
+          trackAt(touchX, touchY);
+        }, 140);
+      } else if (touchLive) trackAt(touchX, touchY);
+    }
+    function onLeave(e) {
+      if (e.pointerType !== "touch") release();
+    }
+    function onCancel() {
+      clearTimeout(touchTimer);
+      touchDown = touchLive = false;
+      release();
+    }
     function onUp(e) {
-      if (e.pointerType !== "mouse") onLeave();
+      if (e.pointerType === "mouse") return;
+      if (e.pointerType === "touch" && touchDown && !touchLive) {
+        clearTimeout(touchTimer);
+        touchDown = false;
+        trackAt(e.clientX, e.clientY);
+        touchTimer = setTimeout(release, 900);
+        return;
+      }
+      touchDown = touchLive = false;
+      release();
     }
     function onShow() {
       if (!document.hidden) request();
@@ -346,7 +524,7 @@ const scope = {};
       target.addEventListener("pointermove", onMove);
       target.addEventListener("pointerdown", onMove);
       target.addEventListener("pointerleave", onLeave);
-      target.addEventListener("pointercancel", onLeave);
+      target.addEventListener("pointercancel", onCancel);
       target.addEventListener("pointerup", onUp);
     }
     const ro = new ResizeObserver(function () {
@@ -375,11 +553,12 @@ const scope = {};
         target.removeEventListener("pointermove", onMove);
         target.removeEventListener("pointerdown", onMove);
         target.removeEventListener("pointerleave", onLeave);
-        target.removeEventListener("pointercancel", onLeave);
+        target.removeEventListener("pointercancel", onCancel);
         target.removeEventListener("pointerup", onUp);
         document.removeEventListener("visibilitychange", onShow);
         cancelAnimationFrame(raf);
         clearTimeout(timer);
+        clearTimeout(touchTimer);
         cv.remove();
       },
     };
@@ -387,7 +566,7 @@ const scope = {};
 
   window.GlyphArt = {
     P: P, MONO: MONO, pieces: pieces, order: order, register: register, mount: mount,
-    hash: hash, noise: noise, mix: mix, clamp: clamp, smooth: smooth, logoPart: logoPart, mask: mask,
+    hash: hash, noise: noise, mix: mix, clamp: clamp, smooth: smooth, ramp: ramp, springAngle: springAngle, logoPart: logoPart, mask: mask,
   };
 })();
 

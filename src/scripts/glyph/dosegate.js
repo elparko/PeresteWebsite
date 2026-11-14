@@ -124,25 +124,59 @@ import { GlyphArt } from "./glyph-engine.js";
     ctx.fillText(text, x + 6, y + 0.5);
   }
 
-  function tile(tok) {
-    if (tok.word && tok.word.flag) return { bg: P.amber, color: P.ink, weight: 500 };
-    if (tok.m < 0) return { bg: P.indigo, color: P.tealPale, alpha: 0.85, weight: 500 };
-    if (tok.m > 0) return { bg: P.tealPale, color: P.ink, alpha: 0.8, weight: 500 };
-    return null;
+  const FLAG = { bg: P.amber, color: P.ink, weight: 500 };
+  const BG = G.ramp(P.indigo, P.tealPale), FG = G.ramp(P.tealPale, P.ink);
+
+  // A letter does not switch between field and tile in one frame: tok.a (how much it is a tile)
+  // and tok.s (which half, 0 indigo to 1 pale teal) ease toward their targets, and the field
+  // style and the tile style are drawn on top of each other while they cross-fade.
+  function tile(tok, env, field) {
+    if (tok.word && tok.word.flag) return FLAG;
+    if (tok.m) {
+      tok.side = tok.m > 0 ? 1 : 0;
+      if (!tok.a) tok.s = tok.side;
+    }
+    const a = env.fade(tok, "a", tok.m ? 1 : 0, env.rate);
+    const s = env.fade(tok, "s", tok.side || 0, env.rate);
+    if (a === 0) return field;
+    const t = {
+      bg: BG(s),
+      bgAlpha: a,
+      color: FG(s),
+      alpha: (0.85 - 0.05 * s) * a,
+      weight: 500,
+    };
+    if (a === 1 || !field) return t;
+    return [{ color: field.color, alpha: field.alpha * (1 - a) }, t];
   }
 
+  // The capsule's angle and speed live in env.state, so a resize or a late font does not reset
+  // them. Idle: a steady slow turn. Pointer present: a damped spring toward the pointer, so the
+  // turn starts and stops without a jump in speed.
   function spin(env, start) {
-    const dt = env.last === undefined ? 0 : Math.min(0.1, env.t - env.last);
-    env.last = env.t;
-    if (env.ang === undefined || env.reduced) env.ang = env.opts && env.opts.angle !== undefined ? env.opts.angle : start;
-    else if (env.pointerLive && env.px !== null && Math.hypot(env.px - env.fx, env.py - env.fy) > env.g.r * 0.6) {
-      const target = Math.atan2(env.py - env.fy, env.px - env.fx);
-      env.ang += Math.atan2(Math.sin(target - env.ang), Math.cos(target - env.ang)) * 0.07;
-    } else env.ang += dt * 0.16;
-    return env.ang;
+    const st = env.state;
+    if (st.ang === undefined || env.reduced) {
+      st.ang = env.opts && env.opts.angle !== undefined ? env.opts.angle : start;
+      st.vel = 0.16;
+    } else if (env.pointerLive && env.px !== null && Math.hypot(env.px - env.fx, env.py - env.fy) > env.g.r * 0.6) {
+      G.springAngle(st, Math.atan2(env.py - env.fy, env.px - env.fx), 7, env.dt);
+    } else {
+      st.vel += (0.16 - st.vel) * env.ease(2.5);
+      st.ang += st.vel * env.dt;
+    }
+    // Letters cross-fade in about 0.2 s at the idle turn, and faster the faster the capsule turns,
+    // so a quick turn toward the pointer does not leave a long trail of half-faded tiles.
+    env.rate = 10 + 6 * Math.abs(st.vel);
+    return st.ang;
   }
 
   const TILT = -0.55;
+  const GATE_REST = { text: "|", color: P.ink, alpha: 0.55, weight: 500 };
+  function gateField(tok, env, col) {
+    if (Math.abs(col - env.gc) === 1 && !(tok.word && tok.word.flag)) return null;
+    return tok.x > env.gx ? TEAL_FIELD : INK_FIELD;
+  }
+  const CHECK_FIELD = { color: P.ink, alpha: 0.12 }, INK_FIELD = { color: P.ink, alpha: 0.11 }, TEAL_FIELD = { color: P.teal, alpha: 0.3 };
 
   G.register({
     id: "dosegate-check",
@@ -163,8 +197,11 @@ import { GlyphArt } from "./glyph-engine.js";
     before: function (ctx, env) {
       carve(env, env.toks, env.fx, env.fy, spin(env, TILT), 0);
     },
-    paint: function (tok) {
-      return tile(tok) || { color: P.ink, alpha: 0.12 };
+    rest: function (tok) {
+      return tok.word && tok.word.flag ? FLAG : CHECK_FIELD;
+    },
+    paint: function (tok, env) {
+      return tile(tok, env, CHECK_FIELD);
     },
     after: strike,
   });
@@ -188,13 +225,16 @@ import { GlyphArt } from "./glyph-engine.js";
     before: function (ctx, env) {
       carve(env, env.toks, env.fx, env.fy, spin(env, TILT), 0.42);
     },
-    paint: function (tok) {
-      return tile(tok) || { color: P.ink, alpha: 0.11 };
+    rest: function (tok) {
+      return tok.word && tok.word.flag ? FLAG : INK_FIELD;
+    },
+    paint: function (tok, env) {
+      return tile(tok, env, INK_FIELD);
     },
     after: function (ctx, env) {
       strike(ctx, env);
       if (env.w < 400) return;
-      const g = env.g, ux = Math.cos(env.ang), uy = Math.sin(env.ang), d = g.hl + g.r * 1.5 + 22;
+      const g = env.g, ux = Math.cos(env.state.ang), uy = Math.sin(env.state.ang), d = g.hl + g.r * 1.5 + 22;
       chip(ctx, env, "ORDER", env.fx - ux * d, env.fy - uy * d, true);
       chip(ctx, env, "OUTPUT", env.fx + ux * d, env.fy + uy * d, false);
     },
@@ -236,13 +276,20 @@ import { GlyphArt } from "./glyph-engine.js";
       carve(env, env.toks, env.gx, env.fy, spin(env, 0), 0, 0);
       for (const tok of env.toks) if (tok.m) tok.m = tok.x < env.gx ? -1 : 1;
     },
+    // The resting style of each letter, which the engine caches: the gate column, the blocked
+    // value, a blank column on each side of the gate, and field text (teal past the gate).
+    rest: function (tok, env) {
+      const col = Math.round(tok.x0 / env.geo.cw);
+      if (col === env.gc) return GATE_REST;
+      return tok.word && tok.word.flag ? FLAG : gateField(tok, env, col);
+    },
     paint: function (tok, env) {
       const col = Math.round(tok.x0 / env.geo.cw);
-      if (col === env.gc) return { text: "|", color: P.ink, alpha: tok.m ? 0.9 : 0.55, weight: 500, bg: tok.m ? P.white : null };
-      if (Math.abs(col - env.gc) === 1 && !tok.m && !(tok.word && tok.word.flag)) return null;
-      const t = tile(tok);
-      if (t) return t;
-      return tok.x > env.gx ? { color: P.teal, alpha: 0.3 } : { color: P.ink, alpha: 0.11 };
+      if (col === env.gc) {
+        const a = env.fade(tok, "a", tok.m ? 1 : 0, env.rate);
+        return a === 0 ? GATE_REST : { text: "|", color: P.ink, alpha: 0.55 + 0.35 * a, weight: 500, bg: P.white, bgAlpha: a };
+      }
+      return tile(tok, env, gateField(tok, env, col));
     },
     after: function (ctx, env) {
       strike(ctx, env);

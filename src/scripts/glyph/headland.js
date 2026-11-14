@@ -18,6 +18,9 @@ import { GlyphArt } from "./glyph-engine.js";
     { name: "RECORDS", bg: rgb(P.teal), next: rgb(P.indigo), fg: P.soft },
   ];
   const DEEP = rgb(P.indigo), NAVY = rgb(P.ink), WHITE = rgb(P.white);
+  const LAMP = { bg: P.amber, color: P.ink, weight: 500, text: "*" };
+  const HOUSE = { bg: P.white, color: P.indigo, weight: 500 };
+  const ROOF = { bg: P.white, bgAlpha: 0.9, color: P.indigo, weight: 500, text: "^" };
 
   function shape(env) {
     const o = env.opts || {}, c = env.geo.c, phone = env.view === "phone";
@@ -85,6 +88,7 @@ import { GlyphArt } from "./glyph-engine.js";
       env.bare = env.opts && env.opts.figure === false;
       env.spot = env.opts && env.opts.light === "spot";
       env.dim = env.opts && env.opts.fieldAlpha !== undefined ? env.opts.fieldAlpha : 0.14;
+      env.DIM = { color: P.tealPale, alpha: env.dim };
       for (const tok of toks) {
         tok.kind = "sky";
         if (env.bare) continue;
@@ -118,23 +122,41 @@ import { GlyphArt } from "./glyph-engine.js";
         if (li === 0 && lj === 0) tok.kind = "lamp";
         if (li === 0 && lj === -1) tok.kind = "roof";
       }
+      // Each cell's resting style, which the engine caches. Sea cells have none: they change glyph.
+      for (const tok of toks) {
+        if (tok.kind === "lamp") tok.still = LAMP;
+        else if (tok.kind === "house") tok.still = HOUSE;
+        else if (tok.kind === "roof") tok.still = ROOF;
+        else if (tok.kind === "land") {
+          tok.still = tok.wet
+            ? { bg: css(tok.col), bgAlpha: 1 - tok.wet, color: tok.fg, alpha: 0.85 * (1 - tok.wet) }
+            : { bg: css(tok.col), color: tok.fg, alpha: 0.85 };
+        } else tok.still = tok.kind === "sea" ? null : env.DIM;
+      }
+    },
+    rest: function (tok) {
+      return tok.still;
     },
     before: function (ctx, env) {
       let target = env.reduced ? 0 : Math.sin(env.t * 0.25) * 0.3;
       if (!env.spot && env.pointerLive && env.px !== null) target = Math.atan2(env.py - env.lampY, env.px - env.lampX);
       if (env.spot) target = 0;
-      if (env.ang === undefined || env.reduced || env.spot) env.ang = target;
-      else env.ang += Math.atan2(Math.sin(target - env.ang), Math.cos(target - env.ang)) * 0.1;
-      env.ca = Math.cos(env.ang);
-      env.sa = Math.sin(env.ang);
+      // The beam angle and its speed live in env.state, so a resize does not reset them. A damped
+      // spring carries the beam to its target, so it starts and stops without a jump in speed.
+      const st = env.state;
+      if (st.ang === undefined || env.reduced || env.spot) {
+        st.ang = target;
+        st.vel = 0;
+      } else G.springAngle(st, target, 10, env.dt);
+      env.ca = Math.cos(st.ang);
+      env.sa = Math.sin(st.ang);
     },
     paint: function (tok, env) {
       const s = env.s, c = env.geo.c;
-      if (tok.kind === "lamp") return { bg: P.amber, color: P.ink, weight: 500, text: "*" };
-      if (tok.kind === "house") return { bg: P.white, color: P.indigo, weight: 500 };
-      if (tok.kind === "roof") return { bg: P.white, bgAlpha: 0.9, color: P.indigo, weight: 500, text: "^" };
+      if (tok.kind === "lamp" || tok.kind === "house" || tok.kind === "roof") return tok.still;
       const f = env.bare ? 0 : beam(tok, env);
       if (tok.kind === "land") {
+        if (f <= 0.02 && !(env.spot && env.px !== null)) return tok.still;
         let col = tok.col;
         if (env.spot) {
           if (env.px !== null) {
@@ -150,17 +172,33 @@ import { GlyphArt } from "./glyph-engine.js";
         return { bg: css(col), color: tok.fg, alpha: 0.85 };
       }
       if (env.bare) {
-        if (env.px === null) return { color: P.tealPale, alpha: env.dim };
+        if (env.px === null) return env.DIM;
         const k = (1 - G.smooth(1, 7, Math.hypot(tok.x - env.px, tok.y - env.py) / c)) * env.pk;
         return { color: P.tealPale, alpha: env.dim + 0.4 * k };
       }
-      if (f > 0.03) return { bg: P.tealLight, bgAlpha: 0.26 * f, color: P.white, alpha: 0.16 + 0.74 * f, weight: f > 0.5 ? 500 : 400 };
-      if (tok.kind === "sea") {
-        const depth = tok.cj - s.sea;
-        const wave = G.hash(tok.ci, tok.cj, Math.floor(env.t * 0.5 + G.hash(tok.ci, tok.cj, 2) * 4)) < 0.75 ? "~" : "-";
-        return { text: wave, color: P.tealLight, alpha: depth === 0 ? 0.55 : Math.max(0.14, 0.4 - depth * 0.05) };
+      // Sky and sea. g is how far the cell has changed from its unlit state to its lit state;
+      // the two are cross-faded, so a glyph the beam reaches brightens instead of switching.
+      const g = G.smooth(0, 0.08, f), out = [];
+      if (g === 0 && tok.kind !== "sea") return env.DIM;
+      if (g < 1) {
+        if (tok.kind === "sea") {
+          // A sea glyph changes between "~" and "-" every two seconds; the change is a 0.4 s cross-fade.
+          const depth = tok.cj - s.sea, a = (depth === 0 ? 0.55 : Math.max(0.14, 0.4 - depth * 0.05)) * (1 - g);
+          const p = env.t * 0.5 + G.hash(tok.ci, tok.cj, 2) * 4, n = Math.floor(p);
+          const cur = G.hash(tok.ci, tok.cj, n) < 0.75 ? "~" : "-", was = G.hash(tok.ci, tok.cj, n - 1) < 0.75 ? "~" : "-";
+          const w = cur === was ? 1 : G.smooth(0, 0.2, p - n);
+          if (w < 1) out.push({ text: was, color: P.tealLight, alpha: a * (1 - w) });
+          out.push({ text: cur, color: P.tealLight, alpha: a * w });
+        } else out.push({ color: P.tealPale, alpha: env.dim * (1 - g) });
       }
-      return { color: P.tealPale, alpha: env.dim };
+      if (g > 0) {
+        // Lit glyphs are regular weight below half brightness and medium above; the two weights
+        // are cross-faded around the half-way point.
+        const a = (0.16 + 0.74 * f) * g, w = G.smooth(0.42, 0.58, f), a1 = a * (1 - w);
+        if (w < 1) out.push({ bg: P.tealLight, bgAlpha: 0.26 * f, color: P.white, alpha: a1 });
+        if (w > 0) out.push({ bg: w < 1 ? null : P.tealLight, bgAlpha: 0.26 * f, color: P.white, alpha: (a * w) / (1 - a1), weight: 500 });
+      }
+      return out;
     },
     after: function (ctx, env) {
       if (env.bare) return;

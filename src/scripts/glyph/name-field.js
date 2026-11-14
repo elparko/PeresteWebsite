@@ -6,6 +6,7 @@ import { GlyphArt } from "./glyph-engine.js";
 (function () {
   const G = window.GlyphArt, P = G.P;
   const NAME = "PERESTE";
+  const LAMP = { bg: P.amber, color: P.ink, weight: 500 }, DARK = { color: P.indigo, alpha: 0.15 };
 
   G.register({
     id: "name-field",
@@ -61,27 +62,56 @@ import { GlyphArt } from "./glyph-engine.js";
       const a = Math.sin(env.t * 0.25) * 0.05;
       return [env.lx + Math.cos(a) * env.unit, env.ly + Math.sin(a) * env.unit];
     },
-    paint: function (tok, env) {
-      if (tok === env.lamp) return { bg: P.amber, color: P.ink, weight: 500 };
-      let ang = 0;
+    // The beams turn toward the pointer, up to 0.6 radians either way. When the pointer passes
+    // above or below the lamp the target flips from one limit to the other, so the angle follows
+    // its target through a damped spring and sweeps across instead of flipping in one frame.
+    before: function (ctx, env) {
+      let target = 0;
       if (env.px !== null) {
-        ang = Math.atan2(env.py - env.ly, env.px - env.lx) * env.pk;
-        if (Math.abs(ang) > Math.PI / 2) ang = ang - Math.sign(ang) * Math.PI;
-        ang = G.clamp(ang, -0.6, 0.6);
+        target = Math.atan2(env.py - env.ly, env.px - env.lx);
+        if (Math.abs(target) > Math.PI / 2) target = target - Math.sign(target) * Math.PI;
+        target = G.clamp(target, -0.6, 0.6) * env.pk;
       }
+      const st = env.state;
+      if (st.ang === undefined || env.reduced) {
+        st.ang = target;
+        st.vel = 0;
+      } else {
+        G.springAngle(st, target, 16, env.dt);
+        if (Math.abs(st.ang - target) > 0.002 || Math.abs(st.vel) > 0.002) env.busy = true;
+      }
+      env.ux = Math.cos(st.ang);
+      env.uy = Math.sin(st.ang);
+    },
+    // Every letter rests as a dim indigo letter; the engine caches that and draws only the lit ones.
+    rest: function (tok, env) {
+      return tok === env.lamp ? LAMP : DARK;
+    },
+    paint: function (tok, env) {
+      if (tok === env.lamp) return LAMP;
       const dx = tok.wx - env.lx, dy = tok.y - env.ly;
-      const ux = Math.cos(ang), uy = Math.sin(ang);
+      const ux = env.ux, uy = env.uy;
       const along = Math.abs(dx * ux + dy * uy), perp = Math.abs(dy * ux - dx * uy);
       const dist = along + env.off;
       const d = Math.atan2(perp, dist);
       const reach = 1 - G.smooth(env.len * 0.35, env.len, dist);
       const k = (1 - G.smooth(env.half * 0.55, env.half, d)) * reach;
       const lit = k;
-      if (perp < env.geo.lh * 0.6 && along < env.len * 0.42) return { color: P.ink, alpha: 0.95, weight: 500 };
-      if (lit > 0.55) return { color: P.teal, alpha: 0.6 + 0.4 * lit, weight: 500 };
-      if (lit > 0.18) return { color: P.tealPale, alpha: 0.55 + 0.45 * lit, weight: 500 };
-      if (lit > 0.04) return { color: P.tealPale, alpha: 0.25 + 0.6 * lit };
-      return { color: P.indigo, alpha: 0.15 };
+      // The letter's look is a continuous function of how lit it is. Each state below has the
+      // same color, weight and opacity as before; near a boundary the two neighbouring states are
+      // cross-faded, so a letter the beam reaches or leaves changes over several frames.
+      const core = (1 - G.smooth(env.geo.lh * 0.45, env.geo.lh * 0.75, perp)) * (1 - G.smooth(env.len * 0.38, env.len * 0.46, along));
+      const w1 = G.smooth(0.02, 0.06, lit), w2 = G.smooth(0.14, 0.22, lit), w3 = G.smooth(0.49, 0.61, lit), rest = 1 - core;
+      const a0 = 0.15 * (1 - w1) * rest, a1 = (0.25 + 0.6 * lit) * w1 * (1 - w2) * rest;
+      const a2 = (0.55 + 0.45 * lit) * w2 * (1 - w3) * rest, a3 = (0.6 + 0.4 * lit) * w3 * rest, a4 = 0.95 * core;
+      if (a0 === 0.15) return DARK;
+      const out = [];
+      if (a0 > 0.004) out.push({ color: P.indigo, alpha: a0 });
+      if (a1 > 0.004) out.push({ color: P.tealPale, alpha: a1 });
+      if (a2 > 0.004) out.push({ color: P.tealPale, alpha: a2, weight: 500 });
+      if (a3 > 0.004) out.push({ color: P.teal, alpha: a3, weight: 500 });
+      if (a4 > 0.004) out.push({ color: P.ink, alpha: a4, weight: 500 });
+      return out;
     },
   });
 })();

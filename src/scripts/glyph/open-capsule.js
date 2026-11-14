@@ -13,6 +13,9 @@ import { GlyphArt } from "./glyph-engine.js";
     "plain words", "your records", "what it is for", "side effects", "keep cool", "questions",
   ];
 
+  const FIELD = { color: P.ink, alpha: 0.1 };
+  const BG = G.ramp(P.indigo, P.tealPale), FG = G.ramp(P.tealPale, P.ink);
+
   function geom(env) {
     if (env.view === "phone") return { hl: 92, r: 44, a: -0.5 };
     if (env.view === "desktop") return { hl: env.unit * 0.22, r: env.unit * 0.11, a: -0.55 };
@@ -53,15 +56,21 @@ import { GlyphArt } from "./glyph-engine.js";
       env.toks = toks;
     },
     before: function (ctx, env) {
-      const g = env.g, toks = env.toks, v = env.geo.lh * 0.3;
-      const dt = env.last === undefined ? 0 : Math.min(0.1, env.t - env.last);
-      env.last = env.t;
-      if (env.ang === undefined || env.reduced) env.ang = g.a;
-      else if (env.pointerLive && env.px !== null && Math.hypot(env.px - env.fx, env.py - env.fy) > g.r * 0.6) {
-        const target = Math.atan2(env.py - env.fy, env.px - env.fx);
-        env.ang += Math.atan2(Math.sin(target - env.ang), Math.cos(target - env.ang)) * 0.07;
-      } else env.ang += dt * 0.16;
-      const ux = Math.cos(env.ang), uy = Math.sin(env.ang), o = env.geo.cw * 0.6;
+      const g = env.g, toks = env.toks, v = env.geo.lh * 0.3, st = env.state;
+      // The angle and its speed live in env.state, so a resize or a late font does not reset them.
+      if (st.ang === undefined || env.reduced) {
+        st.ang = g.a;
+        st.vel = 0.16;
+      } else if (env.pointerLive && env.px !== null && Math.hypot(env.px - env.fx, env.py - env.fy) > g.r * 0.6) {
+        G.springAngle(st, Math.atan2(env.py - env.fy, env.px - env.fx), 7, env.dt);
+      } else {
+        st.vel += (0.16 - st.vel) * env.ease(2.5);
+        st.ang += st.vel * env.dt;
+      }
+      // Letters cross-fade in about 0.2 s at the idle turn, and faster the faster the capsule turns,
+      // so a quick turn toward the pointer does not leave a long trail of half-faded tiles.
+      env.rate = 10 + 6 * Math.abs(st.vel);
+      const ux = Math.cos(st.ang), uy = Math.sin(st.ang), o = env.geo.cw * 0.6;
       for (const tok of toks) {
         const dx = tok.x - env.fx, dy = tok.y - env.fy;
         const s0 = dx * ux + dy * uy, n0 = -dx * uy + dy * ux;
@@ -82,10 +91,29 @@ import { GlyphArt } from "./glyph-engine.js";
         start = k;
       }
     },
-    paint: function (tok) {
-      if (tok.m < 0) return { bg: P.indigo, color: P.tealPale, alpha: 0.85, weight: 500 };
-      if (tok.m > 0) return { bg: P.tealPale, color: P.ink, alpha: 0.8, weight: 500 };
-      return { color: P.ink, alpha: 0.1 };
+    // Every letter rests as plain field text; the engine caches that and draws only the tiles.
+    rest: function () {
+      return FIELD;
+    },
+    // A letter does not switch between field and tile in one frame: tok.a (how much it is a tile)
+    // and tok.s (which half, 0 indigo to 1 pale teal) ease toward their targets, and the two
+    // states are drawn on top of each other while they cross-fade.
+    paint: function (tok, env) {
+      if (tok.m) {
+        tok.side = tok.m > 0 ? 1 : 0;
+        if (!tok.a) tok.s = tok.side;
+      }
+      const a = env.fade(tok, "a", tok.m ? 1 : 0, env.rate);
+      const s = env.fade(tok, "s", tok.side || 0, env.rate);
+      if (a === 0) return FIELD;
+      const tile = {
+        bg: BG(s),
+        bgAlpha: a,
+        color: FG(s),
+        alpha: (0.85 - 0.05 * s) * a,
+        weight: 500,
+      };
+      return a === 1 ? tile : [{ color: P.ink, alpha: 0.1 * (1 - a) }, tile];
     },
   });
 })();
