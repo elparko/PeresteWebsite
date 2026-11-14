@@ -241,6 +241,14 @@ const scene = footerSceneFor(Astro.url.pathname);
     color: #fff;
   }
   @media (max-width: 640px) {
+    .footer-band::after {
+      display: none;
+    }
+    .footer-band .footer-legal {
+      position: static;
+      padding-top: 0.9rem;
+      color: theme("colors.brand.ink");
+    }
     .footer-band img {
       aspect-ratio: 4 / 3;
       object-position: 50% 50% !important;
