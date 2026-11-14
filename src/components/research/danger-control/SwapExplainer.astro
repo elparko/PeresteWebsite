@@ -5,11 +5,14 @@ import ladder from "../../../data/research/medication-danger-and-control/ladder.
 import info from "../../../data/research/medication-danger-and-control/swap-explainer.json";
 
 interface Props {
-  title: string;
-  how: string;
+  title?: string;
+  how?: string;
 }
 
-const { title, how } = Astro.props;
+const {
+  title,
+  how = "Each band is the model reading one message: tokens run left to right, its 32 processing steps bottom to top. Pick a change at the outlined reply position; the dial shows the urgency gap after it.",
+} = Astro.props;
 
 const GAP = ladder.gap;
 const MAX = 5;
@@ -295,10 +298,12 @@ const desc = `Diagram of the swap test on Qwen3.5-4B. The same model reads a dan
 ---
 
 <figure class="rfig sx" data-sx data-state="none">
-  <figcaption class="rfig-head">
-    <span class="rfig-num">How the test works</span>
-    <span class="rfig-title">{title}</span>
-  </figcaption>
+  {title && (
+    <figcaption class="rfig-head">
+      <span class="rfig-num">How the test works</span>
+      <span class="rfig-title">{title}</span>
+    </figcaption>
+  )}
   <p class="sx-how">{how}</p>
 
   <div class="sx-msgs">
