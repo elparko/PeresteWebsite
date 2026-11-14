@@ -2,7 +2,7 @@
 import data from "../../../data/research/medication-danger-and-control/strings-explainer.json";
 
 const { about, ...payload } = data;
-const summary = "Two strings and a bank of 200 fine strings. The upper string is pulled to 4.46, the mean urgency reading for dangerous messages; the lower to 0.13, for harmless ones. Silencing the 200 units leaves them at 4.44 and 0.14. Exchanging the attention output between the two messages of each pair gives 3.89 and 1.43 (exploratory test).";
+const summary = "Two strings and a bank of 200 fine strings. The upper string is pulled to 4.46, the mean urgency reading for dangerous messages; the lower to 0.13, for harmless ones. Silencing the 200 units leaves them at 4.44 and 0.14. Swapping the attention output between the two messages of each pair gives 3.89 and 1.43 (exploratory test).";
 ---
 
 <figure class="ss" data-ss>
@@ -35,9 +35,9 @@ const summary = "Two strings and a bank of 200 fine strings. The upper string is
 
 const D = JSON.parse(fig.querySelector("[data-ss-data]").textContent);
 const LINES = {
-  rest: "Touch the <strong>200</strong> fine strings to still them. Then exchange the two small pieces marked attention. Drag to turn it.",
+  rest: "Touch the <strong>200</strong> fine strings to still them. Then swap the two small pieces marked attention. Drag to turn it.",
   silenced: "All 200 units silenced. The readings hold: <strong>4.44</strong> and <strong>0.14</strong>.",
-  attention: "Attention exchanged within each pair, at the point where the reply begins: <strong>3.89</strong> and <strong>1.43</strong>. Exploratory test.",
+  attention: "Attention output swapped within each pair, at the point where the reply begins: <strong>3.89</strong> and <strong>1.43</strong>. Exploratory test.",
 };
 const NUM = { rest: ["4.46", "0.13"], silenced: ["4.44", "0.14"], attention: ["3.89", "1.43"] };
 const stage = fig.querySelector(".ss-stage"), canvas = fig.querySelector(".ss-canvas"), ctx = canvas.getContext("2d");
@@ -112,7 +112,7 @@ function draw(now) {
     const w = ctx.measureText(word).width; ctx.fillStyle = col.ink; ctx.font = `600 12px ${font}`; ctx.fillText(NUM[state][i], lx + w + 8, ly);
   });
 
-  // the exchange loop and the two attention pieces
+  // the swap loop and the two attention pieces
   const e = ends();
   ctx.beginPath(); ctx.ellipse(e.mx, e.my, 15, e.ry, 0, 0, 6.2832); ctx.setLineDash([2, 4]); ctx.strokeStyle = rgba(col.ink, 0.35); ctx.lineWidth = 0.8; ctx.stroke(); ctx.setLineDash([]);
   const sx = 15 * Math.sin(Math.PI * sw), sy = e.ry * Math.cos(Math.PI * sw);
@@ -147,7 +147,7 @@ function setState(next) {
 bUnits.addEventListener("click", () => setState("silenced"));
 bAtt.addEventListener("click", () => setState("attention"));
 
-// pointer: drag to turn, pluck the fine strings, press the bank to damp it, press the pieces to exchange them
+// pointer: drag to turn, pluck the fine strings, press the bank to damp it, press the pieces to swap them
 const zone = (x, y) => { const e = ends(); if (Math.abs(x - e.mx) < 30 && y > e.my - e.ry - 22 && y < e.my + e.ry + 22) return "att";
   const xs = [PX(-1, -DEEP), PX(-1, DEEP), PX(1, -DEEP), PX(1, DEEP)], ys = [PY(-1, -DEEP), PY(-1, DEEP), PY(1, -DEEP), PY(1, DEEP)];
   return x > Math.min(...xs) - 6 && x < Math.max(...xs) + 6 && y > bankTop + Math.min(...ys) - 16 && y < bankTop + Math.max(...ys) + bankLen + 8 ? "bank" : ""; };
