@@ -139,7 +139,7 @@ export function startAtlas(root) {
 
   let timer = 0;
   let M, rows = [], byId = new Map(), names = null, featured = [];
-  let view = { kind: "featured" }, agreeOnly = false, order = [], entries = [], shown = 0, current = null, seqNo = 0, searchResult = null;
+  let view = { kind: "featured" }, agreeOnly = true, order = [], entries = [], shown = 0, current = null, seqNo = 0, searchResult = null;
   const PAGE = 80;
 
   // ---------- layout ----------
@@ -179,6 +179,7 @@ export function startAtlas(root) {
   const agreeLbl = el("label", "ab-check");
   const agreeBox = el("input");
   agreeBox.type = "checkbox";
+  agreeBox.checked = true;
   agreeBox.addEventListener("change", () => { agreeOnly = agreeBox.checked; drawList(); });
   add(agreeLbl, agreeBox, el("span", null, "Only units whose strongest contexts agree with their selection reason"));
   const ctxNote = el("div", "ab-ctxnote");
