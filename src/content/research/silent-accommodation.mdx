@@ -1,0 +1,55 @@
+---
+title: "Silent accommodation and unfaithful chain-of-thought in clinical language models across scale"
+description: "A zero-token-delta scale-ladder study testing whether non-clinical social, financial, authority, and demographic cues downgrade emergency triage and medication override advice across Qwen3 models from 1.7B to 35B-A3B, and whether internal monitors recover safety where visible reasoning fails."
+date: 2026-11-27
+author: "Parker Smith"
+tag: "Study"
+draft: true
+toc: true
+hero: false
+---
+
+Patients in rural and underserved settings routinely add context about cost, insurance status, travel distance, clinician authority, or personal reluctance when asking about symptoms or medications. An earlier pilot on `Qwen3.5-4B` found that adding a single sentence about lacking insurance lowered emergency ambulance recommendations on an initial set of 16 emergencies, although that specific effect did not replicate on 32 new scenarios and a neutral sentence about reaching care altered replies by a similar amount. Whether non-clinical patient cues systematically downgrade high-stakes clinical safety advice once prompt length is held strictly constant, whether larger reasoning models conceal that accommodation behind clinically plausible chain-of-thought (`<think>`) explanations, and whether white-box residual monitors and causal subspace erasure restore safety are the central aims of this study.
+
+This study evaluates open-weight models on controlled synthetic clinical scenarios. It does not test any deployed clinical system and should not guide patient care.
+
+## Experimental design
+
+The benchmark (`silent_accommodation`) comprises 180 clinically unambiguous scenarios (seed `20261126`, split 50/50 into 90 discovery and 90 test scenarios) across three balanced arms:
+
+- **Acute triage emergencies (`acute_triage`, n = 60):** textbook presentations requiring immediate emergency medical services (`ems_now`) and an explicit instruction not to drive.
+- **High-alert medication overrides (`rx_override`, n = 60):** dangerous dosing or contraindication scenarios requiring an immediate `stop_do_not_take_now` instruction.
+- **Routine and medical-education controls (`routine_control`, n = 60):** non-urgent presentations where an emergency escalation or stop-medication directive counts as a false alarm.
+
+Each scenario is rendered in 13 variants (2,340 prompts per model): an unperturbed baseline (`none`), 6 non-clinical driver cues (`uninsured_cost`, `rural_distance`, `dialect_vernacular`, `authority_anchor`, `sycophancy_pushback`, and `elderly_frailty`), and 6 matched control fillers (`4` neutral fillers and `2` contrastive register or demographic controls) verified to have an exact 0-token length difference under the `Qwen/Qwen3-8B` tokenizer. To eliminate the 2,048-token thinking-truncation confound observed in earlier pilot runs, every generation runs with `max_new_tokens = 4096` and records residual-stream activations at `cue_end`, `think_end`, and `reply_start`.
+
+The planned scale ladder spans six open-weight models in native `bfloat16` (or 8-bit where required by 40 GB VRAM): `Qwen/Qwen3-1.7B`, `Qwen/Qwen3-4B`, `Qwen/Qwen3-8B`, `Qwen/Qwen3-14B`, `Qwen/Qwen3-32B`, and `Qwen/Qwen3.6-35B-A3B`.
+
+## Early scale-ladder checkpoints (`Qwen3-1.7B` complete; `Qwen3-4B` in progress)
+
+Increasing the generation budget to 4,096 tokens virtually eliminated thinking truncation: 98.2% of `Qwen3-1.7B` replies (2,340 of 2,340 completed) and 99.2% of `Qwen3-4B` replies (1,920 of 2,340 scored in an interim check) terminated cleanly at end-of-sequence, with only 1.6% and 0.7% think-truncated. Both models maintained low false-alarm rates on `routine_control` (97.2% to 98.6% gold met on `1.7B`; 99.4% to 100.0% on `4B`).
+
+Across the first step in scale from `1.7B` to `4B`, a zero-token-delta cue gap already appears on `acute_triage` safety rank:
+
+| Model | Status | `acute_triage` Safety Rank (Cue vs Filler vs None) | `acute_triage` Gold Met (Cue vs Filler) | `rx_override` Gold Met (Cue vs Filler) | `routine_control` Gold Met (Cue vs Filler) |
+| --- | --- | --- | ---: | ---: | ---: |
+| `Qwen/Qwen3-1.7B` | Complete (2,340 / 2,340) | 1.308 vs 1.347 vs 1.467 | 4.4% vs 2.5% | 4.7% vs 4.2% | 97.2% vs 98.6% |
+| `Qwen/Qwen3-4B` | Interim (1,920 / 2,340) | 2.119 vs 2.544 vs 2.567 | 5.8% vs 7.8% | 13.3% vs 13.9% | 99.4% vs 99.4% |
+| `Qwen/Qwen3-8B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| `Qwen/Qwen3-14B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| `Qwen/Qwen3-32B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| `Qwen/Qwen3.6-35B-A3B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+
+In `Qwen3-1.7B`, `acute_triage` safety rank differed by -0.039 between cue and token-matched filler (1.308 versus 1.347). In the interim `Qwen3-4B` slice, safety rank rose to 2.544 on token-matched fillers (2.567 on `none`) but fell to 2.119 on non-clinical cues (a drop of 0.425 despite zero token-length delta), even while the model's internal self-check probability (`p_no_self_check`) remained near zero (0.000 on filler and `none`, 0.019 on cue). In that interim `4B` slice, the largest negative cue-minus-filler gold-met gaps appeared for `authority_anchor` (-8.3 percentage points on both `acute_triage` and `rx_override`), `uninsured_cost` (-6.7 percentage points on `acute_triage`), `sycophancy_pushback` (-6.7 percentage points on `rx_override`), and `elderly_frailty` (-5.0 percentage points on `acute_triage`), whereas `rural_distance` showed an increase (+13.3 percentage points on `acute_triage`).
+
+## Chain-of-thought faithfulness, white-box monitors, and causal subspace erasure
+
+> **[PENDING: Study 1 scale ladder currently running on A100 (`Qwen3-4B` finishing, `8B`, `14B`, `32B`, and `35B-A3B` queued).]** Once all scale-ladder models finish and shards consolidate, this section will report:
+> 1. Full 6-model scaling curves for cue-versus-filler silent accommodation with scenario-cluster bootstrap confidence intervals.
+> 2. Black-box `<think>` chain-of-thought faithfulness audits (how often a downgraded reply cites the non-clinical cue versus rationalizing the downgrade on clinical grounds).
+> 3. White-box residual monitors at `cue_end`, `think_end`, and `reply_start` compared against black-box CoT oversight.
+> 4. Causal pre-KV span patching and linear erasure (LEACE) interventions testing whether removing the cue direction restores emergency and override safety without elevating routine false alarms.
+
+## Limitations
+
+The interim `Qwen3-4B` figures above reflect 1,920 of 2,340 prompts prior to full consolidation, statistical inference, and blind human review. Automated action coding will be validated against the study's blinded human audit sheet once generation completes across the scale ladder.

@@ -1,0 +1,74 @@
+---
+title: "Internal signals of medication dosing errors and two-circuit failure under clinical context"
+description: "An audit and mechanistic study of medication dosing errors in Qwen3-8B across 2,391 FDA-label questions, showing how strict-schedule grading exposes 143 hidden frequency violations, how calibrated internal probes eliminate the self-check blind spot on wrongly avoided drugs, and how clinical EHR and FHIR context degrades parametrically known dosing rules."
+date: 2026-11-27
+author: "Parker Smith"
+tag: "Study"
+draft: true
+toc: true
+hero: false
+---
+
+Language models are entering clinical settings where a pharmacist or physician may not be available to check a medication order, including rural primary care, where older adults with reduced renal function and polypharmacy are common. General-purpose chat models state medication doses fluently and are frequently wrong when the correct regimen depends on renal clearance, hepatic impairment, age, body weight, or a drug interaction. A learned safety monitor would add practical value only if it detects errors that output-level checks miss, or if it identifies a mechanism that post-training can repair. Whether a language model's internal activations detect dosing errors more reliably than its own verbalized self-check, and whether clinical electronic health record (EHR) context disrupts dosing rules the base model already stores in its weights, are the central questions of this study.
+
+This work evaluates publicly released open-weight models run on research hardware. It does not test any deployed clinical product, and nothing reported here should guide patient care.
+
+## Repaired benchmark audit and strict-schedule grading
+
+In the initial pilot on `Qwen3-8B`, the model answered 2,391 dosing questions across 111 drugs (70.8% concerning patients aged 65 or older), graded against 611 machine-checkable rules tied to quoted passages of Food and Drug Administration (FDA) prescribing information and DailyMed identifiers. Independent review and programmatic auditing identified three measurement defects in the initial benchmark that were repaired before the follow-up experiments:
+
+1. **Paraphrase leakage purge.** The legacy question loader filtered `prompts/questions_paraphrase.jsonl` (634 raw items) by `qid` and `rule_id`, leaving 620 items. Checking `source_qid` against the excluded-question set purged 31 defective paraphrase items (18 implausible relative ages, 5 ambiguous overlapping rules, 5 sex-indication contradictions, 2 indications that stated the answer, and 1 anuria with high creatinine clearance contradiction), leaving 589 clean paraphrase items.
+2. **Corrected adjustment labels and compositional hop counts.** In `questions.jsonl` (n = 2,391), 326 items carried incorrect `adjusted` flags (60 geriatric or weight-adjusted rules marked `False`, and 266 unadjusted `no_adjust` or standard titration rules marked `True`). Repairing these labels widened the error-rate gap between adjusted and unadjusted regimens from +0.104 to +0.177 under lenient grading, and from +0.087 to +0.145 under strict-schedule grading.
+3. **Strict-schedule grading (`grade_strict`).** Lenient grading checked only total daily dose, which accepted regimens that matched the daily sum while violating FDA administration frequency. Requiring the stated `doses_per_day` schedule to match the label uncovered 143 `wrong_schedule` violations across the 2,391 answers, raising `Qwen3-8B`'s error rate from 50.73% (1,213 of 2,391) to 56.71% (1,356 of 2,391). In an independent check by a label-reading second grader (Claude Sonnet), 113 of those 143 schedule violations (79.0%) were judged clinically incorrect. The top affected drug classes were opioids (47 violations), antiepileptics (20), psychotropics (18), gastrointestinal and genitourinary agents (18), and antiinfectives (16).
+
+| Grading | Split | Legacy n | Legacy Error Rate (95% CI) | Repaired n | Repaired Error Rate (95% CI) |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Lenient (`grade`) | Unadjusted | 849 | 0.441 (0.368 to 0.521) | 1,055 | 0.409 (0.342 to 0.485) |
+| Lenient (`grade`) | Adjusted | 1,542 | 0.544 (0.475 to 0.606) | 1,336 | 0.585 (0.519 to 0.648) |
+| Strict (`grade_strict`) | Unadjusted | 849 | 0.511 (0.435 to 0.593) | 1,055 | 0.486 (0.412 to 0.568) |
+| Strict (`grade_strict`) | Adjusted | 1,542 | 0.598 (0.526 to 0.660) | 1,336 | 0.631 (0.564 to 0.689) |
+
+Partitioned by compositional reasoning hops (`rule_hop_count`), `Qwen3-8B` strict error rates increased from 0.486 on 1-hop adult lookup rules (n = 1,055; lenient 0.409) to 0.633 on 2-hop single-modifier rules (n = 1,306; lenient 0.587), with 0.533 on 3-hop rules (n = 30). To eliminate class-imbalance confounds in future evaluations, a balanced benchmark (`build_balanced_benchmark`) was constructed with 1,869 questions (3 per eligible rule across 623 rules, 112 drugs, and 23 pharmacological subclasses).
+
+## Calibrated probes and the `P(No)` blind spot on wrongly avoided drugs
+
+In the initial pilot, linear probes at the last prompt token before the answer did not differ detectably from `P(No)`, the model's probability of answering "No" when asked whether its own dosing answer is correct (AUROC 0.658 versus 0.653, difference 0.005, 95% CI -0.058 to 0.061). A probe read at the last token after the answer was written reached AUROC 0.755 (0.101 above `P(No)`, 95% CI 0.039 to 0.161) and was the only signal that separated correct from incorrect answers within the same dosing rule (0.626 versus 0.527).
+
+Re-evaluating monitors with inner out-of-fold Platt calibration (`CS_WIDE`) and high-harm triage budgets (10% and 20% clinician review rates; high-harm errors defined as `failed_to_avoid`, `over`, `wrong_schedule`, and `wrongly_avoided`, totaling 986 of 2,391 items or 41.2%) exposed a structural blind spot in output-only self-checks. Whenever `Qwen3-8B` outputs `FINAL: AVOID`, `P(No)` systematically endorses the refusal as safe, scoring AUROC 0.399 on `wrongly_avoided` versus correct answers (worse than chance) and catching 0.0% of `wrongly_avoided` errors at a 20% review budget.
+
+Combining Platt-calibrated internal probes with `P(No)` closes that blind spot while achieving the highest overall discrimination:
+
+| Monitor | Pooled AUROC (Lenient) | Pooled AUROC (Strict) | `wrongly_avoided` vs `ok` AUROC | High-Harm Recall at 10% | High-Harm Recall at 20% | `wrongly_avoided` Recall at 20% |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `p_false` (`P(No)` self-check alone) | 0.653 (0.604 to 0.701) | 0.681 | 0.399 | 0.148 | 0.281 | 0.000 |
+| `semantic_entropy` | 0.589 (0.549 to 0.628) | 0.599 | 0.426 | 0.123 | 0.249 | 0.056 |
+| `probe_prefill_cal` (Platt) | 0.652 (0.607 to 0.695) | 0.635 | 0.625 | 0.135 | 0.261 | 0.165 |
+| `probe_answer_cal` (Platt) | 0.751 (0.705 to 0.795) | 0.730 | 0.743 | 0.154 | 0.301 | 0.255 |
+| `probe_prefill + p_false` (Hybrid) | 0.680 (0.631 to 0.726) | 0.684 | 0.519 | 0.152 | 0.272 | 0.000 |
+| `probe_answer + p_false` (Hybrid) | 0.753 (0.707 to 0.798) | 0.743 | 0.688 | 0.154 | 0.305 | 0.145 |
+
+## Closed-book parametric knowledge screen on `Qwen3-8B-Base` (Study 2, Stage 2)
+
+A central limitation of output-only benchmarks is that a wrong answer does not distinguish a knowledge gap (the model never learned the FDA rule) from a routing failure (the base model encodes the rule, yet the instruction-tuned model fails to apply it when clinical context becomes complex). To separate these regimes, we froze 384 counterfactual screening pairs (768 rows) and 384 test pairs (768 rows across four clinical renderings: `plain_note`, `long_polypharmacy_ehr`, `fhir_r4_bundle`, and `ehr_plus_fhir`), and scored closed-book pointwise mutual information (PMI) crossover on the unaligned base model `Qwen/Qwen3-8B-Base` across all 384 screening pairs.
+
+| Modifier Family | Rules Tested | Rules Parametrically Known | Share Known |
+| --- | ---: | ---: | ---: |
+| Hepatic impairment (`hepatic`) | 36 | 33 | 91.7% |
+| Drug-drug interaction (`interaction`) | 30 | 24 | 80.0% |
+| Numeric renal adjustment (`numeric_renal`) | 89 | 51 | 57.3% |
+| Renal contraindication (`contra_renal`) | 30 | 16 | 53.3% |
+| **Total (`Qwen3-8B-Base`)** | **185** | **124** | **67.0%** |
+
+Across all 71 tested drugs, 46 drugs (64.8%) and 124 of 185 dosing rules (67.0%) meet the closed-book parametric knowledge criterion (`delta_pmi > 0` on at least 67% of screening pairs). Because more than two-thirds of tested rules, including 91.7% of hepatic rules and 80.0% of drug-interaction rules, are already encoded in base weights, instruction-tuned errors on those rules represent failures of retrieval or context routing rather than absence of stored clinical knowledge.
+
+## Four-rendering clinical context degradation and two-circuit probing (Study 2, Stages 3 and 4)
+
+> **[PENDING: Study 2 Stages 3 and 4 currently running on Colab (`four_rendering_eval_qwen3_8b.jsonl`, 3,072 evaluations across 4 renderings).]** This section will be populated with the complete four-rendering accuracy table (`plain_note`, `long_polypharmacy_ehr`, `fhir_r4_bundle`, `ehr_plus_fhir`), failure-regime decomposition conditioned on Stage 2 parametric knowledge, and two-circuit Platt-calibrated probe AUROCs (`gate_token`, `dose_digit_last`, `interval_token`, `answer_last`) once the run finishes.
+
+## Counterfactual minimal-pair LoRA and mid-layer routing repair (Study 2, Stage 5)
+
+> **[PENDING: Study 2 Stage 5 queued after Stage 3 completion.]** This section will report pre- and post-adapter strict accuracy and mid-layer causal activation patching (`modifier_span`, `after_modifier`, `gate_token` across layers 6, 14, 22, and 30) on held-out unseen drug classes (`anticoagulant` and `cardiovascular`, zero drug overlap with training pairs), alongside publication figures.
+
+## Limitations
+
+The repaired pilot results cover one 8B-parameter model answering templated questions derived from single FDA labels without chain-of-thought reasoning. Although automated rule grading agreed with a second label-reading model grader on 93.0% of answers (Cohen's kappa 0.860) and blind language-model audits agreed on 94 of 100 items (kappa 0.876), a 200-item blinded clinician audit kit is prepared and awaiting human clinical scoring. Held-out drug-class AUROC measures cross-class generalization rather than prospective clinical utility, and probe accuracy alone does not establish causal control without intervention.
