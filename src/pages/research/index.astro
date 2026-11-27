@@ -6,17 +6,41 @@ import AtlasExplainer from "../../components/research/atlas/AtlasExplainer.astro
 import { researchItems } from "../../data/researchItems";
 import { getPublishedPosts, formatDate } from "../../data/posts";
 
-const items = [...researchItems].sort((a, b) => b.date.localeCompare(a.date));
-const listed = new Set(items.map((r) => r.href));
-const others = (await getPublishedPosts())
-  .map((post) => ({ href: `/research/${post.id}/`, id: post.id, ...post.data }))
-  .filter((post) => !listed.has(post.href));
+const ATLAS_HREF = "/research/medication-neuron-atlas/";
 
-const draftGlyphs: Record<string, "dose-probe" | "looped-passes" | "cue-shift"> = {
-  "dose-error-probe": "dose-probe",
-  "looped-model-dose-errors": "looped-passes",
-  "silent-accommodation": "cue-shift",
+const draftMeta: Record<string, { glyph?: "dose-probe" | "looped-passes" | "cue-shift"; models: string }> = {
+  "dose-error-probe": { glyph: "dose-probe", models: "Qwen3-8B · Qwen3-8B-Base" },
+  "looped-model-dose-errors": { glyph: "looped-passes", models: "Inkling 2 Mini · TML-d24-varloop" },
+  "silent-accommodation": { glyph: "cue-shift", models: "Qwen3 (1.7B to 35B-A3B)" },
+  "medication-danger-and-control": { models: "Qwen3-8B · Qwen3.5-4B" },
 };
+
+const listed = new Set(researchItems.map((r) => r.href));
+const extraPosts = (await getPublishedPosts())
+  .filter((post) => !listed.has(`/research/${post.id}/`))
+  .map((post) => {
+    const meta = draftMeta[post.id];
+    return {
+      href: `/research/${post.id}/`,
+      models: meta?.models ?? "",
+      title: post.data.title,
+      line: post.data.description,
+      date: post.data.date.toISOString().slice(0, 10),
+      kind: post.data.tag,
+      glyph: meta?.glyph,
+      alt: post.data.title,
+      draft: Boolean(post.data.draft),
+    };
+  });
+
+const allItems = [
+  ...researchItems.map((r) => ({ ...r, draft: false })),
+  ...extraPosts,
+].sort((a, b) => {
+  if (a.href === ATLAS_HREF) return -1;
+  if (b.href === ATLAS_HREF) return 1;
+  return b.date.localeCompare(a.date);
+});
 
 const studies = [
   {
@@ -57,62 +81,32 @@ const studies = [
       <p class="label-mono mb-4">Published</p>
       <h2 id="published">Studies, papers and tools.</h2>
       <ul class="items">
-        {items.map((r) => (
+        {allItems.map((r) => (
           <li>
             <a href={r.href} class="item">
-              <div class="item-figure">
-                {r.glyph ? (
-                  <GlyphArt piece={r.glyphIndex ?? r.glyph} label={(r.glyphIndex ? r.altIndex : r.alt) ?? ""} class="item-glyph" still={r.image} options={{ interactive: false }} />
-                ) : (
-                  <img src={r.image} alt={r.alt} loading="lazy" decoding="async" />
-                )}
-              </div>
+              {(r.glyph || r.image) && (
+                <div class="item-figure">
+                  {r.glyph ? (
+                    <GlyphArt piece={("glyphIndex" in r && r.glyphIndex) ? r.glyphIndex : r.glyph} label={(("glyphIndex" in r && r.glyphIndex) ? r.altIndex : r.alt) ?? ""} class="item-glyph" still={r.image} options={{ interactive: false }} />
+                  ) : (
+                    <img src={r.image} alt={r.alt} loading="lazy" decoding="async" />
+                  )}
+                </div>
+              )}
               <div class="item-text">
                 <p class="label-mono">
                   {r.kind} · <time datetime={r.date}>{formatDate(new Date(r.date))}</time>
+                  {r.draft && " · Draft"}
                 </p>
-                <p class="label-mono item-models">{r.models}</p>
+                {r.models && <p class="label-mono item-models">{r.models}</p>}
                 <h3>{r.title}</h3>
                 <p class="item-line">{r.line}</p>
-                <span class="link-arrow mt-6">Read</span>
+                <span class="link-arrow mt-6">{r.draft ? "Preview draft" : "Read"}</span>
               </div>
             </a>
           </li>
         ))}
       </ul>
-
-      {others.length > 0 && (
-        <div class="others">
-          <p class="label-mono mb-4">Draft previews (local dev)</p>
-          <ul class="items">
-            {others.map((post) => (
-              <li>
-                <a href={post.href} class="item">
-                  {draftGlyphs[post.id] && (
-                    <div class="item-figure">
-                      <GlyphArt
-                        piece={draftGlyphs[post.id]}
-                        label={post.title}
-                        class="item-glyph"
-                        options={{ interactive: false }}
-                      />
-                    </div>
-                  )}
-                  <div class="item-text">
-                    <p class="label-mono">
-                      {post.tag} · <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>
-                      {post.draft && " · Draft"}
-                    </p>
-                    <h3>{post.title}</h3>
-                    <p class="item-line">{post.description}</p>
-                    <span class="link-arrow mt-6">Preview draft</span>
-                  </div>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   </section>
 
