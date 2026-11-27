@@ -9,8 +9,14 @@ import { getPublishedPosts, formatDate } from "../../data/posts";
 const items = [...researchItems].sort((a, b) => b.date.localeCompare(a.date));
 const listed = new Set(items.map((r) => r.href));
 const others = (await getPublishedPosts())
-  .map((post) => ({ href: `/research/${post.id}/`, ...post.data }))
+  .map((post) => ({ href: `/research/${post.id}/`, id: post.id, ...post.data }))
   .filter((post) => !listed.has(post.href));
+
+const draftGlyphs: Record<string, "dose-probe" | "looped-passes" | "cue-shift"> = {
+  "dose-error-probe": "dose-probe",
+  "looped-model-dose-errors": "looped-passes",
+  "silent-accommodation": "cue-shift",
+};
 
 const studies = [
   {
@@ -77,16 +83,30 @@ const studies = [
 
       {others.length > 0 && (
         <div class="others">
-          <p class="label-mono mb-4">Also published</p>
-          <ul>
+          <p class="label-mono mb-4">Draft previews (local dev)</p>
+          <ul class="items">
             {others.map((post) => (
               <li>
-                <a href={post.href} class="other">
-                  <span class="label-mono">
-                    {post.tag} · <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>
-                    {post.draft && " · Draft"}
-                  </span>
-                  <span class="other-title">{post.title}</span>
+                <a href={post.href} class="item">
+                  {draftGlyphs[post.id] && (
+                    <div class="item-figure">
+                      <GlyphArt
+                        piece={draftGlyphs[post.id]}
+                        label={post.title}
+                        class="item-glyph"
+                        options={{ interactive: false }}
+                      />
+                    </div>
+                  )}
+                  <div class="item-text">
+                    <p class="label-mono">
+                      {post.tag} · <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>
+                      {post.draft && " · Draft"}
+                    </p>
+                    <h3>{post.title}</h3>
+                    <p class="item-line">{post.description}</p>
+                    <span class="link-arrow mt-6">Preview draft</span>
+                  </div>
                 </a>
               </li>
             ))}

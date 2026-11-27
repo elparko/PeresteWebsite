@@ -1,0 +1,205 @@
+---
+const summary =
+  "Diagram of a looped language model running its middle layers three times per token, with toggles showing how the apparent Pass 3 error-probe gain shrinks when restricted to numeric doses, and how dosing errors climb from 1-step to 3-step clinical rules.";
+---
+
+<figure class="lp-hero" data-lph>
+  <div class="lph-tabs" role="tablist" aria-label="View">
+    <button type="button" class="lph-tab" role="tab" aria-selected="true" data-mode="numeric">
+      Numeric doses only (n = 1,940)
+    </button>
+    <button type="button" class="lph-tab" role="tab" aria-selected="false" data-mode="all">
+      All questions (n = 2,391)
+    </button>
+    <button type="button" class="lph-tab" role="tab" aria-selected="false" data-mode="hops">
+      Error rate by rule steps
+    </button>
+  </div>
+
+  <div class="lph-stage" role="img" aria-label={summary}>
+    <!-- Architecture + pass probe readout -->
+    <div data-pane="passes">
+      <svg class="lph-svg" viewBox="0 0 520 225" width="520" height="225" aria-hidden="true">
+        <defs>
+          <marker id="lph-arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#232c54" />
+          </marker>
+          <marker id="lph-arr-teal" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#0f8794" />
+          </marker>
+        </defs>
+
+        <!-- Prelude block -->
+        <rect x="14" y="54" width="84" height="58" rx="8" fill="#ffffff" stroke="#c5cbd3" stroke-width="1.2" />
+        <text x="56" y="79" text-anchor="middle" class="lph-box-t">Entry</text>
+        <text x="56" y="96" text-anchor="middle" class="lph-box-s">layers 0–5</text>
+
+        <line x1="98" y1="83" x2="128" y2="83" stroke="#232c54" stroke-width="1.4" marker-end="url(#lph-arr)" />
+
+        <!-- Shared looped middle block -->
+        <rect x="132" y="42" width="224" height="82" rx="10" fill="#eef4f8" stroke="#0f8794" stroke-width="1.6" />
+        <text x="244" y="64" text-anchor="middle" class="lph-box-t">Shared middle layers (6–17)</text>
+        <text x="244" y="80" text-anchor="middle" class="lph-box-s">same weights run 3 times per token</text>
+
+        <!-- Loopback arc above -->
+        <path d="M 326 42 C 326 12, 162 12, 162 40" fill="none" stroke="#0f8794" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#lph-arr-teal)" />
+        <text x="244" y="13" text-anchor="middle" class="lph-loop-lbl">loops back for pass 2 &amp; pass 3</text>
+
+        <!-- 3 pass readout pills inside block -->
+        <g>
+          <rect x="145" y="92" width="60" height="24" rx="5" fill="#ffffff" stroke="#cbd5e1" />
+          <text x="175" y="108" text-anchor="middle" class="lph-p-val" data-p="1">0.675</text>
+          <rect x="214" y="92" width="60" height="24" rx="5" fill="#ffffff" stroke="#cbd5e1" />
+          <text x="244" y="108" text-anchor="middle" class="lph-p-val" data-p="2">0.664</text>
+          <rect x="283" y="92" width="60" height="24" rx="5" fill="#232c54" />
+          <text x="313" y="108" text-anchor="middle" class="lph-p-val lph-p-val--inv" data-p="3">0.692</text>
+        </g>
+        <text x="175" y="138" text-anchor="middle" class="lph-tick">Pass 1</text>
+        <text x="244" y="138" text-anchor="middle" class="lph-tick">Pass 2</text>
+        <text x="313" y="138" text-anchor="middle" class="lph-tick">Pass 3</text>
+
+        <line x1="356" y1="83" x2="386" y2="83" stroke="#232c54" stroke-width="1.4" marker-end="url(#lph-arr)" />
+
+        <!-- Coda + first token -->
+        <rect x="390" y="54" width="116" height="58" rx="8" fill="#ffffff" stroke="#232c54" stroke-width="1.2" />
+        <text x="448" y="76" text-anchor="middle" class="lph-box-t">Output layers</text>
+        <text x="448" y="93" text-anchor="middle" class="lph-box-s">18–23 → " " vs " AV"</text>
+
+        <!-- Bottom comparison strip -->
+        <rect x="14" y="156" width="492" height="56" rx="8" fill="#ffffff" stroke="#e3e8ef" />
+        <text x="32" y="178" class="lph-stat-k">Pass 3 minus Pass 1</text>
+        <text x="32" y="198" class="lph-stat-v" data-diff>+0.017 (not above zero, p = 0.653)</text>
+        <line x1="318" y1="166" x2="318" y2="202" stroke="#e3e8ef" />
+        <text x="334" y="178" class="lph-stat-k">Self-check P(No)</text>
+        <text x="334" y="198" class="lph-stat-v lph-stat-v--teal" data-pno>0.689 (leads Pass 3)</text>
+      </svg>
+    </div>
+
+    <!-- Hop complexity bars -->
+    <div data-pane="hops" hidden>
+      <svg class="lph-svg" viewBox="0 0 520 225" width="520" height="225" aria-hidden="true">
+        <line x1="160" y1="184" x2="475" y2="184" stroke="#c5cbd3" stroke-width="1" />
+        <text x="160" y="202" text-anchor="middle" class="lph-tick">0%</text>
+        <text x="317" y="202" text-anchor="middle" class="lph-tick">50%</text>
+        <text x="475" y="202" text-anchor="middle" class="lph-tick">100%</text>
+        <text x="317" y="219" text-anchor="middle" class="lph-tick">Inkling 2 Mini dosing error rate (lower is better)</text>
+
+        <!-- 1-hop: 18.7% (n=1,050) -->
+        <text x="150" y="52" text-anchor="end" class="lph-box-t">1-step lookup</text>
+        <text x="150" y="66" text-anchor="end" class="lph-box-s">standard adult dose (n=1,050)</text>
+        <rect x="160" y="40" width="59" height="26" rx="4" fill="#0f8794" />
+        <text x="227" y="58" class="lph-stat-v">18.7%</text>
+
+        <!-- 2-hop: 44.0% (n=1,305) -->
+        <text x="150" y="106" text-anchor="end" class="lph-box-t">2-step rule</text>
+        <text x="150" y="120" text-anchor="end" class="lph-box-s">+ 1 modifier, e.g. kidney (n=1,305)</text>
+        <rect x="160" y="94" width="139" height="26" rx="4" fill="#232c54" />
+        <text x="307" y="112" class="lph-stat-v">44.0%</text>
+
+        <!-- 3-hop: 61.1% (n=36) -->
+        <text x="150" y="160" text-anchor="end" class="lph-box-t">3-step rule</text>
+        <text x="150" y="174" text-anchor="end" class="lph-box-s">2+ modifiers at once (n=36)</text>
+        <rect x="160" y="148" width="192" height="26" rx="4" fill="#b4532a" />
+        <text x="360" y="166" class="lph-stat-v lph-stat-v--danger">61.1%</text>
+      </svg>
+    </div>
+  </div>
+
+  <figcaption class="lph-cap" data-cap aria-live="polite">
+    Inside numeric dose questions, the apparent Pass 3 probe gain shrinks to <strong>+0.017</strong> (p = 0.653), and stratified by rule type the model's own self-check (<strong>0.689</strong>) leads Pass 3 (<strong>0.655</strong>).
+  </figcaption>
+</figure>
+
+<style>
+  .lp-hero {
+    --ink: #232c54;
+    --muted: #5a6472;
+    --teal: #0f8794;
+    --danger: #b4532a;
+    --line: #e3e8ef;
+    background: #f6f8fa;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    padding: 1.15rem 1.25rem 1rem;
+    font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  }
+  .lph-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.1rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.75rem;
+  }
+  .lph-tab {
+    background: none;
+    border: 0;
+    padding: 0.15rem 0;
+    font: 600 0.76rem/1.3 inherit;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .lph-tab[aria-selected="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+  .lph-svg { display: block; width: 100%; height: auto; }
+  .lph-box-t { fill: var(--ink); font-size: 11.5px; font-weight: 600; }
+  .lph-box-s { fill: var(--muted); font-size: 9.5px; }
+  .lph-loop-lbl { fill: var(--teal); font-size: 10px; font-weight: 600; }
+  .lph-tick { fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+  .lph-p-val { fill: var(--ink); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lph-p-val--inv { fill: #ffffff; }
+  .lph-stat-k { fill: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .lph-stat-v { fill: var(--ink); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lph-stat-v--teal { fill: var(--teal); }
+  .lph-stat-v--danger { fill: var(--danger); }
+  .lph-cap { margin: 0.65rem 0 0; font-size: 0.8rem; line-height: 1.48; color: var(--muted); }
+  .lph-cap strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-lph]").forEach((root) => {
+    const MODES = {
+      numeric: {
+        p1: "0.675", p2: "0.664", p3: "0.692",
+        diff: "+0.017 (not above zero, p = 0.653)",
+        pno: "0.689 (stratified; beats Pass 3)",
+        cap: 'Inside numeric dose questions (n = 1,940), the apparent Pass 3 probe gain shrinks to <strong>+0.017</strong> (p = 0.653), and stratified by rule type the self-check (<strong>0.689</strong>) leads Pass 3 (<strong>0.655</strong>).',
+      },
+      all: {
+        p1: "0.692", p2: "0.706", p3: "0.738",
+        diff: "+0.046 (q = 0.087; driven by AVOID split)",
+        pno: "0.712 (dragged down by false refusals)",
+        cap: 'Across all 2,391 questions, Pass 3 scored <strong>0.738</strong> vs Pass 1 <strong>0.692</strong>, mainly because Pass 3 feeds the output layers where the model chooses between a space (" ") for a dose and " AV" for AVOID.',
+      },
+      hops: {
+        cap: 'Errors rise steeply as clinical rules require combining more patient facts at once: <strong>18.7%</strong> for standard adult lookups, <strong>44.0%</strong> with one modifier, and <strong>61.1%</strong> with two or more modifiers.',
+      },
+    };
+    const tabs = root.querySelectorAll<HTMLButtonElement>(".lph-tab");
+    const panePasses = root.querySelector<HTMLElement>('[data-pane="passes"]')!;
+    const paneHops = root.querySelector<HTMLElement>('[data-pane="hops"]')!;
+    const cap = root.querySelector<HTMLElement>("[data-cap]")!;
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const m = tab.dataset.mode as keyof typeof MODES;
+        tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+        const isHops = m === "hops";
+        panePasses.hidden = isHops;
+        paneHops.hidden = !isHops;
+        if (!isHops) {
+          const d = MODES[m];
+          root.querySelector('[data-p="1"]')!.textContent = d.p1;
+          root.querySelector('[data-p="2"]')!.textContent = d.p2;
+          root.querySelector('[data-p="3"]')!.textContent = d.p3;
+          root.querySelector("[data-diff]")!.textContent = d.diff;
+          root.querySelector("[data-pno]")!.textContent = d.pno;
+        }
+        cap.innerHTML = MODES[m].cap;
+      });
+    });
+  });
+</script>

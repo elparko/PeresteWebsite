@@ -1,0 +1,239 @@
+---
+const summary =
+  "Interactive example comparing an emergency question paired with a neutral sentence of identical token length against a sentence about cost or doctor authority, alongside early Qwen3-1.7B and Qwen3-4B safety-score results.";
+---
+
+<figure class="sa-hero" data-sah>
+  <div class="sah-toggle" role="group" aria-label="Extra sentence type">
+    <button type="button" class="sah-btn" aria-pressed="false" data-kind="filler">
+      Neutral sentence (same length)
+    </button>
+    <button type="button" class="sah-btn" aria-pressed="true" data-kind="cue">
+      Patient circumstance sentence
+    </button>
+  </div>
+
+  <div class="sah-card" role="img" aria-label={summary}>
+    <div class="sah-prompt">
+      <span class="sah-tag" data-tag>Added sentence (exact same token count)</span>
+      <p class="sah-quote" data-quote>
+        "I do not have health insurance right now and cannot afford an ambulance ride or an emergency room bill."
+      </p>
+      <p class="sah-base">
+        + Identical acute emergency question (chest pain, stroke signs, or severe bleeding)
+      </p>
+    </div>
+
+    <!-- Bar comparison: Qwen3-1.7B vs Qwen3-4B safety rank -->
+    <svg class="sah-svg" viewBox="0 0 500 165" width="500" height="165" aria-hidden="true">
+      <line x1="125" y1="132" x2="465" y2="132" stroke="#c5cbd3" stroke-width="1" />
+      <text x="125" y="148" text-anchor="middle" class="sah-tick">0</text>
+      <text x="238" y="148" text-anchor="middle" class="sah-tick">1.0</text>
+      <text x="351" y="148" text-anchor="middle" class="sah-tick">2.0</text>
+      <text x="465" y="148" text-anchor="middle" class="sah-tick">3.0</text>
+      <text x="295" y="162" text-anchor="middle" class="sah-tick">Emergency triage safety rank (higher = stronger 911 / do-not-drive advice)</text>
+
+      <!-- Row 1: Qwen3-1.7B -->
+      <text x="115" y="42" text-anchor="end" class="sah-lbl">Qwen3-1.7B</text>
+      <text x="115" y="55" text-anchor="end" class="sah-sub">2,340 / 2,340</text>
+      <!-- ghost filler reference -->
+      <rect x="125" y="30" width="153" height="22" rx="4" fill="#e2e8f0" />
+      <rect x="125" y="30" width="148" height="22" rx="4" class="sah-bar sah-bar--ink" data-bar="m17" />
+      <text x="281" y="45" class="sah-val" data-val="m17">1.31</text>
+
+      <!-- Row 2: Qwen3-4B -->
+      <text x="115" y="96" text-anchor="end" class="sah-lbl">Qwen3-4B</text>
+      <text x="115" y="109" text-anchor="end" class="sah-sub">1,920 / 2,340</text>
+      <!-- ghost filler reference at 2.544 -> 288px -->
+      <rect x="125" y="84" width="288" height="22" rx="4" fill="#e2e8f0" />
+      <rect x="125" y="84" width="240" height="22" rx="4" class="sah-bar sah-bar--danger" data-bar="m4" />
+      <text x="373" y="99" class="sah-val sah-val--danger" data-val="m4">2.12</text>
+      <text x="418" y="99" class="sah-ghost" data-ghost>(vs 2.54)</text>
+    </svg>
+
+    <div class="sah-ladder" aria-label="Six-model testing progress">
+      <span class="sah-chip sah-chip--done">1.7B done</span>
+      <span class="sah-chip sah-chip--live">4B running</span>
+      <span class="sah-chip">8B</span>
+      <span class="sah-chip">14B</span>
+      <span class="sah-chip">32B</span>
+      <span class="sah-chip">35B</span>
+    </div>
+  </div>
+
+  <figcaption class="sah-cap" data-cap aria-live="polite">
+    With a sentence about cost, authority, or reluctance, Qwen3-4B's emergency triage score drops from <strong>2.54</strong> (neutral sentence of the exact same length) to <strong>2.12</strong>, even though routine questions stay <strong>99.4%</strong> accurate.
+  </figcaption>
+</figure>
+
+<style>
+  .sa-hero {
+    --ink: #232c54;
+    --muted: #5a6472;
+    --teal: #0f8794;
+    --danger: #b4532a;
+    --line: #e3e8ef;
+    background: #f6f8fa;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    padding: 1.15rem 1.25rem 1rem;
+    font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  }
+  .sah-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.85rem;
+  }
+  .sah-btn {
+    font: 600 0.74rem/1.25 inherit;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+  .sah-btn[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #ffffff;
+  }
+  .sah-prompt {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--danger);
+    border-radius: 0.6rem;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.75rem;
+    transition: border-left-color 200ms ease;
+  }
+  .sah-prompt.is-filler {
+    border-left-color: var(--teal);
+  }
+  .sah-tag {
+    display: block;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--danger);
+    margin-bottom: 0.25rem;
+  }
+  .sah-prompt.is-filler .sah-tag {
+    color: var(--teal);
+  }
+  .sah-quote {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .sah-base {
+    margin: 0.3rem 0 0;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .sah-svg { display: block; width: 100%; height: auto; }
+  .sah-lbl { fill: var(--ink); font-size: 11.5px; font-weight: 600; }
+  .sah-sub { fill: var(--muted); font-size: 9.5px; font-variant-numeric: tabular-nums; }
+  .sah-tick { fill: var(--muted); font-size: 9.5px; font-variant-numeric: tabular-nums; }
+  .sah-val { fill: var(--ink); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; transition: x 340ms ease; }
+  .sah-val--danger { fill: var(--danger); }
+  .sah-ghost { fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+  .sah-bar { transition: width 340ms cubic-bezier(0.22, 1, 0.36, 1), fill 200ms ease; }
+  .sah-bar--ink { fill: var(--ink); }
+  .sah-bar--teal { fill: var(--teal); }
+  .sah-bar--danger { fill: var(--danger); }
+  .sah-ladder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid var(--line);
+  }
+  .sah-chip {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    background: #eef2f6;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .sah-chip--done {
+    background: #d8f1f3;
+    color: #0b6670;
+  }
+  .sah-chip--live {
+    background: #232c54;
+    color: #ffffff;
+  }
+  .sah-cap { margin: 0.65rem 0 0; font-size: 0.8rem; line-height: 1.48; color: var(--muted); }
+  .sah-cap strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) {
+    .sah-bar, .sah-val { transition: none; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-sah]").forEach((root) => {
+    const STATES = {
+      cue: {
+        tag: "Patient circumstance sentence (exact same token count)",
+        quote: '"I do not have health insurance right now and cannot afford an ambulance ride or an emergency room bill."',
+        m17: 1.308,
+        m4: 2.119,
+        ghost: "(vs 2.54)",
+        cap: 'With a sentence about cost, authority, or reluctance, Qwen3-4B\'s emergency triage score drops from <strong>2.54</strong> (neutral sentence of the exact same length) to <strong>2.12</strong>, even though routine questions stay <strong>99.4%</strong> accurate.',
+      },
+      filler: {
+        tag: "Matched neutral sentence (exact same token count)",
+        quote: '"Our kitchen window faces a small fenced garden where yellow marigolds bloom throughout the late summer months."',
+        m17: 1.347,
+        m4: 2.544,
+        ghost: "(baseline 2.57)",
+        cap: 'With a neutral sentence of the exact same length, Qwen3-4B holds an emergency triage score of <strong>2.54</strong> (nearly identical to the <strong>2.57</strong> baseline with no added sentence).',
+      },
+    };
+    const wOf = (v: number) => (v / 3.0) * 340;
+    const btns = root.querySelectorAll<HTMLButtonElement>(".sah-btn");
+    const promptBox = root.querySelector<HTMLElement>(".sah-prompt")!;
+    const tagEl = root.querySelector<HTMLElement>("[data-tag]")!;
+    const quoteEl = root.querySelector<HTMLElement>("[data-quote]")!;
+    const b17 = root.querySelector<SVGRectElement>('[data-bar="m17"]')!;
+    const b4 = root.querySelector<SVGRectElement>('[data-bar="m4"]')!;
+    const v17 = root.querySelector<SVGTextElement>('[data-val="m17"]')!;
+    const v4 = root.querySelector<SVGTextElement>('[data-val="m4"]')!;
+    const ghostEl = root.querySelector<SVGTextElement>("[data-ghost]")!;
+    const cap = root.querySelector<HTMLElement>("[data-cap]")!;
+
+    function setKind(k: "cue" | "filler") {
+      const s = STATES[k];
+      const isFiller = k === "filler";
+      btns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.kind === k)));
+      promptBox.classList.toggle("is-filler", isFiller);
+      tagEl.textContent = s.tag;
+      quoteEl.textContent = s.quote;
+      const w17 = wOf(s.m17), w4 = wOf(s.m4);
+      b17.setAttribute("width", w17.toFixed(1));
+      b4.setAttribute("width", w4.toFixed(1));
+      b4.classList.toggle("sah-bar--danger", !isFiller);
+      b4.classList.toggle("sah-bar--teal", isFiller);
+      v17.setAttribute("x", (125 + w17 + 8).toFixed(1));
+      v17.textContent = s.m17.toFixed(2);
+      v4.setAttribute("x", (125 + w4 + 8).toFixed(1));
+      v4.textContent = s.m4.toFixed(2);
+      v4.classList.toggle("sah-val--danger", !isFiller);
+      ghostEl.setAttribute("x", (125 + w4 + 48).toFixed(1));
+      ghostEl.textContent = s.ghost;
+      cap.innerHTML = s.cap;
+    }
+
+    btns.forEach((b) => b.addEventListener("click", () => setKind(b.dataset.kind as "cue" | "filler")));
+    setKind("cue");
+  });
+</script>

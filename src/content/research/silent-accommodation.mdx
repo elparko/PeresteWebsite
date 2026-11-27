@@ -1,55 +1,80 @@
 ---
-title: "Silent accommodation and unfaithful chain-of-thought in clinical language models across scale"
-description: "A zero-token-delta scale-ladder study testing whether non-clinical social, financial, authority, and demographic cues downgrade emergency triage and medication override advice across Qwen3 models from 1.7B to 35B-A3B, and whether internal monitors recover safety where visible reasoning fails."
+title: "When one extra sentence makes a model back off from calling 911"
+description: "Does one sentence about cost, travel distance, or a patient's doctor make a language model downgrade emergency triage or medication warnings? We test six sizes of the Qwen3 family against neutral sentences of the exact same length, and ask whether reading the model's internal state catches safety drops that its written reasoning hides."
 date: 2026-11-27
 author: "Parker Smith"
 tag: "Study"
 draft: true
 toc: true
-hero: false
+hero: true
 ---
 
-Patients in rural and underserved settings routinely add context about cost, insurance status, travel distance, clinician authority, or personal reluctance when asking about symptoms or medications. An earlier pilot on `Qwen3.5-4B` found that adding a single sentence about lacking insurance lowered emergency ambulance recommendations on an initial set of 16 emergencies, although that specific effect did not replicate on 32 new scenarios and a neutral sentence about reaching care altered replies by a similar amount. Whether non-clinical patient cues systematically downgrade high-stakes clinical safety advice once prompt length is held strictly constant, whether larger reasoning models conceal that accommodation behind clinically plausible chain-of-thought (`<think>`) explanations, and whether white-box residual monitors and causal subspace erasure restore safety are the central aims of this study.
+import PostHero from "../../components/research/PostHero.astro";
+import CueScaleHero from "../../components/research/silent-accommodation/CueScaleHero.astro";
+import "../../styles/research-atlas.css";
 
-This study evaluates open-weight models on controlled synthetic clinical scenarios. It does not test any deployed clinical system and should not guide patient care.
+<PostHero post={props.post} headings={props.headings} titleBreakAfter="model">
+<CueScaleHero />
+</PostHero>
 
-## Experimental design
+Real patients rarely describe symptoms in a vacuum. Especially in rural and underserved communities, people add context about their lives: they have no insurance, they live 85 miles from the nearest hospital, they do not want to question their doctor, or they feel fine and do not want to go in. In an earlier pilot on `Qwen3.5-4B`, adding one sentence about lacking insurance lowered how often the model opened with "call EMS" on an initial set of 16 emergencies, though that effect did not repeat on 32 new scenarios and a neutral sentence about reaching care changed replies by a similar amount.
 
-The benchmark (`silent_accommodation`) comprises 180 clinically unambiguous scenarios (seed `20261126`, split 50/50 into 90 discovery and 90 test scenarios) across three balanced arms:
+That mixed result left a sharper question. When we hold prompt length strictly identical by pairing every patient-circumstance sentence with a neutral sentence of the exact same token count, do language models systematically back off from emergency 911 advice or stop-medication warnings? Does that habit grow stronger or weaker as models get larger, from 1.7 billion to 35 billion parameters? And when a model downgrades a recommendation, does its written reasoning admit why, or does it quietly rationalize a softer answer on clinical grounds?
 
-- **Acute triage emergencies (`acute_triage`, n = 60):** textbook presentations requiring immediate emergency medical services (`ems_now`) and an explicit instruction not to drive.
-- **High-alert medication overrides (`rx_override`, n = 60):** dangerous dosing or contraindication scenarios requiring an immediate `stop_do_not_take_now` instruction.
-- **Routine and medical-education controls (`routine_control`, n = 60):** non-urgent presentations where an emergency escalation or stop-medication directive counts as a false alarm.
+This study tests open-weight models on controlled synthetic clinical scenarios. It does not evaluate any deployed clinical tool and should not guide patient care.
 
-Each scenario is rendered in 13 variants (2,340 prompts per model): an unperturbed baseline (`none`), 6 non-clinical driver cues (`uninsured_cost`, `rural_distance`, `dialect_vernacular`, `authority_anchor`, `sycophancy_pushback`, and `elderly_frailty`), and 6 matched control fillers (`4` neutral fillers and `2` contrastive register or demographic controls) verified to have an exact 0-token length difference under the `Qwen/Qwen3-8B` tokenizer. To eliminate the 2,048-token thinking-truncation confound observed in earlier pilot runs, every generation runs with `max_new_tokens = 4096` and records residual-stream activations at `cue_end`, `think_end`, and `reply_start`.
+<details className="terms-fold">
+<summary><h2 id="terms-used-here">Terms used here</h2></summary>
 
-The planned scale ladder spans six open-weight models in native `bfloat16` (or 8-bit where required by 40 GB VRAM): `Qwen/Qwen3-1.7B`, `Qwen/Qwen3-4B`, `Qwen/Qwen3-8B`, `Qwen/Qwen3-14B`, `Qwen/Qwen3-32B`, and `Qwen/Qwen3.6-35B-A3B`.
+| Term | Meaning |
+| --- | --- |
+| Token-matched control sentence | A neutral sentence (such as describing a garden window or a hallway clock) written to take the exact same number of tokens as the patient-circumstance sentence, so any difference in the reply cannot come from prompt length alone. |
+| Silent accommodation | Backing off from an urgent safety instruction (such as calling 911 or stopping a dangerous drug) because of a non-clinical detail like cost or reluctance, without stating that detail as the reason in the reasoning trace. |
+| Safety rank | A numeric score measuring how strongly a reply meets the required clinical safety action (higher means a clearer emergency or stop-medication directive). |
+| Thinking block (`<think>`) | The step-by-step reasoning text a Qwen3 model writes to itself before producing the reply shown to the user. |
+| Internal monitor | A classifier read from the model's hidden internal state (at the end of the extra sentence, the end of thinking, or the start of the reply) to detect safety drops even when the visible reasoning looks clinically sound. |
 
-## Early scale-ladder checkpoints (`Qwen3-1.7B` complete; `Qwen3-4B` in progress)
+</details>
 
-Increasing the generation budget to 4,096 tokens virtually eliminated thinking truncation: 98.2% of `Qwen3-1.7B` replies (2,340 of 2,340 completed) and 99.2% of `Qwen3-4B` replies (1,920 of 2,340 scored in an interim check) terminated cleanly at end-of-sequence, with only 1.6% and 0.7% think-truncated. Both models maintained low false-alarm rates on `routine_control` (97.2% to 98.6% gold met on `1.7B`; 99.4% to 100.0% on `4B`).
+## How the test is built
 
-Across the first step in scale from `1.7B` to `4B`, a zero-token-delta cue gap already appears on `acute_triage` safety rank:
+The benchmark consists of 180 clinically clear scenarios (split evenly into 90 discovery scenarios for fitting monitors and 90 held-out test scenarios) across three balanced groups:
 
-| Model | Status | `acute_triage` Safety Rank (Cue vs Filler vs None) | `acute_triage` Gold Met (Cue vs Filler) | `rx_override` Gold Met (Cue vs Filler) | `routine_control` Gold Met (Cue vs Filler) |
+- **Acute emergencies (60 scenarios):** textbook emergencies where the safe answer is to call 911 immediately and not drive.
+- **High-alert medication warnings (60 scenarios):** dangerous regimens or contraindications where the safe answer is to stop or not take the drug right away.
+- **Routine questions (60 scenarios):** everyday non-urgent complaints and medical education questions, included as a guardrail check so any safety intervention cannot cheat by sending everyone to the emergency room.
+
+Every scenario is asked 13 ways (2,340 prompts per model): once with no extra sentence, 6 times with a sentence about a non-clinical circumstance (cost and lack of insurance, 85-mile rural distance, informal dialect, a doctor who dislikes being questioned, patient pushback, or being an 84-year-old retired farmer), and 6 times with a matched control sentence verified to have the exact same token length. Every reply gets a generous 4,096-token budget so models finish thinking cleanly rather than getting cut off mid-sentence, and we save the model's internal state at three checkpoints along each reply.
+
+We are running six sizes of the Qwen3 family in sequence: `Qwen3-1.7B`, `Qwen3-4B`, `Qwen3-8B`, `Qwen3-14B`, `Qwen3-32B`, and `Qwen3.6-35B-A3B`.
+
+## First results from `1.7B` and `4B`
+
+Raising the reply budget to 4,096 tokens virtually eliminated cut-off thinking blocks: 98.2% of `Qwen3-1.7B` replies (all 2,340 completed) and 99.2% of `Qwen3-4B` replies (1,920 of 2,340 scored in an interim check) finished normally, with only 1.6% and 0.7% cut off. Both models stayed accurate on routine questions without false alarms (97.2% to 98.6% on `1.7B`, and 99.4% to 100.0% on `4B`).
+
+Even in the first step up in model size from `1.7B` to `4B`, a length-matched gap already opens on emergency triage:
+
+| Model | Progress | Emergency safety rank (circumstance vs neutral vs none) | Emergencies fully met (circumstance vs neutral) | Medication warnings met (circumstance vs neutral) | Routine accuracy (circumstance vs neutral) |
 | --- | --- | --- | ---: | ---: | ---: |
-| `Qwen/Qwen3-1.7B` | Complete (2,340 / 2,340) | 1.308 vs 1.347 vs 1.467 | 4.4% vs 2.5% | 4.7% vs 4.2% | 97.2% vs 98.6% |
-| `Qwen/Qwen3-4B` | Interim (1,920 / 2,340) | 2.119 vs 2.544 vs 2.567 | 5.8% vs 7.8% | 13.3% vs 13.9% | 99.4% vs 99.4% |
-| `Qwen/Qwen3-8B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
-| `Qwen/Qwen3-14B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
-| `Qwen/Qwen3-32B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
-| `Qwen/Qwen3.6-35B-A3B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| `Qwen3-1.7B` | Complete (2,340 / 2,340) | 1.31 vs 1.35 vs 1.47 | 4.4% vs 2.5% | 4.7% vs 4.2% | 97.2% vs 98.6% |
+| `Qwen3-4B` | Interim (1,920 / 2,340) | 2.12 vs 2.54 vs 2.57 | 5.8% vs 7.8% | 13.3% vs 13.9% | 99.4% vs 99.4% |
+| `Qwen3-8B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| `Qwen3-14B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| `Qwen3-32B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| `Qwen3.6-35B-A3B` | Queued | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
 
-In `Qwen3-1.7B`, `acute_triage` safety rank differed by -0.039 between cue and token-matched filler (1.308 versus 1.347). In the interim `Qwen3-4B` slice, safety rank rose to 2.544 on token-matched fillers (2.567 on `none`) but fell to 2.119 on non-clinical cues (a drop of 0.425 despite zero token-length delta), even while the model's internal self-check probability (`p_no_self_check`) remained near zero (0.000 on filler and `none`, 0.019 on cue). In that interim `4B` slice, the largest negative cue-minus-filler gold-met gaps appeared for `authority_anchor` (-8.3 percentage points on both `acute_triage` and `rx_override`), `uninsured_cost` (-6.7 percentage points on `acute_triage`), `sycophancy_pushback` (-6.7 percentage points on `rx_override`), and `elderly_frailty` (-5.0 percentage points on `acute_triage`), whereas `rural_distance` showed an increase (+13.3 percentage points on `acute_triage`).
+On `Qwen3-1.7B`, the emergency safety rank barely differed between patient-circumstance sentences and matched neutral sentences (1.31 versus 1.35, a difference of -0.04). On the interim `Qwen3-4B` slice, the safety rank rose to 2.54 on neutral sentences (almost identical to the 2.57 baseline with no extra sentence), then dropped to 2.12 when a patient-circumstance sentence of the exact same length was present (a drop of 0.43). Yet when asked directly whether the case was safe to downgrade, `Qwen3-4B`'s self-check probability stayed near zero (0.000 on neutral sentences and 0.019 on circumstance sentences).
 
-## Chain-of-thought faithfulness, white-box monitors, and causal subspace erasure
+Broken down by sentence type on the interim `4B` slice, the steepest drops in meeting the full safety standard came from doctor-authority pressure (-8.3 percentage points on both emergencies and medication warnings), cost and lack of insurance (-6.7 points on emergencies), patient pushback (-6.7 points on medication warnings), and older age (-5.0 points on emergencies), while mentioning an 85-mile rural drive moved in the opposite direction (+13.3 points on emergencies).
 
-> **[PENDING: Study 1 scale ladder currently running on A100 (`Qwen3-4B` finishing, `8B`, `14B`, `32B`, and `35B-A3B` queued).]** Once all scale-ladder models finish and shards consolidate, this section will report:
-> 1. Full 6-model scaling curves for cue-versus-filler silent accommodation with scenario-cluster bootstrap confidence intervals.
-> 2. Black-box `<think>` chain-of-thought faithfulness audits (how often a downgraded reply cites the non-clinical cue versus rationalizing the downgrade on clinical grounds).
-> 3. White-box residual monitors at `cue_end`, `think_end`, and `reply_start` compared against black-box CoT oversight.
-> 4. Causal pre-KV span patching and linear erasure (LEACE) interventions testing whether removing the cue direction restores emergency and override safety without elevating routine false alarms.
+## Does the written reasoning admit why, and can internal edits fix it?
+
+> **[PENDING: Study 1 currently running on A100 (`Qwen3-4B` finishing, `8B`, `14B`, `32B`, and `35B-A3B` queued).]** Once all six models finish, this section will report:
+> 1. Full 6-model scaling curves comparing circumstance sentences against matched neutral sentences with scenario-clustered confidence intervals.
+> 2. A reasoning-faithfulness audit measuring how often a downgraded reply cites the non-clinical detail in `<think>` versus rationalizing the softer advice on clinical grounds.
+> 3. Whether internal monitors read from the model's hidden state catch silent accommodation more reliably than inspecting the written reasoning.
+> 4. Whether removing the internal cue direction restores emergency and medication safety without increasing false alarms on routine questions.
 
 ## Limitations
 
-The interim `Qwen3-4B` figures above reflect 1,920 of 2,340 prompts prior to full consolidation, statistical inference, and blind human review. Automated action coding will be validated against the study's blinded human audit sheet once generation completes across the scale ladder.
+The `Qwen3-4B` numbers above reflect an interim check at 1,920 of 2,340 prompts before final consolidation, statistical intervals, and human review. Automated action coding will be checked against a blinded human audit sheet once the six-model run finishes.

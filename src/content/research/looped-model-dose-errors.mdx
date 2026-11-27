@@ -1,69 +1,93 @@
 ---
-title: "Does repeated latent computation in a looped language model reduce or expose medication dose errors?"
-description: "A mechanistic and stratified audit of Inkling 2 Mini on 2,391 FDA-label dosing questions, testing whether three recurrent passes over shared layers improve dosing accuracy and error detection, and isolating the output-logit confound behind the apparent Pass 3 probe gain."
+title: "Does running the same layers three times help a language model catch medication dose errors?"
+description: "We tested a looped language model (Inkling 2 Mini) on 2,391 FDA-label dosing questions. An apparent gain on the third pass turned out to be an artifact of the model deciding between a dose and AVOID, while true dosing errors climbed sharply with clinical rule complexity."
 date: 2026-11-27
 author: "Parker Smith"
 tag: "Study"
 draft: true
 toc: true
-hero: false
+hero: true
 ---
 
-Looped transformer architectures run a shared block of middle layers multiple times per token, allocating additional computation without adding new parameters. In medication dosing, where a safe order often requires combining a drug's baseline regimen with a patient's renal clearance, hepatic status, or concurrent medications, repeated latent passes offer a direct architectural test: does running the same weights more than once refine clinical computation, and do internal error signals grow stronger across passes?
+import PostHero from "../../components/research/PostHero.astro";
+import LoopedPassHero from "../../components/research/looped/LoopedPassHero.astro";
+import "../../styles/research-atlas.css";
 
-To test this, we evaluated Inkling 2 Mini (Thinking Machines Lab; 26.4 billion total parameters, a mixture-of-experts model routing 8 of 128 experts per token, with layers 6 through 17 executed across 3 recurrent passes per token in a 4-bit build) on the same 2,391 FDA-label dosing questions across 111 drugs used in our `Qwen3-8B` study. Because the initial pooled analysis left open whether Pass 3 probe gains reflected true error tracking or proximity to the output head, we subsequently ran a deterministic stratified audit (`STRATIFIED_AUDIT.md`, 2,000 drug-cluster bootstrap resamples) and designed a fixed-proximity variable-loop follow-up (Study 3).
+<PostHero post={props.post} headings={props.headings} titleBreakAfter="help">
+<LoopedPassHero />
+</PostHero>
 
-This work studies publicly released research checkpoints run on laboratory hardware. It does not evaluate any clinical product and should not guide patient care.
+Most language models pass each word through every layer once from start to finish. A looped language model works differently: it runs a shared block of middle layers several times on each token before writing the next word, spending extra computation without adding new weights. Medication dosing is a natural test of whether those extra passes actually help, because a safe order often requires combining a drug's baseline dose with a patient's kidney function, liver status, or other medications.
 
-## Overall dosing accuracy and strict-schedule audit
+We tested Inkling 2 Mini (Thinking Machines Lab; 26.4 billion total parameters, routing 8 of 128 experts per token, with layers 6 through 17 run 3 times per token in a 4-bit build) on the same 2,391 FDA-label dosing questions across 111 drugs used in our `Qwen3-8B` study. At first glance, an internal error probe looked stronger after Pass 3 than after Pass 1. A closer stratified audit showed that this apparent gain came almost entirely from a single quirk of the first output token rather than better tracking of numeric dose errors.
 
-Under lenient daily-total grading, Inkling 2 Mini was incorrect on 33.1% of the 2,391 questions (95% CI 28.1% to 38.3%), compared with 50.7% for `Qwen3-8B`. Missed contraindications were the largest single failure category: among 401 questions where the FDA label required avoiding the drug, Inkling 2 Mini stated a dose on 279 (69.6%). In 112 of the 191 cases that had a comparable standard adult regimen, the model stated the exact unadjusted adult dose.
+This work evaluates publicly released research checkpoints on laboratory hardware. It does not test any clinical product and should not guide patient care.
 
-Applying strict-schedule grading (`grade_strict`), which verifies that the stated `doses_per_day` matches the label in addition to the daily total, reclassified 134 Inkling answers from correct to `wrong_schedule`, raising the overall error rate from 33.1% to 38.7%. Repairing 486 mislabeled `adjusted` flags (417 unadjusted rules previously marked `True` and 69 geriatric or weight-adjusted rules previously marked `False`) revealed a monotonic increase in Inkling 2 Mini's error rate with compositional hop count:
+<details className="terms-fold">
+<summary><h2 id="terms-used-here">Terms used here</h2></summary>
 
-- **1-hop rules** (single adult indication lookup, n = 1,050): **18.7%** error rate
-- **2-hop rules** (indication plus one clinical modifier, n = 1,305): **44.0%** error rate
-- **3-hop rules** (indication plus two or more simultaneous modifiers, n = 36): **61.1%** error rate
+| Term | Meaning |
+| --- | --- |
+| Looped model (Pass 1, 2, 3) | A model that runs its middle layers (here layers 6 to 17) three times in a row for each token before passing the result to the final output layers (18 to 23). |
+| Internal probe | A linear classifier read off the model's hidden state after Pass 1, Pass 2, or Pass 3 to predict whether the model's final dosing answer is wrong, always tested on drug classes held out of training. |
+| Self-check, or P(No) | Asking the model whether its own stated dose matches the FDA label and reading the probability it assigns to "No". |
+| Strict schedule grading | Checking both the total daily dose and how many times per day or per week the drug is given. |
+| 1-step, 2-step, and 3-step rules | How many clinical facts must be combined: a standard adult lookup (1 step), adding one modifier such as kidney impairment or a drug interaction (2 steps), or combining two or more modifiers at once (3 steps). |
+| Variable-loop checkpoint | A companion research model (`TML-d24-varloop-research`) whose pass count can be set anywhere from 1 to 5 at test time, so Pass 1 and Pass 5 both sit directly before the output layers. |
 
-## Stratified audit of the apparent Pass 3 probe gain
+</details>
 
-In the pooled analysis across all 2,391 questions, a linear probe read after Pass 3 scored AUROC 0.738 compared with 0.692 after Pass 1 (difference +0.046, 95% CI +0.006 to +0.089, uncorrected p = 0.029; q = 0.087 after correction for three primary comparisons), and did not differ detectably from the model's verbalized self-check `P(No)` (0.738 versus 0.712, difference +0.026, 95% CI -0.016 to +0.070). Four stratified checks showed that this pooled Pass 3 gain is driven by an output-token dichotomy rather than improved numeric dose monitoring:
+## Dosing accuracy and how errors climb with clinical complexity
 
-### 1. Collapse of `Pass 3 - Pass 1` inside numeric dose questions
+Under lenient daily-total grading, Inkling 2 Mini was wrong on 33.1% of the 2,391 questions (95% CI 28.1% to 38.3%), compared with 50.7% for `Qwen3-8B`. Missed contraindications were the largest source of error: among 401 questions where the FDA label said to avoid the drug, the model gave a dose on 279 (69.6%). In 112 of the 191 cases that had a comparable standard adult regimen, it simply stated the exact unadjusted adult dose.
 
-Cross-tabulating ground-truth action (`truth_avoid` vs `truth_dose`) against model output type (`answered_avoid` vs `answered_dose`) yields three pure cells (`truth_avoid | answered_avoid`: n = 122, 0% error; `truth_avoid | answered_dose`: n = 279, 100% error; `truth_dose | answered_avoid`: n = 50, 100% error) and only one cell containing both correct and incorrect labels: `truth_dose | answered_dose` (n = 1,940, 463 errors, 23.9% error rate).
+Checking the dosing schedule strictly (not just the daily total) reclassified 134 answers as wrong-schedule errors, raising the overall error rate from 33.1% to 38.7%. After repairing 486 mislabeled adjustment tags in the question set, Inkling 2 Mini's error rate rose steeply with the number of clinical factors that had to be combined:
 
-Inside `truth_dose | answered_dose`, the pooled `Pass 3 - Pass 1` difference collapses by nearly two-thirds from +0.046 to +0.017 (95% CI -0.047 to +0.080, p = 0.653). Stratified by `rule_kind` (size-weighted across `fixed`, `maximum`, `range`, and `starting` rules), Pass 3 scores 0.655 (95% CI 0.580 to 0.721), trailing `P(No)` at 0.689 (95% CI 0.619 to 0.756; difference -0.034, 95% CI -0.121 to +0.034, p = 0.361). Under strict-schedule grading across all 2,391 questions, `P(No)` also leads Pass 3 (0.751 versus 0.747, difference -0.004, p = 0.810).
+- **1-step rules** (standard adult lookup, n = 1,050): **18.7%** wrong
+- **2-step rules** (indication plus one clinical modifier, n = 1,305): **44.0%** wrong
+- **3-step rules** (indication plus two or more simultaneous modifiers, n = 36): **61.1%** wrong
 
-### 2. Opposite pass trends across error directions
+## Why the Pass 3 probe looked better than it was
 
-| Error Direction (vs 1,599 correct answers) | n Errors | Pass 1 AUROC | Pass 2 AUROC | Pass 3 AUROC | `P(No)` AUROC | `Pass 3 - Pass 1` | `Pass 3 - P(No)` |
+Across all 2,391 questions pooled together, an internal probe read after Pass 3 scored 0.738 compared with 0.692 after Pass 1 (a gain of +0.046, 95% CI +0.006 to +0.089; uncorrected p = 0.029, adjusted q = 0.087 across three primary tests), and did not beat the model's own self-check `P(No)` (0.738 versus 0.712, difference +0.026, 95% CI -0.016 to +0.070). Four follow-up checks revealed why that pooled Pass 3 gain did not reflect better detection of wrong doses:
+
+### 1. Inside numeric doses, the Pass 3 gain nearly disappears
+
+When we group every question by whether the true answer was a dose or `AVOID` and whether the model wrote a dose or `AVOID`, three of the four boxes are 100% right or 100% wrong (`avoid/avoid`: 122 right; `avoid/dose`: 279 wrong; `dose/avoid`: 50 wrong). Only one box mixes right and wrong answers: questions where the drug should be dosed and the model wrote a numeric dose (n = 1,940, with 463 errors or 23.9%).
+
+Inside those 1,940 numeric-dose questions, the `Pass 3 minus Pass 1` probe gain drops by nearly two-thirds from +0.046 to +0.017 (95% CI -0.047 to +0.080, p = 0.653). When stratified by rule type (fixed, maximum, range, and starting doses), Pass 3 scores 0.655 (95% CI 0.580 to 0.721) and actually trails the model's own self-check `P(No)` at 0.689 (95% CI 0.619 to 0.756). Under strict schedule grading across all 2,391 questions, `P(No)` also edges out Pass 3 (0.751 versus 0.747).
+
+### 2. Overdoses get worse from Pass 1 to Pass 3
+
+| Error type (compared with 1,599 correct answers) | n errors | Pass 1 score | Pass 2 score | Pass 3 score | Self-check `P(No)` | Pass 3 minus Pass 1 | Pass 3 minus `P(No)` |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Overdose (`over`) | 223 | 0.678 | 0.672 | 0.651 | 0.730 | -0.027 (p = 0.459) | -0.079 (p = 0.013) |
-| Underdose (`under`) | 236 | 0.647 | 0.619 | 0.723 | 0.669 | +0.076 (p = 0.153) | +0.054 (p = 0.089) |
-| Missed contraindication (`failed_to_avoid`) | 279 | 0.738 | 0.803 | 0.814 | 0.817 | +0.076 (p = 0.007) | -0.003 (p = 0.916) |
-| Wrongly avoided (`wrongly_avoided`) | 50 | 0.742 | 0.717 | 0.750 | 0.233 | +0.008 (p = 0.871) | +0.517 (p = 0.001) |
+| Overdose | 223 | 0.678 | 0.672 | 0.651 | 0.730 | -0.027 (p = 0.459) | -0.079 (p = 0.013) |
+| Underdose | 236 | 0.647 | 0.619 | 0.723 | 0.669 | +0.076 (p = 0.153) | +0.054 (p = 0.089) |
+| Missed contraindication | 279 | 0.738 | 0.803 | 0.814 | 0.817 | +0.076 (p = 0.007) | -0.003 (p = 0.916) |
+| Wrongly avoided | 50 | 0.742 | 0.717 | 0.750 | 0.233 | +0.008 (p = 0.871) | +0.517 (p = 0.001) |
 
-For overdoses, probe AUROC decreases from Pass 1 (0.678) to Pass 3 (0.651) and trails `P(No)` (0.730) by 0.079 (p = 0.013). As in `Qwen3-8B`, `P(No)` fails severely on `wrongly_avoided` (AUROC 0.233, 95% CI 0.164 to 0.304), whereas Pass 3 probes maintain AUROC 0.750 on those false refusals.
+For overdoses, probe accuracy falls from 0.678 at Pass 1 to 0.651 at Pass 3 and falls behind `P(No)` (0.730) by 0.079 (p = 0.013). Just like in `Qwen3-8B`, `P(No)` fails badly when the model wrongly refuses a safe drug (0.233), whereas internal probes stay at 0.750.
 
-### 3. Origin of the +0.279 anticoagulant swing
+### 3. The single first-token split that drove the anticoagulant jump
 
-In anticoagulants (n = 217), nested probe AUROC rose from 0.507 at Pass 1 to 0.786 at Pass 3 (+0.279). Inspection of the first token emitted after `FINAL:` explains the entire swing. Across all 2,391 answers, 172 of 172 `AVOID` answers begin with token `" AV"` (id 198391), whereas 2,219 of 2,219 dose and unparsed answers begin with bare space `" "` (id 220). On the 64 anticoagulant `truth_avoid` rows (35 `failed_to_avoid` versus 29 correct), `y = 1` is 100% bijective with emitting `" "` instead of `" AV"`. On those 64 rows, probe AUROC flips from 0.299 at Pass 1 to 0.947 at Pass 3 (+0.648, 95% CI +0.453 to +0.808, p = 0.001) simply because Pass 3 is the final pass feeding layers 18 through 23 and the output head, where the `" "` versus `" AV"` token commitment forms. Removing all 401 `truth_avoid` rows reduces pooled `Pass 3 - Pass 1` to +0.015 (95% CI -0.043 to +0.072, p = 0.669).
+In anticoagulants (n = 217), the probe jumped from 0.507 at Pass 1 to 0.786 at Pass 3 (+0.279). Looking at the very first token the model writes after `FINAL:` explains the entire jump. In every single `AVOID` reply (172 of 172), the first token is `" AV"`. In every single dose reply (2,219 of 2,219), the first token is a plain space `" "` before the number.
 
-### 4. Within-rule discrimination and calibration bug fixed
+On the 64 anticoagulant questions where the true label is `AVOID` (35 missed versus 29 correct), being wrong is 100% identical to starting the reply with `" "` instead of `" AV"`. On those 64 questions, the probe flips from 0.299 at Pass 1 to 0.947 at Pass 3 (+0.648, p = 0.001) simply because Pass 3 is the only pass that feeds directly into the final output layers where the model commits to `" "` versus `" AV"`. Dropping the 401 `AVOID` questions from the dataset reduces the overall `Pass 3 minus Pass 1` gain to +0.015 (95% CI -0.043 to +0.072, p = 0.669).
 
-Across the 170 rules with both correct and incorrect answers (693 questions), Pass 1 and Pass 2 probes ranked within-rule errors near chance (0.553 and 0.544, size-weighted), rising to 0.632 at Pass 3 overall and 0.594 inside `truth_dose | answered_dose`. The audit also identified an uncalibrated cross-fold pooling bug in `layers 0-5` (where raw `decision_function` scores from folds with incompatible regularization scales dragged `nested|layers 0-5` down to 0.631 despite every individual layer scoring 0.671 to 0.681), which is now corrected via inner out-of-fold Platt calibration.
+### 4. Within-rule ranking and a calibration bug fixed
 
-## Variable-loop compositional recurrence (`TML-d24-varloop-research`, Study 3)
+Across the 170 dosing rules where Inkling got some patients right and others wrong (693 questions), Pass 1 and Pass 2 probes ranked errors within the same rule near chance (0.553 and 0.544), rising to 0.632 at Pass 3 overall and 0.594 inside numeric doses. The audit also caught a cross-fold scaling bug in layers 0 to 5 (where mixing uncalibrated raw probe scores across folds dragged the combined score to 0.631 even though every individual layer scored 0.671 to 0.681), which is now fixed with per-fold probability calibration.
 
-Three design confounds prevented the fixed-pass Inkling 2 Mini pilot from isolating whether latent recurrence actually performs multi-hop clinical computation: (1) only Pass 3 fed the output head, confounding pass number with proximity to `lm_head`; (2) saved `DecoderLayer` return values captured only intra-6-layer block deltas that reset at every block boundary rather than cumulative `block_states` and the depth-attended pre-LM-head vector; and (3) the 2,048-token cap in the explicit `<thinking>` comparison truncated 167 of 300 runs.
+## Next test: holding output distance fixed across 1 to 5 passes (Study 3)
 
-> **[PENDING: Study 3 (`thinkingmachines/TML-d24-varloop-research`, k = 1..5) prepared for execution.]** This section will report:
-> 1. Compositional 1-hop, 2-hop, and 3-hop accuracy scaling across loop depths `k = 1` through `k = 5` on `k = 3` 1-hop-known drugs.
-> 2. FLOP-matched comparison of latent recurrence (`k = 5`, 0 chain-of-thought tokens) against explicit `<thinking>` generation at `k = 1` and `k = 3` with `max_new_tokens = 8192` (0% truncation).
-> 3. Non-tautological 3-span `block_states` patching (`drug`, `patient`, and `question_final` spans entering Pass 2 versus Pass 3) across patient-modifier and drug-threshold minimal pairs.
-> 4. Fixed-proximity Platt-calibrated error probes over `pre_head_state` and cumulative `block_states` across `k = 1..5`.
+Three design limits in the fixed 3-pass model prevented a clean test of whether extra passes genuinely improve multi-step dosing: only Pass 3 fed the final output layers; the recorded layer outputs reset every 6 layers rather than capturing the cumulative state read by the output head; and a 2,048-token cap cut off 167 of 300 chain-of-thought runs before the model finished answering.
+
+> **[PENDING: Study 3 on the variable-loop checkpoint `TML-d24-varloop-research` (1 to 5 passes) prepared to run.]** This section will report:
+> 1. Whether running 1, 2, 3, 4, or 5 passes improves 2-step and 3-step dosing accuracy on drugs the model already knows on 1-step lookups.
+> 2. A compute-matched comparison of silent extra passes (`k = 5`, no written reasoning) against full written reasoning (`k = 1` and `k = 3`, with an 8,192-token budget so answers are not cut off).
+> 3. Surgical state-swapping tests on the drug name, the patient's lab value, and the final question span to trace which pass retrieves each fact and which pass combines them.
+> 4. Calibrated error probes taken directly from the final pre-output state at every pass count (`k = 1` to `5`), holding distance to the output strictly fixed.
 
 ## Limitations
 
-The completed Inkling 2 Mini results come from a single 4-bit model evaluated without chain-of-thought on templated FDA-label questions. Comparisons between Inkling 2 Mini and `Qwen3-8B` confound architecture, parameter count, training corpus, and quantization, and cannot isolate the effect of looping on their own. The stratified audit numbers are deterministic re-analyses of the saved pilot outputs; causal confirmation of multi-hop latent computation awaits the variable-loop sweep and span-patching runs in Study 3.
+The completed Inkling 2 Mini results cover a single 4-bit model answering templated FDA-label questions without written reasoning. Differences between Inkling 2 Mini and `Qwen3-8B` reflect model size, training data, architecture, and quantization together, not looping alone. All stratified audit numbers are deterministic re-analyses of the saved pilot outputs; testing whether extra passes causally compute multi-step adjustments awaits Study 3.

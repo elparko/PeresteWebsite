@@ -1,0 +1,278 @@
+---
+const summary =
+  "Interactive chart comparing how well a model's self-check and internal probes catch dosing errors, and how many FDA dosing rules the base model already stores in its weights.";
+---
+
+<figure class="dp-hero" data-dph>
+  <div class="dph-tabs" role="tablist" aria-label="Chart view">
+    <button type="button" class="dph-tab" role="tab" aria-selected="true" data-view="blindspot">
+      The self-check blind spot
+    </button>
+    <button type="button" class="dph-tab" role="tab" aria-selected="false" data-view="knowledge">
+      Rules stored in base weights
+    </button>
+  </div>
+
+  <div class="dph-stage" role="img" aria-label={summary}>
+    <!-- View 1: Self-check blind spot on wrongly refused drugs vs all errors -->
+    <div class="dph-panel" data-panel="blindspot">
+      <div class="dph-subtabs">
+        <button type="button" class="dph-pill" aria-pressed="true" data-metric="wa">
+          Wrongly refused drugs
+        </button>
+        <button type="button" class="dph-pill" aria-pressed="false" data-metric="all">
+          All dosing errors
+        </button>
+      </div>
+
+      <svg class="dph-svg" viewBox="0 0 520 230" width="520" height="230" aria-hidden="true">
+        <!-- Chance reference line at 0.50 (x = 180 + (0.50 - 0.25)/0.65 * 290 = 291.5) -->
+        <line x1="291.5" y1="22" x2="291.5" y2="192" stroke="#c46a1b" stroke-width="1.5" stroke-dasharray="4 4" />
+        <text x="291.5" y="14" text-anchor="middle" class="dph-chance">0.50 (coin flip)</text>
+
+        <!-- Axis baseline & ticks: 0.30, 0.50, 0.70, 0.85 -->
+        <line x1="180" y1="192" x2="470" y2="192" stroke="#c5cbd3" stroke-width="1" />
+        <text x="202" y="210" text-anchor="middle" class="dph-tick">0.30</text>
+        <text x="291.5" y="210" text-anchor="middle" class="dph-tick">0.50</text>
+        <text x="381" y="210" text-anchor="middle" class="dph-tick">0.70</text>
+        <text x="448" y="210" text-anchor="middle" class="dph-tick">0.85</text>
+        <text x="325" y="226" text-anchor="middle" class="dph-axis-lbl">Error-detection score (AUROC; higher is better)</text>
+
+        <!-- Row 1: Self-check alone -->
+        <text x="170" y="57" text-anchor="end" class="dph-lbl">Self-check alone</text>
+        <text x="170" y="71" text-anchor="end" class="dph-sub">asks model "is this right?"</text>
+        <rect x="180" y="46" width="66" height="24" rx="4" class="dph-bar dph-bar--danger" data-bar="self" />
+        <text x="254" y="63" class="dph-val dph-val--danger" data-val="self">0.399</text>
+
+        <!-- Row 2: Internal probe (after answer) -->
+        <text x="170" y="112" text-anchor="end" class="dph-lbl">Internal probe</text>
+        <text x="170" y="126" text-anchor="end" class="dph-sub">reads model's final state</text>
+        <rect x="180" y="101" width="220" height="24" rx="4" class="dph-bar dph-bar--teal" data-bar="probe" />
+        <text x="408" y="118" class="dph-val" data-val="probe">0.743</text>
+
+        <!-- Row 3: Combined monitor -->
+        <text x="170" y="167" text-anchor="end" class="dph-lbl">Combined monitor</text>
+        <text x="170" y="181" text-anchor="end" class="dph-sub">internal probe + self-check</text>
+        <rect x="180" y="156" width="195" height="24" rx="4" class="dph-bar dph-bar--ink" data-bar="hybrid" />
+        <text x="383" y="173" class="dph-val" data-val="hybrid">0.688</text>
+      </svg>
+    </div>
+
+    <!-- View 2: Stage 2 closed-book parametric knowledge -->
+    <div class="dph-panel" data-panel="knowledge" hidden>
+      <svg class="dph-svg" viewBox="0 0 520 230" width="520" height="230" aria-hidden="true">
+        <line x1="180" y1="186" x2="470" y2="186" stroke="#c5cbd3" stroke-width="1" />
+        <text x="180" y="204" text-anchor="middle" class="dph-tick">0%</text>
+        <text x="325" y="204" text-anchor="middle" class="dph-tick">50%</text>
+        <text x="470" y="204" text-anchor="middle" class="dph-tick">100%</text>
+        <text x="325" y="222" text-anchor="middle" class="dph-axis-lbl">Share of FDA rules known closed-book by base Qwen3-8B</text>
+
+        <!-- Hepatic 91.7% (33/36) -->
+        <text x="170" y="39" text-anchor="end" class="dph-lbl">Liver impairment</text>
+        <rect x="180" y="24" width="266" height="22" rx="4" class="dph-bar dph-bar--teal" />
+        <text x="453" y="39" class="dph-val">91.7%</text>
+
+        <!-- Drug interaction 80.0% (24/30) -->
+        <text x="170" y="79" text-anchor="end" class="dph-lbl">Drug interactions</text>
+        <rect x="180" y="64" width="232" height="22" rx="4" class="dph-bar dph-bar--teal" />
+        <text x="419" y="79" class="dph-val">80.0%</text>
+
+        <!-- Numeric renal 57.3% (51/89) -->
+        <text x="170" y="119" text-anchor="end" class="dph-lbl">Kidney dose cut</text>
+        <rect x="180" y="104" width="166" height="22" rx="4" class="dph-bar dph-bar--ink" />
+        <text x="353" y="119" class="dph-val">57.3%</text>
+
+        <!-- Contra renal 53.3% (16/30) -->
+        <text x="170" y="159" text-anchor="end" class="dph-lbl">Kidney avoid rule</text>
+        <rect x="180" y="144" width="155" height="22" rx="4" class="dph-bar dph-bar--ink" />
+        <text x="342" y="159" class="dph-val">53.3%</text>
+      </svg>
+    </div>
+  </div>
+
+  <figcaption class="dph-cap" data-cap aria-live="polite">
+    When Qwen3-8B wrongly says "avoid", its own self-check rates the refusal safer than a coin flip (<strong>0.399</strong>) and catches <strong>0%</strong> at a 20% review cap. Reading the internal state catches those errors (<strong>0.743</strong>).
+  </figcaption>
+</figure>
+
+<style>
+  .dp-hero {
+    --ink: #232c54;
+    --muted: #5a6472;
+    --teal: #0f8794;
+    --danger: #b4532a;
+    --line: #e3e8ef;
+    background: #f6f8fa;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    padding: 1.15rem 1.25rem 1rem;
+    font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  }
+  .dph-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.85rem;
+  }
+  .dph-tab {
+    background: none;
+    border: 0;
+    padding: 0.15rem 0;
+    font: 600 0.78rem/1.3 inherit;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 160ms ease, border-color 160ms ease;
+  }
+  .dph-tab[aria-selected="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+  .dph-subtabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.4rem;
+  }
+  .dph-pill {
+    font: 500 0.72rem/1.2 inherit;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+  .dph-pill[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #ffffff;
+  }
+  .dph-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .dph-lbl {
+    fill: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .dph-sub {
+    fill: var(--muted);
+    font-size: 10px;
+  }
+  .dph-tick,
+  .dph-axis-lbl {
+    fill: var(--muted);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .dph-chance {
+    fill: #b4532a;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .dph-val {
+    fill: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    transition: x 360ms ease;
+  }
+  .dph-val--danger {
+    fill: var(--danger);
+  }
+  .dph-bar {
+    transition: width 360ms cubic-bezier(0.22, 1, 0.36, 1), fill 220ms ease;
+  }
+  .dph-bar--danger { fill: var(--danger); }
+  .dph-bar--teal { fill: var(--teal); }
+  .dph-bar--ink { fill: var(--ink); }
+  .dph-cap {
+    margin: 0.65rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.48;
+    color: var(--muted);
+  }
+  .dph-cap strong {
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dph-bar, .dph-val { transition: none; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-dph]").forEach((root) => {
+    const DATA = {
+      wa: {
+        self: 0.399,
+        probe: 0.743,
+        hybrid: 0.688,
+        dangerSelf: true,
+        cap: 'When Qwen3-8B wrongly says "avoid", its own self-check rates the refusal safer than a coin flip (<strong>0.399</strong>) and catches <strong>0%</strong> at a 20% review cap. Reading the internal state catches those errors (<strong>0.743</strong>).',
+      },
+      all: {
+        self: 0.653,
+        probe: 0.751,
+        hybrid: 0.753,
+        dangerSelf: false,
+        cap: 'Across all 2,391 dosing questions, combining the internal answer-token probe with the self-check reaches the highest overall score (<strong>0.753</strong>) and catches <strong>30.5%</strong> of high-harm errors inside a 20% review budget.',
+      },
+      knowledge: {
+        cap: 'Before any instruction tuning, base Qwen3-8B already knows <strong>124 of 185</strong> FDA rules (<strong>67.0%</strong>) across 46 of 71 drugs, including <strong>91.7%</strong> of liver rules and <strong>80.0%</strong> of drug interactions.',
+      },
+    };
+    const xOf = (v: number) => Math.max(12, ((v - 0.25) / 0.65) * 290);
+    const tabs = root.querySelectorAll<HTMLButtonElement>(".dph-tab");
+    const pills = root.querySelectorAll<HTMLButtonElement>(".dph-pill");
+    const panels = root.querySelectorAll<HTMLElement>("[data-panel]");
+    const cap = root.querySelector<HTMLElement>("[data-cap]")!;
+    let currentMetric: "wa" | "all" = "wa";
+
+    function renderMetric(m: "wa" | "all") {
+      currentMetric = m;
+      const d = DATA[m];
+      (["self", "probe", "hybrid"] as const).forEach((k) => {
+        const w = xOf(d[k]);
+        const bar = root.querySelector<SVGRectElement>(`[data-bar="${k}"]`);
+        const val = root.querySelector<SVGTextElement>(`[data-val="${k}"]`);
+        if (bar) {
+          bar.setAttribute("width", w.toFixed(1));
+          if (k === "self") {
+            bar.classList.toggle("dph-bar--danger", d.dangerSelf);
+            bar.classList.toggle("dph-bar--ink", !d.dangerSelf);
+          }
+        }
+        if (val) {
+          val.setAttribute("x", (180 + w + 8).toFixed(1));
+          val.textContent = d[k].toFixed(3);
+          if (k === "self") val.classList.toggle("dph-val--danger", d.dangerSelf);
+        }
+      });
+      pills.forEach((p) => p.setAttribute("aria-pressed", String(p.dataset.metric === m)));
+      cap.innerHTML = d.cap;
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const v = tab.dataset.view!;
+        tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+        panels.forEach((p) => { p.hidden = p.dataset.panel !== v; });
+        cap.innerHTML = v === "knowledge" ? DATA.knowledge.cap : DATA[currentMetric].cap;
+      });
+    });
+
+    pills.forEach((pill) => {
+      pill.addEventListener("click", () => renderMetric(pill.dataset.metric as "wa" | "all"));
+    });
+
+    renderMetric("wa");
+  });
+</script>

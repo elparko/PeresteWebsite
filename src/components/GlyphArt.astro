@@ -1,6 +1,6 @@
 ---
 interface Props {
-  piece: "open-capsule" | "headland" | "name-field" | "dosegate" | "dose-steps" | "atlas-units" | "atlas-kinds" | "advice-reply" | "advice-seam";
+  piece: "open-capsule" | "headland" | "name-field" | "dosegate" | "dose-steps" | "atlas-units" | "atlas-kinds" | "advice-reply" | "advice-seam" | "dose-probe" | "looped-passes" | "cue-shift";
   label: string;
   options?: Record<string, unknown>;
   narrow?: Record<string, unknown>;
@@ -41,6 +41,9 @@ const { piece, label, options = {}, narrow, pointer, ground = true, still, class
     "atlas-kinds": () => import("../scripts/glyph/atlas-kinds.js"),
     "advice-reply": () => import("../scripts/glyph/advice-reply.js"),
     "advice-seam": () => import("../scripts/glyph/advice-seam.js"),
+    "dose-probe": () => import("../scripts/glyph/dose-probe.js"),
+    "looped-passes": () => import("../scripts/glyph/looped-passes.js"),
+    "cue-shift": () => import("../scripts/glyph/cue-shift.js"),
   };
   for (const el of document.querySelectorAll<HTMLElement>("[data-glyph]")) {
     const load = loaders[el.dataset.glyph ?? ""];
