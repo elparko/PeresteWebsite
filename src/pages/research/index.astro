@@ -8,11 +8,11 @@ import { getPublishedPosts, formatDate } from "../../data/posts";
 
 const ATLAS_HREF = "/research/medication-neuron-atlas/";
 
-const draftMeta: Record<string, { glyph?: "dose-probe" | "looped-passes" | "cue-shift"; models: string }> = {
+const draftMeta: Record<string, { glyph?: "dose-probe" | "looped-passes" | "cue-shift" | "danger-control"; models: string }> = {
   "dose-error-probe": { glyph: "dose-probe", models: "Qwen3-8B · Qwen3-8B-Base" },
   "looped-model-dose-errors": { glyph: "looped-passes", models: "Inkling 2 Mini · TML-d24-varloop" },
   "silent-accommodation": { glyph: "cue-shift", models: "Qwen3 (1.7B to 35B-A3B)" },
-  "medication-danger-and-control": { models: "Qwen3-8B · Qwen3.5-4B" },
+  "medication-danger-and-control": { glyph: "danger-control", models: "Qwen3-8B · Qwen3.5-4B" },
 };
 
 const listed = new Set(researchItems.map((r) => r.href));
