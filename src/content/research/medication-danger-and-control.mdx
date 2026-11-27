@@ -1,6 +1,6 @@
 ---
 title: "Do the units that predict a message's danger control the model's urgency reading?"
-description: "Thousands of units in two open language models respond differently to a safe and a dangerous version of the same regimen, but switching off the most predictive of them left more than 99% of the difference in how urgently the model rates dangerous and harmless messages in place. In an exploratory follow-up, swapping every feed-forward neuron at the start of the reply between a dangerous and a harmless message changed that difference by no detectable amount, while swapping only the attention output, the part that passes information between words, lowered it as much as swapping the whole position."
+description: "Thousands of units in two open language models respond differently to a safe and a dangerous version of the same regimen, but switching off the most predictive of them did not meaningfully change how the model triages dangerous and harmless messages."
 date: 2026-11-14
 author: "Parker Smith"
 tag: "Study"
@@ -11,39 +11,39 @@ hero: true
 
 import LadderChart from "../../components/research/danger-control/LadderChart.astro";
 import StringsExplainer from "../../components/research/danger-control/StringsExplainer.astro";
+import "../../styles/research-atlas.css";
+import UrgencyReading from "../../components/research/danger-control/UrgencyReading.astro";
 import PostHero from "../../components/research/PostHero.astro";
 
-<PostHero post={props.post} headings={props.headings}>
+<PostHero post={props.post} headings={props.headings} titleBreakAfter="danger">
 <StringsExplainer />
 </PostHero>
 
-Barely, if at all. In two open language models, thousands of units respond differently to a safe and a dangerous version of the same drug regimen. To test whether those units control how urgent the model judges a message to be, we wrote messages at five levels of danger, from household objects (level 1) to high-alert drugs (level 5), started each reply for the model with the words "Urgency level:" and read how strongly it leaned toward words like High against words like Low. That lean is the urgency reading, and the urgency gap is how much higher it is for the most dangerous messages than for the most harmless ones. Switching off (silencing) the units that best predicted danger left more than 99% of the urgency gap in place: 0.3% of the gap went in one model, and no more than silencing the same number of randomly chosen units removed in the other.
+The units that predict a message's danger barely control the model's urgency reading, if at all. In two open language models, thousands of units respond differently to a safe and a dangerous version of the same drug regimen. To test whether those units control how urgent the model judges a message to be, we wrote messages at five levels of danger, from household objects (level 1) to high-alert drugs (level 5), started each reply for the model with the words "Urgency level:" and read how strongly it leaned toward words like High (for example Critical, Extreme, Immediate or Emergency) against words like Low (for example Routine, Minor or Not). That lean is the urgency reading, and the urgency gap is how much higher it is for the most dangerous messages than for the most harmless ones. Switching off (silencing) the units that best predicted danger left more than 99% of the urgency gap in place: 0.3% of the gap went in one model, and no more than silencing the same number of randomly chosen units removed in the other.
+
+<UrgencyReading />
 
 A follow-up on the smaller model, Qwen3.5-4B, looked at the reply position, the point where it begins its reply. In pairs of one dangerous and one harmless message, we swapped part of the model's internal state there between the two messages: each message received the other message's values for that part. The positive control, a change that should lower the gap if the method works, was swapping the whole position: it lowered the gap by 43%, so the test can detect an effect. Swapping every feed-forward neuron there, the units the atlas maps, changed the gap by no detectable amount. Swapping only the output of the attention part of each step, the part that passes information between words, lowered it as much as swapping the whole position did. This was an exploratory test on one model at one position. Setting every feed-forward neuron there to its average instead lowered the gap by 17%, which may disrupt the urgency reading rather than remove what makes a message urgent.
 
 This is not a test of whether a model gives safe medication advice, and nothing here should guide patient care. It asks where, inside a model, the difference between a safe and a dangerous regimen is represented, and whether the parts that register it are the parts that act on it. The [overview](/research/medication-neuron-atlas/) describes the whole project, and the companion post, [What has a language model learned about a dose?](/research/what-a-model-learned-about-a-dose/), shows where each part of a dose is handled across the model's steps. Every unit of Qwen3-8B can be looked up in the [atlas browser](/research/medication-neuron-atlas/browse/).
 
-## Terms used here
+<details className="terms-fold">
+<summary><h2 id="terms-used-here">Terms used here</h2></summary>
 
-**Token.** The piece of text a language model reads at a time: usually a word or part of a word. "Take 7.5 mg once weekly" is read as tokens such as "Take", " 7", ".", "5", " mg", " once" and " weekly".
+| Term | Meaning |
+| --- | --- |
+| Token | The piece of text a language model reads at a time: usually a word or part of a word. "Take 7.5 mg once weekly" is read as tokens such as "Take", " 7", ".", "5", " mg", " once" and " weekly". |
+| Processing step, or layer | Every token passes through the same fixed sequence of processing steps, always in the same order. Each step refines the model's working notes about that token, and after the last step the model commits to the next token it writes. Qwen3.5-4B, the model most of this post is about, has 32 steps. The overview and the companion post describe Qwen3-8B, which has 36, so step numbers in this post count out of 32. The technical name for a step is a layer, and the field numbers layers from 0, so layer 16 is step 17 of 32. |
+| Attention | The first part of each step, which brings information from earlier tokens into the notes for the current token. In Qwen3.5-4B some steps use standard attention and others a faster variant called Gated DeltaNet that does the same job; this post calls both the attention part, and what it writes into the notes the attention output. |
+| Neuron | One of the small computing elements in the second part of each step, the feed-forward part, which works on each token by itself. Qwen3.5-4B has 9,216 per step, or 294,912 in all. |
+| Unit, or pole | The high values or the low values of one neuron, treated as separate parts because the two ends can respond to unrelated text. A neuron has two units. |
+| Fires | A unit fires on a token when its neuron's value passes a fixed cutoff: above the 97th percentile of that neuron's values on a reference text of a million tokens of drug labels and educational web text, or below the 3rd percentile. |
+| Silencing, or ablation | Setting a neuron's value to its average on the reference text wherever its unit was firing, so the unit no longer stands out. |
+| Reply position | The last of the fixed formatting tokens, called template tokens, that the chat format adds after the message, which is the point where the model would begin its reply; the words "Urgency level:" that we supply come after it. Everything the model has read about the message is available there, which made it the natural place to look for a decision. |
+| Urgency reading and urgency gap | We started the model's reply for it with the words "Urgency level:" and read how strongly it leaned toward words like High (for example Critical, Extreme, Immediate or Emergency) against words like Low (for example Routine, Minor or Not); that is the urgency reading. The urgency gap is the reading for the most dangerous messages minus the reading for the most harmless ones. |
+| Swap | In a pair of one dangerous and one harmless message written in the same sentence frame, to swap a part of the model's state is to give each message the other message's values for that part at the reply position. The part may be the whole position, every feed-forward neuron or only the attention output. If that part holds what makes the dangerous message urgent, the swap should shrink the urgency gap. |
 
-**Processing step, or layer.** Every token passes through the same fixed sequence of processing steps, always in the same order. Each step refines the model's working notes about that token, and after the last step the model commits to the next token it writes. Qwen3.5-4B, the model most of this post is about, has 32 steps. The overview and the companion post describe Qwen3-8B, which has 36, so step numbers in this post count out of 32. The technical name for a step is a layer, and the field numbers layers from 0, so layer 16 is step 17 of 32.
-
-**Attention.** The first part of each step, which brings information from earlier tokens into the notes for the current token. In Qwen3.5-4B some steps use standard attention and others a faster variant called Gated DeltaNet that does the same job; this post calls both the attention part, and what it writes into the notes the attention output.
-
-**Neuron.** One of the small computing elements in the second part of each step, the feed-forward part, which works on each token by itself. Qwen3.5-4B has 9,216 per step, or 294,912 in all.
-
-**Unit, or pole.** The high values or the low values of one neuron, treated as separate parts because the two ends can respond to unrelated text. A neuron has two units.
-
-**Fires.** A unit fires on a token when its neuron's value passes a fixed cutoff: above the 97th percentile of that neuron's values on a reference text of a million tokens of drug labels and educational web text, or below the 3rd percentile.
-
-**Silencing, or ablation.** Setting a neuron's value to its average on the reference text wherever its unit was firing, so the unit no longer stands out.
-
-**Reply position.** The last of the fixed formatting tokens, called template tokens, that the chat format adds after the message, which is the point where the model would begin its reply; the words "Urgency level:" that we supply come after it. Everything the model has read about the message is available there, which made it the natural place to look for a decision.
-
-**Urgency reading and urgency gap.** We started the model's reply for it with the words "Urgency level:" and read how strongly it leaned toward words like High against words like Low; that is the urgency reading. The urgency gap is the reading for the most dangerous messages minus the reading for the most harmless ones.
-
-**Swap.** In a pair of one dangerous and one harmless message written in the same sentence frame, to swap a part of the model's state is to give each message the other message's values for that part at the reply position. The part may be the whole position, every feed-forward neuron or only the attention output. If that part holds what makes the dangerous message urgent, the swap should shrink the urgency gap.
+</details>
 
 ## What was asked, and why medication is a good place to ask it
 
@@ -59,7 +59,7 @@ Pairs that differed only in a harmless detail, such as "this morning" against "t
 
 ## Does silencing the most predictive units change the urgency reading?
 
-Not by a meaningful amount. For this test we wrote 150 short messages graded into five levels of danger, from household objects to high-alert drugs. "I think I took methotrexate twice this morning by mistake, once at breakfast and once after" is a level 5 message; the same sentence with "packed my reading glasses" is level 1. A simple formula fitted on the units' values at the reply position predicted the danger level of messages it had not been fitted on with a rank (Spearman) correlation of 0.89 on Qwen3.5-4B and 0.90 on Qwen3-8B. Part of that comes from telling a drug from a household object: on the 90 messages about prescription drugs alone, the correlation was 0.76 on Qwen3.5-4B and 0.70 on Qwen3-8B. On Qwen3.5-4B the units of step 17 of 32 alone reached 0.94.
+Silencing the most predictive units did not change the urgency reading by a meaningful amount. For this test we wrote 150 short messages graded into five levels of danger, from household objects to high-alert drugs. "I think I took methotrexate twice this morning by mistake, once at breakfast and once after" is a level 5 message; the same sentence with "packed my reading glasses" is level 1. A simple formula fitted on the units' values at the reply position predicted the danger level of messages it had not been fitted on with a rank (Spearman) correlation of 0.89 on Qwen3.5-4B and 0.90 on Qwen3-8B. Part of that comes from telling a drug from a household object: on the 90 messages about prescription drugs alone, the correlation was 0.76 on Qwen3.5-4B and 0.70 on Qwen3-8B. On Qwen3.5-4B the units of step 17 of 32 alone reached 0.94.
 
 We then silenced the 50, 200 or 800 most predictive units at the reply position and compared the change in the urgency gap with silencing the same number of random units. On Qwen3.5-4B, 200 units lowered the gap by 0.014, against a gap of 4.32, which is 0.3%. That was more than every one of 200 random sets, so it met the rule we registered in advance, but the difference from random units was below the smallest difference the design could detect across new messages (0.027). On Qwen3-8B, silencing 800 units lowered the gap by 0.011 more than random units (95% interval 0.044 lower to 0.023 higher), against a gap of 11.28, and silencing 50 units raised it by 0.029 more than random units (0.015 to 0.046), a rise of about 0.3% of the gap, in the opposite direction from the prediction. No smallest detectable effect was computed for the Qwen3-8B tests. On both models more than 99% of the gap remained.
 

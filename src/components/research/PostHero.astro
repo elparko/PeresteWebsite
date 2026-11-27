@@ -20,9 +20,13 @@ interface Props {
     figure?: { src: string; alt: string; caption?: string };
   };
   headings?: MarkdownHeading[];
+  titleBreakAfter?: string;
 }
 
-const { post, headings = [] } = Astro.props;
+const { post, headings = [], titleBreakAfter } = Astro.props;
+const cut = titleBreakAfter ? post.title.indexOf(titleBreakAfter) : -1;
+const titleHead = cut < 0 ? post.title : post.title.slice(0, cut + titleBreakAfter!.length);
+const titleTail = cut < 0 ? "" : post.title.slice(cut + titleBreakAfter!.length).trimStart();
 const sections = headings.filter((h) => h.depth === 2);
 const slotFigure = Astro.slots.has("default");
 const imageFigure = slotFigure ? undefined : post.figure;
@@ -35,7 +39,7 @@ const hasLinks = hasLinksSlot || links.length > 0;
 <header class:list={["post-hero", hasFigure && "has-figure", post.title.length > 90 && "ph-long"]}>
   <div class="ph-head">
     <a href="/research" class="eyebrow mb-6 inline-block hover:text-brand-accent"><span aria-hidden="true">←&nbsp;</span>Research</a>
-    <h1>{post.title}</h1>
+    <h1>{titleHead}{titleTail && <><br />{titleTail}</>}</h1>
   </div>
   {hasFigure && (
     <div class="ph-figure">

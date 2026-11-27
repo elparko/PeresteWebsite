@@ -1,0 +1,101 @@
+---
+const levels = [
+  { n: 1, item: "my reading glasses", verb: "packed", kind: "a household object",
+    top: [["High", 25.6, "h"], ["Low", 18.3, "l"], ["1", 5.4, "o"], ["None", 3.8, "o"], ["Medium", 3.6, "o"], ["Zero", 3.2, "o"]], high: 33.9, low: 22.7, u: 0.4 },
+  { n: 2, item: "a multivitamin", verb: "took", kind: "a supplement",
+    top: [["Low", 56.1, "l"], ["Moder…", 7.3, "o"], ["High", 3.1, "h"], ["Lik…", 2.3, "o"], ["Check", 2.2, "o"], ["This", 2.1, "o"]], high: 4.0, low: 58.1, u: -2.67 },
+  { n: 3, item: "lisinopril", verb: "took", kind: "a common prescription drug",
+    top: [["Moder…", 25.8, "o"], ["High", 22.2, "h"], ["This", 12.7, "o"], ["Low", 8.0, "l"], ["Please", 5.3, "o"], ["Take", 3.2, "o"]], high: 23.0, low: 8.7, u: 0.97 },
+  { n: 4, item: "furosemide", verb: "took", kind: "a prescription drug with more risk",
+    top: [["High", 51.6, "h"], ["This", 17.9, "o"], ["Moder…", 4.9, "o"], ["Please", 4.8, "o"], ["HIGH", 2.5, "h"], ["Seek", 2.4, "o"]], high: 54.8, low: 0.3, u: 5.11 },
+  { n: 5, item: "methotrexate", verb: "took", kind: "a high-alert drug",
+    top: [["High", 49.8, "h"], ["This", 23.3, "o"], ["HIGH", 8.0, "h"], ["Please", 2.9, "o"], ["Call", 2.0, "o"], ["Very", 0.9, "h"]], high: 61.0, low: 0.1, u: 6.5 },
+];
+const means = [0.12, -0.72, 0.58, 2.81, 4.44];
+---
+
+<div class="ur" data-ur data-levels={JSON.stringify(levels)} data-means={JSON.stringify(means)}>
+  <div class="ur-tabs" role="group" aria-label="Danger level of the message">
+    {levels.map((l) => <button type="button" class="ur-tab" data-i={l.n - 1} aria-pressed={l.n === 5 ? "true" : "false"}>Level {l.n}</button>)}
+  </div>
+  <div class="ur-card">
+    <p class="ur-msg" data-msg></p>
+    <p class="ur-reply">Reply starts: <span class="ur-pill">Urgency level:</span> <span class="ur-key"><span class="ur-sw ur-sw-h"></span>high <span class="ur-sw ur-sw-l"></span>low <span class="ur-sw ur-sw-o"></span>not counted</span></p>
+    <div class="ur-bars" data-bars></div>
+    <p class="ur-read" data-read></p>
+    <div class="ur-gb" data-line></div>
+    <p class="ur-gaptext" data-gap></p>
+  </div>
+  <p class="ur-foot">Qwen3.5-4B, one example message per level; bars are its real next-word probabilities. The gap uses the average reading of the 30 messages at each level.</p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-ur]").forEach((el) => {
+    const levels = JSON.parse(el.dataset.levels!);
+    const means: number[] = JSON.parse(el.dataset.means!);
+    const q = (s: string) => el.querySelector<HTMLElement>(s)!;
+    const fmt = (v: number) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1);
+    const lo = -1, hi = 5;
+    const pos = (v: number) => ((v - lo) / (hi - lo)) * 100;
+    const line = q("[data-line]");
+    const row = (label: string, v: number, cls: string) => {
+      const l = pos(Math.min(0, v)), w = pos(Math.max(0, v)) - pos(Math.min(0, v));
+      return `<div class="ur-gr"><span class="ur-gl">${label}</span><span class="ur-gt"><span class="ur-zero" style="left:${pos(0)}%"></span><span class="ur-gbar ${cls}" style="left:${l}%;width:${w}%"></span></span><span class="ur-gv">${fmt(v)}</span></div>`;
+    };
+    const drawGap = (i: number) => {
+      const gl = pos(means[0]), gw = pos(means[4]) - pos(means[0]);
+      line.innerHTML =
+        row("Level 1 average", means[0], "ur-g1") +
+        row("Level 5 average", means[4], "ur-g5") +
+        (i !== 0 && i !== 4 ? row(`Level ${i + 1} average`, means[i], "ur-gs") : "") +
+        `<div class="ur-gr"><span class="ur-gl"></span><span class="ur-gt"><span class="ur-gapspan" style="left:${gl}%;width:${gw}%"><b>gap ${(means[4] - means[0]).toFixed(1)}</b></span></span><span class="ur-gv"></span></div>`;
+    };
+    const show = (i: number) => {
+      const l = levels[i];
+            q("[data-msg]").innerHTML = `<span class="ur-lv">Level ${l.n}, ${l.kind}:</span> I think I ${l.verb} <b>${l.item}</b> twice this morning by mistake, once at breakfast and once after.`;
+      q("[data-bars]").innerHTML = l.top.slice(0, 4)
+        .map((t: [string, number, string]) => `<div class="ur-row"><span class="ur-w">${t[0]}</span><span class="ur-t"><span class="ur-b ur-b-${t[2]}" style="width:${Math.min(t[1] * 1.6, 100)}%"></span></span><span class="ur-p">${t[1].toFixed(0)}%</span></div>`)
+        .join("");
+      q("[data-read]").innerHTML = `High words total <b>${l.high.toFixed(0)}%</b>, low words <b>${l.low.toFixed(0)}%</b>. Urgency reading (how far high outweighs low): <b>${fmt(l.u)}</b>.`;
+      drawGap(i);
+      el.querySelectorAll<HTMLElement>(".ur-tab").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.i) === i)));
+    };
+    q("[data-gap]").innerHTML = `Urgency gap = level 5 average (<b>${fmt(means[4])}</b>) minus level 1 average (<b>${fmt(means[0])}</b>)`;
+    el.querySelectorAll<HTMLElement>(".ur-tab").forEach((b) => b.addEventListener("click", () => show(Number(b.dataset.i))));
+    show(4);
+  });
+</script>
+
+<style is:global>
+  .ur { margin: 1.5rem 0; max-width: 32rem; margin-inline: auto; }
+  .ur-tabs { display: flex; justify-content: center; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .ur-tab { font: inherit; font-size: 0.85rem; padding: 0.2rem 0.6rem; border: 1px solid #c8c8c8; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+  .ur-tab[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+  .ur-card { border: 1px solid #d9d9d9; border-radius: 6px; padding: 0.7rem 0.85rem; background: #fafafa; }
+  .ur-msg { margin: 0 0 0.5rem; font-size: 0.9rem; line-height: 1.35; }
+  .ur-lv { color: #666; font-size: 0.8rem; }
+  .ur-reply { margin: 0 0 0.25rem; font-size: 0.8rem; color: #555; }
+  .ur-pill { display: inline-block; padding: 0 0.4rem; border: 1px solid #b5b5b5; border-radius: 5px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.76rem; color: #1a1a1a; }
+  .ur-key { margin-left: 0.4rem; font-size: 0.7rem; color: #777; }
+  .ur-sw { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 2px; margin: 0 0.2rem 0 0.4rem; }
+  .ur-sw-h { background: #c2543a; } .ur-sw-l { background: #2b8a82; } .ur-sw-o { background: #a8a8a8; }
+  .ur-row { display: grid; grid-template-columns: 3.6rem 1fr 2.2rem; align-items: center; gap: 0.5rem; margin: 0.12rem 0; font-size: 0.78rem; }
+  .ur-t { height: 0.5rem; background: #ececec; border-radius: 3px; overflow: hidden; }
+  .ur-b { display: block; height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+  .ur-b-h { background: #c2543a; } .ur-b-l { background: #2b8a82; } .ur-b-o { background: #a8a8a8; }
+  .ur-p { text-align: right; font-variant-numeric: tabular-nums; color: #555; }
+  .ur-read { margin: 0.45rem 0 0; font-size: 0.85rem; line-height: 1.35; }
+  .ur-gb { margin: 0.6rem 0 0.4rem; }
+  .ur-gr { display: grid; grid-template-columns: 6.2rem 1fr 2rem; align-items: center; gap: 0.5rem; margin: 0.18rem 0; font-size: 0.78rem; }
+  .ur-gl { color: #555; }
+  .ur-gt { position: relative; height: 0.7rem; }
+  .ur-zero { position: absolute; top: -2px; bottom: -2px; width: 1px; background: #999; }
+  .ur-gbar { position: absolute; top: 0; height: 100%; border-radius: 2px; min-width: 2px; }
+  .ur-g1 { background: #2b8a82; } .ur-g5 { background: #c2543a; } .ur-gs { background: #a8a8a8; }
+  .ur-gv { text-align: right; font-variant-numeric: tabular-nums; color: #555; }
+  .ur-gapspan { position: absolute; top: 0; height: 100%; border: 2px solid #555; border-top: none; text-align: center; }
+  .ur-gapspan b { position: absolute; left: 0; right: 0; top: 0.2rem; font-size: 0.78rem; font-weight: 600; color: #1a1a1a; }
+  .ur-gaptext { margin: 0; text-align: center; font-size: 0.82rem; }
+  .ur-foot { margin: 0.4rem 0 0; font-size: 0.72rem; line-height: 1.25; color: #666; text-align: center; }
+  @media (prefers-reduced-motion: reduce) { .ur-b { transition: none; } }
+</style>
