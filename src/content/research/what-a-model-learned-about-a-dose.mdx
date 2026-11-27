@@ -20,7 +20,6 @@ import PostHero from "../../components/research/PostHero.astro";
 export const ATLAS_HOME = "/research/medication-neuron-atlas/";
 export const ATLAS_URL = "/research/medication-neuron-atlas/browse/";
 export const PDF_URL = "/research/medication-neuron-atlas/medication-neuron-atlas.pdf";
-export const CONTROL_URL = "/research/medication-danger-and-control/";
 
 <PostHero post={props.post} headings={props.headings}>
 <DoseDepthMap />
@@ -128,11 +127,10 @@ How to read Figure 2: each dot is one token read in its sentence, and an orange 
 
 ## What this does not show
 
-A unit for dose numbers or for contraindication language is a place where a response appears. Nothing here shows that such a unit governs what the model says, and a handful of such units is not a medication safety filter. <a href={CONTROL_URL}>Do the units that predict a message's danger control the model's urgency reading?</a> reports a related test, mostly on the smaller Qwen3.5-4B, in which units chosen because they predicted how dangerous a message was, not the atlas units, were silenced (switched off). The urgency reading in that title is how strongly the model leans toward words like High (for example Critical, Extreme, Immediate or Emergency) against words like Low (for example Routine, Minor or Not) when its reply begins "Urgency level:". The findings cover one model and drug label text only, the cards were written and scored by AI models, and no clinician has blind-coded any test item.
+A unit for dose numbers or for contraindication language is a place where a response appears. Nothing here shows that such a unit governs what the model says, and a handful of such units is not a medication safety filter. The findings cover one model and drug label text only, the cards were written and scored by AI models, and no clinician has blind-coded any test item.
 
 ## Read more
 
 - <a href={ATLAS_URL}>Open the atlas</a> to look up any unit named here.
 - <a href={ATLAS_HOME}>The atlas overview</a>: what the atlas is, how to read a unit, and how far to trust a card.
-- <a href={CONTROL_URL}>Do the units that predict a message's danger control the model's urgency reading?</a>
 - <a href={PDF_URL}>Technical report (PDF)</a>: full methods, near-silent units, the selection rules and their limitation, and the complete analysis of the card scores.

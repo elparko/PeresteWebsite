@@ -17,7 +17,6 @@ import PostHero from "../../components/research/PostHero.astro";
 export const ATLAS_URL = "/research/medication-neuron-atlas/browse/";
 export const PDF_URL = "/research/medication-neuron-atlas/medication-neuron-atlas.pdf";
 export const DOSE_URL = "/research/what-a-model-learned-about-a-dose/";
-export const CONTROL_URL = "/research/medication-danger-and-control/";
 
 <PostHero post={props.post} headings={props.headings}>
 <AtlasExplainer title="Each part of a dose has its own units, at its own depth in the model" />
@@ -32,7 +31,7 @@ Medical tools are now being built on general-purpose language models, the kind o
 
 The atlas is not a test of whether the model gives safe or correct medication advice, and nothing in it should guide patient care. It shows where responses to medication text appear inside the model. It does not show that those responses control what the model says.
 
-Two posts report what the atlas shows. <a href={DOSE_URL}>What has a language model learned about a dose?</a> follows the parts of a dosing instruction through the model and lists what it has units for and what is missing. <a href={CONTROL_URL}>Do the units that predict a message's danger control the model's urgency reading?</a> tests, mostly on the smaller Qwen3.5-4B, whether switching off units that predict a message's danger changes the model's urgency reading, with positive controls. The <a href={PDF_URL}>technical report (PDF)</a> gives the full methods and the source of every number.
+A companion post reports what the atlas shows. <a href={DOSE_URL}>What has a language model learned about a dose?</a> follows the parts of a dosing instruction through the model and lists what it has units for and what is missing. The <a href={PDF_URL}>technical report (PDF)</a> gives the full methods and the source of every number.
 
 <details class="atl-terms">
 <summary>Terms used here</summary>
@@ -107,7 +106,7 @@ A card is not evidence that the unit represents the idea it names. One card's sc
 
 ## What can the atlas not tell you?
 
-**It is not a test of whether the model gives safe or correct medication advice, and it cannot tell you that a unit controls anything.** A unit that fires on dose numbers or on contraindication text is a place where a response appears; nothing here shows it to be a switch that governs what the model says, and a handful of such units is not a medication safety filter. <a href={CONTROL_URL}>The control post</a> reports a related test, mostly on the smaller Qwen3.5-4B, in which units chosen because they predicted how dangerous a message was, not the atlas units, were silenced.
+**It is not a test of whether the model gives safe or correct medication advice, and it cannot tell you that a unit controls anything.** A unit that fires on dose numbers or on contraindication text is a place where a response appears; nothing here shows it to be a switch that governs what the model says, and a handful of such units is not a medication safety filter.
 
 It covers one model, and may not hold for others. Its text is drug label prose and educational web text, with no chat, patient writing or clinical notes. It records feed-forward units only. Token types come from rules checked by hand on 45 tokens each, and at most 2 of each 45 were wrong. Associations with label sections and drug classes are weaker than those with token types, and a class link reflects the wording of a few labels rather than the class's pharmacology; the technical report explains why and how the selection rules should change. AI models wrote and scored the cards, and no clinician has blind-coded any test item. Nothing here shows that the atlas is clinically valid, that it makes a model safer, or that it is useful for patient care.
 
@@ -116,7 +115,6 @@ It covers one model, and may not hold for others. Its text is drug label prose a
 <p class="atl-cta"><a href={ATLAS_URL} class="btn-primary">Open the atlas<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></p>
 
 - <a href={DOSE_URL}>What has a language model learned about a dose?</a> Where each part of a dosing instruction appears across the 36 steps, and what the model has units for and what is missing.
-- <a href={CONTROL_URL}>Do the units that predict a message's danger control the model's urgency reading?</a> The pilot that silenced the units that best predicted a message's danger, and a follow-up on the smaller Qwen3.5-4B that tested, with positive controls, whether silencing at that point could have worked at all.
 - The data behind the atlas browser are public at [github.com/elparko/medication-neuron-atlas-data](https://github.com/elparko/medication-neuron-atlas-data).
 - <a href={PDF_URL}>Technical report (PDF)</a>: full methods, the audit trail, agreement between the two machines the atlas was computed on, near-silent units, the selection rules and their limitation, and the complete analysis of the card scores.
 

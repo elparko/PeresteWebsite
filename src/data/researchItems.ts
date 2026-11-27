@@ -7,7 +7,12 @@ export interface ResearchItem {
   kind: "Atlas" | "Paper" | "Study" | "Findings";
   image?: string;
   alt?: string;
-  glyph?: "open-capsule";
+  /* The animated text-art piece for the tile, with `alt` as its label. `image` is the still
+     shown when scripts are off. */
+  glyph?: "open-capsule" | "dose-steps" | "atlas-units" | "atlas-kinds" | "advice-reply" | "advice-seam";
+  /* A second piece under review: the research index shows it in place of `glyph`. */
+  glyphIndex?: "open-capsule" | "dose-steps" | "atlas-units" | "atlas-kinds" | "advice-reply" | "advice-seam";
+  altIndex?: string;
 }
 
 /* The published research, newest first. One list feeds the home page band and
@@ -21,17 +26,8 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-14",
     kind: "Findings",
     image: "/images/research/tile-dose.webp",
-    alt: "A three-dimensional volume of points, one for each unit, stacked by processing step from 1 to 36, with the 1,648 units for drug names lit on a plane near step 6 and the words warfarin, 5, mg, orally and once daily listed beside it.",
-  },
-  {
-    href: "/research/medication-danger-and-control/",
-    models: "Qwen3-8B · Qwen3.5-4B",
-    title: "Do the units that predict a message's danger control the model's urgency reading?",
-    line: "Switching off the units that best predicted a message's danger left more than 99% of the gap between the model's urgency readings for dangerous and harmless messages in place.",
-    date: "2026-11-14",
-    kind: "Findings",
-    image: "/images/research/tile-danger-ladder.webp",
-    alt: "A bar chart of six ways of changing the model's state at the reply position and how much each changed the urgency gap. Replacing the whole reply position and replacing only the attention output each lowered the gap by 1.86. Replacing all 294,912 feed-forward neurons changed it by +0.025, and silencing 200 chosen units changed it by +0.005 and by −0.027.",
+    alt: "The words warfarin, 5, mg, orally and once daily, each hanging below its place in the instruction at the depth of the processing step where the model's units for that kind of word appear. Warfarin hangs near the top and the 5 hangs far below the rest.",
+    glyph: "dose-steps",
   },
   {
     href: "/research/medication-neuron-atlas/",
@@ -41,7 +37,10 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-13",
     kind: "Atlas",
     image: "/images/research/tile-atlas.webp",
-    alt: "Dots for the atlas's units, grouped under the words warfarin, 5, mg, orally and once daily, stacked by depth in the model.",
+    alt: "A name plate for one unit of the model, with the words it fires on lit in the drug label text around it, for three units in turn.",
+    glyph: "atlas-units",
+    altIndex: "Three dosing phrases from drug labels, such as warfarin 5 mg orally once daily, set as tiles with the drug name, dose number, dose unit, route and frequency each in its own color.",
+    glyphIndex: "atlas-kinds",
   },
   {
     href: "/research/dosegate/",
@@ -50,6 +49,7 @@ export const researchItems: ResearchItem[] = [
     line: "An output layer that fills each dose, route and frequency from the patient's medication orders, or blocks the output.",
     date: "2026-11-05",
     kind: "Paper",
+    alt: "A capsule shape picked out in tiles from a field of medicine label words.",
     glyph: "open-capsule",
   },
   {
@@ -60,6 +60,9 @@ export const researchItems: ResearchItem[] = [
     date: "2026-11-04",
     kind: "Study",
     image: "/images/research/tile-advice.webp",
-    alt: "A chart of what each reply does for the person, from the advice versus education study.",
+    alt: "The question what should I take, with two replies in tiles: one tells the person to contact a healthcare provider, and one explains what a cough with yellow phlegm is typically a sign of.",
+    glyph: "advice-reply",
+    altIndex: "A field of reply phrases worded as advice on one side of a seam of tiles and as education on the other, crossed by one dark row of emergency words that reads the same on both sides.",
+    glyphIndex: "advice-seam",
   },
 ];
