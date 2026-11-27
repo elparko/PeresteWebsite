@@ -11,6 +11,7 @@ hero: true
 
 import PostHero from "../../components/research/PostHero.astro";
 import LoopedPassHero from "../../components/research/looped/LoopedPassHero.astro";
+import FirstToken from "../../components/research/looped/FirstToken.astro";
 import "../../styles/research-atlas.css";
 
 <PostHero post={props.post} headings={props.headings} titleBreakAfter="help">
@@ -71,6 +72,8 @@ For overdoses, probe accuracy falls from 0.678 at Pass 1 to 0.651 at Pass 3 and 
 ### 3. The single first-token split that drove the anticoagulant jump
 
 In anticoagulants (n = 217), the probe jumped from 0.507 at Pass 1 to 0.786 at Pass 3 (+0.279). Looking at the very first token the model writes after `FINAL:` explains the entire jump. In every single `AVOID` reply (172 of 172), the first token is `" AV"`. In every single dose reply (2,219 of 2,219), the first token is a plain space `" "` before the number.
+
+<FirstToken />
 
 On the 64 anticoagulant questions where the true label is `AVOID` (35 missed versus 29 correct), being wrong is 100% identical to starting the reply with `" "` instead of `" AV"`. On those 64 questions, the probe flips from 0.299 at Pass 1 to 0.947 at Pass 3 (+0.648, p = 0.001) simply because Pass 3 is the only pass that feeds directly into the final output layers where the model commits to `" "` versus `" AV"`. Dropping the 401 `AVOID` questions from the dataset reduces the overall `Pass 3 minus Pass 1` gain to +0.015 (95% CI -0.043 to +0.072, p = 0.669).
 

@@ -11,6 +11,7 @@ hero: true
 
 import PostHero from "../../components/research/PostHero.astro";
 import DoseProbeHero from "../../components/research/dose-probe/DoseProbeHero.astro";
+import ScheduleCheck from "../../components/research/dose-probe/ScheduleCheck.astro";
 import "../../styles/research-atlas.css";
 
 <PostHero post={props.post} headings={props.headings} titleBreakAfter="tell">
@@ -45,6 +46,8 @@ In the initial pilot, `Qwen3-8B` answered 2,391 dosing questions across 111 drug
 1. **Removed 31 leaked paraphrase questions.** The original loader filtered the 634 paraphrase questions by question ID and rule ID, leaving 620 items. Checking each paraphrase's source question removed 31 defective items (18 implausible ages, 5 overlapping rules, 5 sex-indication mismatches, 2 prompts that stated the answer, and 1 impossible kidney-value contradiction), leaving 589 clean paraphrases.
 2. **Fixed 326 mislabeled adjustment tags.** Across the 2,391 questions, 60 geriatric or weight-adjusted rules had been marked unadjusted and 266 standard or no-adjustment rules had been marked adjusted. Fixing those labels widened the error gap between adjusted and unadjusted regimens from +10.4 to +17.7 percentage points under daily-total grading, and from +8.7 to +14.5 percentage points under strict schedule grading.
 3. **Strict schedule grading caught 143 hidden frequency errors.** The original grader checked only total daily dose, which let wrong schedules pass when the daily total happened to match. Requiring the stated dosing frequency to match the FDA label uncovered 143 wrong-schedule answers, raising `Qwen3-8B`'s error rate from 50.7% (1,213 of 2,391) to 56.7% (1,356 of 2,391). An independent label-reading model grader (Claude Sonnet) judged 113 of those 143 schedule errors (79.0%) clinically wrong. The most affected drug classes were opioids (47), antiepileptics (20), psychotropics (18), gastrointestinal and genitourinary drugs (18), and antiinfectives (16).
+
+<ScheduleCheck />
 
 | Grading rule | Question type | Original n | Original error rate (95% CI) | Repaired n | Repaired error rate (95% CI) |
 | --- | --- | ---: | ---: | ---: | ---: |

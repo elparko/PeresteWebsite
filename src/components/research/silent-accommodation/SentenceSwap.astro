@@ -1,0 +1,50 @@
+---
+import tokens from "../../../data/research/silent-accommodation/sentence-tokens.json";
+
+const { filler, cue } = tokens.uninsured_cost;
+const n = cue.length;
+const show = (t: string) => t.replace(/^ /, "\u00b7");
+---
+
+<div class="sw" data-sw role="img" aria-label={`The neutral sentence "${filler.join("")}" turns, token by token, into "${cue.join("")}". Both are ${n} tokens long, so the prompt length does not change.`}>
+  <div class="sw-head">
+    <span class="sw-tag"><span class="sw-a">neutral sentence</span><span class="sw-b">no insurance</span></span>
+    <span class="sw-count">{n} tokens</span>
+  </div>
+  <div class="sw-row">
+    {filler.map((f, i) => (
+      <span class="sw-tok" style={`--i:${i}`}><span class="sw-f">{show(f)}</span><span class="sw-c">{show(cue[i])}</span></span>
+    ))}
+  </div>
+  <p class="sw-note">Each box is one token as Qwen3 reads it; a dot marks a leading space. Click to swap.</p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-sw]").forEach((el) => {
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) el.classList.add("is-cue");
+    else new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { setTimeout(() => el.classList.add("is-cue"), 900); io.disconnect(); } }, { threshold: 0.8 }).observe(el);
+    el.addEventListener("click", () => el.classList.toggle("is-cue"));
+  });
+</script>
+
+<style>
+  .sw { margin: 1.75rem auto; max-width: 36rem; cursor: pointer; --ink: #232c54; --muted: #5a6472; --teal: #0f9ba8; --danger: #b4532a; }
+  .sw-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.45rem; font-size: 0.78rem; }
+  .sw-tag { position: relative; display: inline-grid; font-weight: 600; }
+  .sw-tag > span { grid-area: 1 / 1; transition: opacity 0.5s ease; }
+  .sw-a { color: #0f8794; }
+  .sw-b { color: var(--danger); opacity: 0; }
+  .sw-count { font: 500 0.76rem/1 "DM Mono", ui-monospace, monospace; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .sw-row { display: flex; flex-wrap: wrap; gap: 4px; }
+  .sw-tok { position: relative; display: inline-grid; font: 400 0.8rem/1.2 "DM Mono", ui-monospace, monospace; color: var(--ink); }
+  .sw-tok > span { grid-area: 1 / 1; padding: 0.22rem 0.35rem; border-radius: 3px; white-space: pre; text-align: center; transition: opacity 0.35s ease calc(var(--i) * 70ms), transform 0.35s ease calc(var(--i) * 70ms); }
+  .sw-f { background: rgb(15 155 168 / 0.12); }
+  .sw-c { background: rgb(180 83 42 / 0.13); opacity: 0; transform: translateY(4px); }
+  .is-cue .sw-f { opacity: 0; transform: translateY(-4px); }
+  .is-cue .sw-c { opacity: 1; transform: none; }
+  .is-cue .sw-a { opacity: 0; }
+  .is-cue .sw-b { opacity: 1; }
+  .sw-note { margin: 0.5rem 0 0 !important; font-size: 0.72rem !important; line-height: 1.4 !important; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .sw-tok > span, .sw-tag > span { transition: none; } }
+</style>

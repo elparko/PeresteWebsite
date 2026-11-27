@@ -1,278 +1,228 @@
 ---
-const summary =
-  "Interactive chart comparing how well a model's self-check and internal probes catch dosing errors, and how many FDA dosing rules the base model already stores in its weights.";
+const summary = "A field of 986 high-harm dosing errors made by Qwen3-8B: 439 overdoses, 204 missed contraindications and 143 wrong schedules, with 200 wrongly refused drugs set apart. At a 20% review budget, the self-check flags 28.1% of high-harm errors and none of the wrongly refused drugs. An internal probe read after the answer flags 30.1% and 25.5% of the wrongly refused drugs; combined with the self-check it flags 30.5% and 14.5%. A fourth view shows 185 dosing rules, of which the base model already knew 124.";
+const data = {
+  main: 786,
+  wa: 200,
+  monitors: {
+    self: { main: 277, wa: 0 },
+    probe: { main: 246, wa: 51 },
+    combo: { main: 272, wa: 29 },
+  },
+  families: [
+    ["liver", 36, 33],
+    ["drug interaction", 30, 24],
+    ["kidney dose", 89, 51],
+    ["kidney avoid", 30, 16],
+  ],
+};
 ---
 
-<figure class="dp-hero" data-dph>
-  <div class="dph-tabs" role="tablist" aria-label="Chart view">
-    <button type="button" class="dph-tab" role="tab" aria-selected="true" data-view="blindspot">
-      The self-check blind spot
-    </button>
-    <button type="button" class="dph-tab" role="tab" aria-selected="false" data-view="knowledge">
-      Rules stored in base weights
-    </button>
+<figure class="bm" data-bm>
+  <div class="bm-controls" role="group" aria-label="Which check sweeps the errors">
+    <button type="button" class="bm-btn" data-k="self" aria-pressed="false">self-check</button>
+    <button type="button" class="bm-btn" data-k="probe" aria-pressed="false">internal probe</button>
+    <button type="button" class="bm-btn" data-k="combo" aria-pressed="false">probe + self-check</button>
+    <button type="button" class="bm-btn bm-quiet" data-k="base" aria-pressed="false">rules in the base model</button>
   </div>
-
-  <div class="dph-stage" role="img" aria-label={summary}>
-    <!-- View 1: Self-check blind spot on wrongly refused drugs vs all errors -->
-    <div class="dph-panel" data-panel="blindspot">
-      <div class="dph-subtabs">
-        <button type="button" class="dph-pill" aria-pressed="true" data-metric="wa">
-          Wrongly refused drugs
-        </button>
-        <button type="button" class="dph-pill" aria-pressed="false" data-metric="all">
-          All dosing errors
-        </button>
-      </div>
-
-      <svg class="dph-svg" viewBox="0 0 520 230" width="520" height="230" aria-hidden="true">
-        <!-- Chance reference line at 0.50 (x = 180 + (0.50 - 0.25)/0.65 * 290 = 291.5) -->
-        <line x1="291.5" y1="22" x2="291.5" y2="192" stroke="#c46a1b" stroke-width="1.5" stroke-dasharray="4 4" />
-        <text x="291.5" y="14" text-anchor="middle" class="dph-chance">0.50 (coin flip)</text>
-
-        <!-- Axis baseline & ticks: 0.30, 0.50, 0.70, 0.85 -->
-        <line x1="180" y1="192" x2="470" y2="192" stroke="#c5cbd3" stroke-width="1" />
-        <text x="202" y="210" text-anchor="middle" class="dph-tick">0.30</text>
-        <text x="291.5" y="210" text-anchor="middle" class="dph-tick">0.50</text>
-        <text x="381" y="210" text-anchor="middle" class="dph-tick">0.70</text>
-        <text x="448" y="210" text-anchor="middle" class="dph-tick">0.85</text>
-        <text x="325" y="226" text-anchor="middle" class="dph-axis-lbl">Error-detection score (AUROC; higher is better)</text>
-
-        <!-- Row 1: Self-check alone -->
-        <text x="170" y="57" text-anchor="end" class="dph-lbl">Self-check alone</text>
-        <text x="170" y="71" text-anchor="end" class="dph-sub">asks model "is this right?"</text>
-        <rect x="180" y="46" width="66" height="24" rx="4" class="dph-bar dph-bar--danger" data-bar="self" />
-        <text x="254" y="63" class="dph-val dph-val--danger" data-val="self">0.399</text>
-
-        <!-- Row 2: Internal probe (after answer) -->
-        <text x="170" y="112" text-anchor="end" class="dph-lbl">Internal probe</text>
-        <text x="170" y="126" text-anchor="end" class="dph-sub">reads model's final state</text>
-        <rect x="180" y="101" width="220" height="24" rx="4" class="dph-bar dph-bar--teal" data-bar="probe" />
-        <text x="408" y="118" class="dph-val" data-val="probe">0.743</text>
-
-        <!-- Row 3: Combined monitor -->
-        <text x="170" y="167" text-anchor="end" class="dph-lbl">Combined monitor</text>
-        <text x="170" y="181" text-anchor="end" class="dph-sub">internal probe + self-check</text>
-        <rect x="180" y="156" width="195" height="24" rx="4" class="dph-bar dph-bar--ink" data-bar="hybrid" />
-        <text x="383" y="173" class="dph-val" data-val="hybrid">0.688</text>
-      </svg>
-    </div>
-
-    <!-- View 2: Stage 2 closed-book parametric knowledge -->
-    <div class="dph-panel" data-panel="knowledge" hidden>
-      <svg class="dph-svg" viewBox="0 0 520 230" width="520" height="230" aria-hidden="true">
-        <line x1="180" y1="186" x2="470" y2="186" stroke="#c5cbd3" stroke-width="1" />
-        <text x="180" y="204" text-anchor="middle" class="dph-tick">0%</text>
-        <text x="325" y="204" text-anchor="middle" class="dph-tick">50%</text>
-        <text x="470" y="204" text-anchor="middle" class="dph-tick">100%</text>
-        <text x="325" y="222" text-anchor="middle" class="dph-axis-lbl">Share of FDA rules known closed-book by base Qwen3-8B</text>
-
-        <!-- Hepatic 91.7% (33/36) -->
-        <text x="170" y="39" text-anchor="end" class="dph-lbl">Liver impairment</text>
-        <rect x="180" y="24" width="266" height="22" rx="4" class="dph-bar dph-bar--teal" />
-        <text x="453" y="39" class="dph-val">91.7%</text>
-
-        <!-- Drug interaction 80.0% (24/30) -->
-        <text x="170" y="79" text-anchor="end" class="dph-lbl">Drug interactions</text>
-        <rect x="180" y="64" width="232" height="22" rx="4" class="dph-bar dph-bar--teal" />
-        <text x="419" y="79" class="dph-val">80.0%</text>
-
-        <!-- Numeric renal 57.3% (51/89) -->
-        <text x="170" y="119" text-anchor="end" class="dph-lbl">Kidney dose cut</text>
-        <rect x="180" y="104" width="166" height="22" rx="4" class="dph-bar dph-bar--ink" />
-        <text x="353" y="119" class="dph-val">57.3%</text>
-
-        <!-- Contra renal 53.3% (16/30) -->
-        <text x="170" y="159" text-anchor="end" class="dph-lbl">Kidney avoid rule</text>
-        <rect x="180" y="144" width="155" height="22" rx="4" class="dph-bar dph-bar--ink" />
-        <text x="342" y="159" class="dph-val">53.3%</text>
-      </svg>
-    </div>
+  <div class="bm-stage">
+    <canvas class="bm-canvas" role="img" aria-label={summary}></canvas>
   </div>
-
-  <figcaption class="dph-cap" data-cap aria-live="polite">
-    When Qwen3-8B wrongly says "avoid", its own self-check rates the refusal safer than a coin flip (<strong>0.399</strong>) and catches <strong>0%</strong> at a 20% review cap. Reading the internal state catches those errors (<strong>0.743</strong>).
-  </figcaption>
+  <p class="bm-line" aria-live="polite"></p>
+  <p class="bm-foot">Qwen3-8B, 2,391 questions, strict schedule grading. Lit dots show how many errors each check flags when a reviewer reads the riskiest 20% of answers, not which ones.</p>
+  <script type="application/json" data-bm-data set:html={JSON.stringify(data)} />
 </figure>
 
-<style>
-  .dp-hero {
-    --ink: #232c54;
-    --muted: #5a6472;
-    --teal: #0f8794;
-    --danger: #b4532a;
-    --line: #e3e8ef;
-    background: #f6f8fa;
-    border: 1px solid var(--line);
-    border-radius: 1rem;
-    padding: 1.15rem 1.25rem 1rem;
-    font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  }
-  .dph-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.25rem;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 0.65rem;
-    margin-bottom: 0.85rem;
-  }
-  .dph-tab {
-    background: none;
-    border: 0;
-    padding: 0.15rem 0;
-    font: 600 0.78rem/1.3 inherit;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: color 160ms ease, border-color 160ms ease;
-  }
-  .dph-tab[aria-selected="true"] {
-    color: var(--ink);
-    border-bottom-color: var(--ink);
-  }
-  .dph-subtabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-bottom: 0.4rem;
-  }
-  .dph-pill {
-    font: 500 0.72rem/1.2 inherit;
-    padding: 0.3rem 0.65rem;
-    border-radius: 999px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: var(--muted);
-    cursor: pointer;
-    transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
-  }
-  .dph-pill[aria-pressed="true"] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: #ffffff;
-  }
-  .dph-svg {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-  .dph-lbl {
-    fill: var(--ink);
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .dph-sub {
-    fill: var(--muted);
-    font-size: 10px;
-  }
-  .dph-tick,
-  .dph-axis-lbl {
-    fill: var(--muted);
-    font-size: 10px;
-    font-variant-numeric: tabular-nums;
-  }
-  .dph-chance {
-    fill: #b4532a;
-    font-size: 10px;
-    font-weight: 600;
-  }
-  .dph-val {
-    fill: var(--ink);
-    font-size: 12px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    transition: x 360ms ease;
-  }
-  .dph-val--danger {
-    fill: var(--danger);
-  }
-  .dph-bar {
-    transition: width 360ms cubic-bezier(0.22, 1, 0.36, 1), fill 220ms ease;
-  }
-  .dph-bar--danger { fill: var(--danger); }
-  .dph-bar--teal { fill: var(--teal); }
-  .dph-bar--ink { fill: var(--ink); }
-  .dph-cap {
-    margin: 0.65rem 0 0;
-    font-size: 0.8rem;
-    line-height: 1.48;
-    color: var(--muted);
-  }
-  .dph-cap strong {
-    color: var(--ink);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .dph-bar, .dph-val { transition: none; }
-  }
+<style is:global>
+  .bm { --bg: #ffffff; --ink: #232c54; --muted: #5a6472; --danger: #b4532a; --teal: #0f9ba8; --font: "Montserrat", ui-sans-serif, system-ui, sans-serif; margin: 0; }
+  .bm-controls { display: flex; flex-wrap: wrap; gap: 0.15rem 1rem; margin-bottom: 0.4rem; }
+  .bm .bm-btn { font: 500 11px/1.2 var(--font); letter-spacing: 0.02em; color: var(--ink); background: none; border: 0; padding: 4px 1px; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 4px; text-decoration-color: var(--muted); }
+  .bm .bm-btn[aria-pressed="true"] { font-weight: 600; text-decoration-style: solid; text-decoration-color: currentColor; }
+  .bm .bm-btn:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
+  .bm .bm-quiet { color: var(--muted); margin-left: auto; }
+  .bm .bm-quiet[aria-pressed="true"] { color: var(--ink); }
+  .bm-stage { position: relative; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+  .bm-canvas { display: block; width: 100%; cursor: grab; }
+  .prose-page .bm .bm-line, .bm .bm-line { margin: 0.5rem 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--muted); min-height: 4.5em; }
+  .bm .bm-line strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .prose-page .bm .bm-foot, .bm .bm-foot { margin: 0.4rem 0 0; font-size: 0.72rem; line-height: 1.4; color: var(--muted); }
 </style>
 
 <script>
-  document.querySelectorAll<HTMLElement>("[data-dph]").forEach((root) => {
-    const DATA = {
-      wa: {
-        self: 0.399,
-        probe: 0.743,
-        hybrid: 0.688,
-        dangerSelf: true,
-        cap: 'When Qwen3-8B wrongly says "avoid", its own self-check rates the refusal safer than a coin flip (<strong>0.399</strong>) and catches <strong>0%</strong> at a 20% review cap. Reading the internal state catches those errors (<strong>0.743</strong>).',
-      },
-      all: {
-        self: 0.653,
-        probe: 0.751,
-        hybrid: 0.753,
-        dangerSelf: false,
-        cap: 'Across all 2,391 dosing questions, combining the internal answer-token probe with the self-check reaches the highest overall score (<strong>0.753</strong>) and catches <strong>30.5%</strong> of high-harm errors inside a 20% review budget.',
-      },
-      knowledge: {
-        cap: 'Before any instruction tuning, base Qwen3-8B already knows <strong>124 of 185</strong> FDA rules (<strong>67.0%</strong>) across 46 of 71 drugs, including <strong>91.7%</strong> of liver rules and <strong>80.0%</strong> of drug interactions.',
-      },
-    };
-    const xOf = (v: number) => Math.max(12, ((v - 0.25) / 0.65) * 290);
-    const tabs = root.querySelectorAll<HTMLButtonElement>(".dph-tab");
-    const pills = root.querySelectorAll<HTMLButtonElement>(".dph-pill");
-    const panels = root.querySelectorAll<HTMLElement>("[data-panel]");
-    const cap = root.querySelector<HTMLElement>("[data-cap]")!;
-    let currentMetric: "wa" | "all" = "wa";
+  // @ts-nocheck
+  document.querySelectorAll("[data-bm]").forEach((fig) => {
 
-    function renderMetric(m: "wa" | "all") {
-      currentMetric = m;
-      const d = DATA[m];
-      (["self", "probe", "hybrid"] as const).forEach((k) => {
-        const w = xOf(d[k]);
-        const bar = root.querySelector<SVGRectElement>(`[data-bar="${k}"]`);
-        const val = root.querySelector<SVGTextElement>(`[data-val="${k}"]`);
-        if (bar) {
-          bar.setAttribute("width", w.toFixed(1));
-          if (k === "self") {
-            bar.classList.toggle("dph-bar--danger", d.dangerSelf);
-            bar.classList.toggle("dph-bar--ink", !d.dangerSelf);
-          }
-        }
-        if (val) {
-          val.setAttribute("x", (180 + w + 8).toFixed(1));
-          val.textContent = d[k].toFixed(3);
-          if (k === "self") val.classList.toggle("dph-val--danger", d.dangerSelf);
-        }
-      });
-      pills.forEach((p) => p.setAttribute("aria-pressed", String(p.dataset.metric === m)));
-      cap.innerHTML = d.cap;
+const D = JSON.parse(fig.querySelector("[data-bm-data]").textContent);
+const stage = fig.querySelector(".bm-stage"), canvas = fig.querySelector(".bm-canvas"), ctx = canvas.getContext("2d");
+const line = fig.querySelector(".bm-line"), btns = [...fig.querySelectorAll("[data-k]")];
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LINES = {
+  rest: "<strong>986</strong> high-harm errors from 2,391 answers: 439 overdoses, 204 missed contraindications and 143 wrong schedules, with the <strong>200</strong> drugs the model wrongly refused set apart. Choose a check to sweep the field.",
+  self: "Asking the model to check its own answer flags <strong>28.1%</strong> of high-harm errors and <strong>0 of 200</strong> wrongly refused drugs. On those refusals its score is <strong>0.399</strong>, worse than a coin flip.",
+  probe: "An internal probe read after the answer flags <strong>30.1%</strong> of high-harm errors and <strong>25.5%</strong> of wrongly refused drugs. On the refusals it scores <strong>0.743</strong>.",
+  combo: "Probe and self-check together flag <strong>30.5%</strong> of high-harm errors, the most of any check, and <strong>14.5%</strong> of wrongly refused drugs. Overall score <strong>0.753</strong>, the highest.",
+  base: "Asked closed-book, the base model before chat tuning already favored the adjusted regimen for <strong>124 of 185</strong> rules (67.0%): 33 of 36 liver rules, 24 of 30 drug interactions, 51 of 89 kidney dose reductions and 16 of 30 kidney contraindications.",
+};
+const SWEEP = 2400, MORPH = 900, DEEP = 0.42, TILT = 0.42, YAW0 = -0.22;
+let state = "rest", sweepT0 = -1e9, morph = 0, morphTo = 0;
+let W = 0, H = 0, dpr = 1, cx = 0, scale = 1, yPlane = 0, phone = false, pills = [], famRows = [];
+let yaw = YAW0, yawTo = YAW0, sway = 0, co = 1, si = 0, drag = false, lastX = 0, inside = false;
+const col = {};
+
+let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+const dots = [];
+function grid(n, xa, xb, cols, rows, wa) {
+  const cells = [];
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) cells.push([i, j]);
+  for (let k = cells.length - 1; k > 0; k--) { const r = Math.floor(rnd() * (k + 1)); [cells[k], cells[r]] = [cells[r], cells[k]]; }
+  const dx = (xb - xa) / cols, dz = (2 * DEEP) / rows;
+  for (let k = 0; k < n; k++) { const [i, j] = cells[k];
+    dots.push({ wx: xa + (i + 0.5 + (rnd() - 0.5) * 0.6) * dx, wz: -DEEP + (j + 0.5 + (rnd() - 0.5) * 0.6) * dz, wa, u: rnd(), lit: 0, sx: 0, sy: 0 }); }
+}
+grid(D.main, -1, 0.4, 36, 22, false);
+grid(D.wa, 0.56, 1, 10, 20, true);
+const rankIn = (wa) => { const g = dots.filter((d) => d.wa === wa).sort((a, b) => a.u - b.u); g.forEach((d, i) => (d.rank = i)); };
+rankIn(false); rankIn(true);
+const caught = (d, k) => { const m = D.monitors[k]; return !!m && d.rank < (d.wa ? m.wa : m.main); };
+let pillIdx = 0;
+D.families.forEach((f, fi) => { for (let i = 0; i < f[1]; i++) { const d = dots[Math.floor((pillIdx * 5.3) % D.main)]; pillIdx++; pills.push({ d, fi, i, known: i < f[2] }); } });
+pills.forEach((p) => (p.d.pill = p));
+
+const css = (n) => getComputedStyle(fig).getPropertyValue(n).trim();
+const rgba = (hex, a) => { const v = parseInt(hex.slice(1), 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
+const ease = (p) => 1 - Math.pow(1 - Math.min(1, Math.max(0, p)), 3);
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const PX = (x, z) => cx + (x * co - z * si) * scale, PY = (x, z) => yPlane + (x * si + z * co) * scale * TILT;
+
+function layout() {
+  W = stage.clientWidth; phone = W < 520;
+  cx = W / 2; scale = (W - 12) / 2 / 1.06;
+  const pad = (Math.sin(0.6) + DEEP) * scale * TILT;
+  yPlane = 26 + pad;
+  const fieldH = yPlane + pad + 40;
+  // the rule pills: one row of pills per family, wrapping on a narrow screen
+  const pw = phone ? 4 : 5, gap = phone ? 2.5 : 3, ph = phone ? 11 : 13, lab = phone ? 0 : 150;
+  const per = Math.max(10, Math.floor((W - lab - 4) / (pw + gap)));
+  let y = 30; famRows = [];
+  D.families.forEach((f, fi) => {
+    if (phone) y += 16;
+    famRows.push({ f, y, x: phone ? 0 : 0 });
+    pills.filter((p) => p.fi === fi).forEach((p) => { const r = Math.floor(p.i / per), c = p.i % per; p.px = lab + c * (pw + gap) + pw / 2; p.py = y + r * (ph + 5) + ph / 2; });
+    y += (Math.ceil(f[1] / per)) * (ph + 5) + (phone ? 10 : 16);
+  });
+  famRows.pw = pw; famRows.ph = ph;
+  H = Math.round(Math.max(fieldH, y + 6));
+  yPlane = Math.max(yPlane, (H - 30) / 2);
+  const off = Math.max(0, (H - y) / 2 - 10);
+  pills.forEach((p) => (p.py += off)); famRows.forEach((r) => (r.y += off));
+  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.height = H + "px";
+  draw(performance.now());
+}
+
+function quad(xa, xb) { ctx.beginPath(); [[xa, -DEEP], [xb, -DEEP], [xb, DEEP], [xa, DEEP]].forEach(([x, z], i) => (i ? ctx.lineTo(PX(x, z), PY(x, z)) : ctx.moveTo(PX(x, z), PY(x, z)))); ctx.closePath(); }
+
+function draw(now) {
+  for (const n of ["bg", "ink", "muted", "danger", "teal"]) col[n] = css("--" + n);
+  const font = css("--font");
+  co = Math.cos(yaw); si = Math.sin(yaw);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const b = still ? morphTo : ease(morph);
+  const k = state;
+  const sp = still ? 2 : (now - sweepT0) / SWEEP, sx = -1.08 + 2.16 * sp;
+
+  // the two regions of the field, set on one tilted plane
+  ctx.globalAlpha = 1 - b;
+  quad(-1.03, 0.43); ctx.strokeStyle = rgba(col.ink, 0.16); ctx.lineWidth = 0.8; ctx.stroke();
+  quad(0.53, 1.03); ctx.setLineDash([2, 3]); ctx.strokeStyle = rgba(col.danger, 0.45); ctx.stroke(); ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  const front = co >= 0 ? DEEP : -DEEP;
+  for (const d of dots) {
+    const on = D.monitors[k] && caught(d, k) && (sp > 1 || sx > d.wx);
+    d.lit += ((on ? 1 : 0) - d.lit) * (still ? 1 : 0.14);
+    const fx = PX(d.wx, d.wz), fy = PY(d.wx, d.wz), depth = (d.wx * si + d.wz * co) / (1 + DEEP);
+    const r = 1.45 + 0.45 * depth;
+    if (d.pill && b > 0) {
+      const p = d.pill, x = fx + (p.px - fx) * b, y = fy + (p.py - fy) * b;
+      const w = 2 * r + (famRows.pw - 2 * r) * b, h = 2 * r + (famRows.ph - 2 * r) * b;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w / 2, y - h / 2, w, h, Math.min(w, h) / 2) : ctx.rect(x - w / 2, y - h / 2, w, h);
+      if (p.known && b > 0.5) { ctx.fillStyle = rgba(col.teal, 0.25 + 0.7 * b); ctx.fill(); }
+      else { ctx.fillStyle = rgba(col.ink, 0.12 * (1 - b)); ctx.fill(); ctx.strokeStyle = rgba(col.ink, 0.3 * b); ctx.lineWidth = 0.8; ctx.stroke(); }
+      continue;
     }
+    if (b >= 1) continue;
+    ctx.globalAlpha = 1 - b;
+    ctx.beginPath(); ctx.arc(fx, fy, r + 0.5 * d.lit, 0, 6.2832);
+    if (d.lit > 0.02) { ctx.fillStyle = rgba(col.teal, 0.25 + 0.75 * d.lit); ctx.fill(); }
+    else if (d.wa) { ctx.strokeStyle = rgba(col.danger, 0.7); ctx.lineWidth = 0.9; ctx.stroke(); }
+    else { ctx.fillStyle = rgba(col.ink, 0.22); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
 
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => {
-        const v = tab.dataset.view!;
-        tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
-        panels.forEach((p) => { p.hidden = p.dataset.panel !== v; });
-        cap.innerHTML = v === "knowledge" ? DATA.knowledge.cap : DATA[currentMetric].cap;
-      });
+  // the sweep: a reviewer's lens moving across the plane; the self-check goes pale over the refusals
+  if (D.monitors[k] && sp > 0 && sp < 1.05 && b < 0.05) {
+    const x = clamp(sx, -1.03, 1.03), blind = k === "self" && x > 0.5;
+    const c = k === "self" ? col.ink : col.teal;
+    ctx.beginPath(); ctx.moveTo(PX(x, -DEEP - 0.04), PY(x, -DEEP - 0.04)); ctx.lineTo(PX(x, DEEP + 0.04), PY(x, DEEP + 0.04));
+    ctx.strokeStyle = rgba(c, blind ? 0.14 : 0.85); ctx.lineWidth = 1.4; ctx.stroke();
+    for (let g = 1; g <= 6; g++) { const xg = x - g * 0.012; if (xg < -1.03) break;
+      ctx.beginPath(); ctx.moveTo(PX(xg, -DEEP), PY(xg, -DEEP)); ctx.lineTo(PX(xg, DEEP), PY(xg, DEEP)); ctx.strokeStyle = rgba(c, (blind ? 0.03 : 0.12) * (1 - g / 7)); ctx.lineWidth = 1; ctx.stroke(); }
+  }
+
+  // labels at the front edge of each region
+  if (b < 0.6) {
+    ctx.globalAlpha = 1 - b / 0.6;
+    ctx.textBaseline = "alphabetic"; ctx.font = `500 11px ${font}`;
+    const lx = (x) => PX(x, front), ly = (x) => PY(x, front) + 22;
+    ctx.textAlign = "left"; ctx.fillStyle = col.ink;
+    ctx.fillText(phone ? "786 other errors" : "786 overdoses, missed contraindications, wrong schedules", Math.max(2, lx(-1)), ly(-1));
+    ctx.textAlign = "right"; ctx.fillStyle = col.danger;
+    ctx.fillText("200 wrongly refused", Math.min(W - 2, lx(1)), ly(1) + (phone ? 0 : 0));
+    ctx.globalAlpha = 1;
+  }
+  if (b > 0.4) {
+    ctx.globalAlpha = (b - 0.4) / 0.6; ctx.textBaseline = "alphabetic"; ctx.font = `500 11px ${font}`; ctx.textAlign = "left";
+    famRows.forEach(({ f, y }) => {
+      const ty = phone ? y - 6 : y + famRows.ph / 2 + 4;
+      ctx.fillStyle = col.ink; ctx.fillText(f[0], 0, ty);
+      const w = ctx.measureText(f[0]).width; ctx.fillStyle = col.muted; ctx.font = `400 10.5px ${font}`;
+      ctx.fillText(`${f[2]} of ${f[1]}`, w + 8, ty); ctx.font = `500 11px ${font}`;
     });
+    ctx.globalAlpha = 1;
+  }
+}
 
-    pills.forEach((pill) => {
-      pill.addEventListener("click", () => renderMetric(pill.dataset.metric as "wa" | "all"));
-    });
+function setState(next) {
+  if (next === state) next = "rest";
+  state = next; sweepT0 = performance.now(); morphTo = state === "base" ? 1 : 0;
+  btns.forEach((b) => b.setAttribute("aria-pressed", b.dataset.k === state));
+  line.innerHTML = LINES[state];
+  if (still) { dots.forEach((d) => (d.lit = 0)); draw(performance.now()); }
+}
+btns.forEach((b) => b.addEventListener("click", () => setState(b.dataset.k)));
 
-    renderMetric("wa");
+const pos = (e) => { const r = canvas.getBoundingClientRect(); return e.clientX - r.left; };
+canvas.addEventListener("pointerenter", () => { inside = true; });
+canvas.addEventListener("pointerdown", (e) => { drag = true; lastX = pos(e); canvas.style.cursor = "grabbing"; });
+canvas.addEventListener("pointermove", (e) => { if (!drag || morphTo) return; const x = pos(e); yawTo = clamp(yawTo + (x - lastX) * 0.006, -0.6, 0.6); lastX = x; if (still) { yaw = yawTo; draw(performance.now()); } });
+const end = () => { drag = false; canvas.style.cursor = "grab"; };
+canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
+canvas.addEventListener("pointerleave", () => { end(); inside = false; });
+
+let last = 0;
+function frame(now) {
+  const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;
+  morph += (morphTo - morph) * (1 - Math.exp(-dt * 1000 / MORPH * 3));
+  if (Math.abs(morphTo - morph) < 0.002) morph = morphTo;
+  if (!inside && !drag) sway += dt;
+  yaw += (yawTo + 0.08 * Math.sin(sway * 0.35) - yaw) * 0.1;
+  draw(now);
+  if (visible) requestAnimationFrame(frame); else { running = false; last = 0; }
+}
+let visible = false, running = false;
+new ResizeObserver(layout).observe(stage);
+line.innerHTML = LINES.rest; layout();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw(performance.now()));
+new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); if (visible && !running && !still) { running = true; requestAnimationFrame(frame); } }).observe(stage);
   });
 </script>

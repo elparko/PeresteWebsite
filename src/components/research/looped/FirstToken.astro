@@ -1,0 +1,50 @@
+---
+---
+
+<div class="ft" data-ft role="img" aria-label="After FINAL:, the model's first token decides the answer type. All 172 AVOID replies start with the token AV after a space. All 2,219 dose replies start with a bare space before the number.">
+  <span class="ft-root">FINAL:</span>
+  <svg class="ft-fork" viewBox="0 0 40 64" preserveAspectRatio="none" aria-hidden="true">
+    <path class="ft-p ft-p1" d="M0 32 C 18 32, 20 12, 40 12" />
+    <path class="ft-p ft-p2" d="M0 32 C 18 32, 20 52, 40 52" />
+  </svg>
+  <div class="ft-branches">
+    <div class="ft-br ft-av">
+      <span class="ft-tok ft-tok-av">␣AV</span><span class="ft-rest">OID</span>
+      <span class="ft-lab"><b>172 of 172</b> AVOID replies</span>
+    </div>
+    <div class="ft-br ft-dose">
+      <span class="ft-tok ft-tok-sp">␣</span><span class="ft-rest">5 mg once daily</span>
+      <span class="ft-lab"><b>2,219 of 2,219</b> dose replies</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-ft]").forEach((el) => {
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) { el.classList.add("is-on"); return; }
+    new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { setTimeout(() => el.classList.add("is-on"), 500); io.disconnect(); } }, { threshold: 0.8 }).observe(el);
+    el.addEventListener("click", () => { el.classList.remove("is-on"); void el.offsetWidth; setTimeout(() => el.classList.add("is-on"), 200); });
+  });
+</script>
+
+<style>
+  .ft { --ink: #232c54; --indigo: #3f518f; --pale: #8ccfdb; --muted: #5a6472; display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin: 1.75rem auto; max-width: 34rem; cursor: pointer; font-family: "DM Mono", ui-monospace, monospace; }
+  .ft-root { font-size: 0.9rem; font-weight: 500; color: var(--ink); }
+  .ft-fork { width: 2.4rem; height: 4.6rem; flex: none; overflow: visible; }
+  .ft-p { fill: none; stroke: var(--ink); stroke-opacity: 0.45; stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-dasharray: 60; stroke-dashoffset: 60; transition: stroke-dashoffset 0.6s ease; }
+  .ft-p2 { transition-delay: 0.15s; }
+  .ft-branches { display: grid; gap: 1.3rem; }
+  .ft-br { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 0.15rem; row-gap: 0.2rem; }
+  .ft-tok { display: inline-block; min-width: 1.6rem; padding: 0.2rem 0.45rem; border-radius: 3px; font-size: 0.86rem; font-weight: 500; text-align: center; opacity: 0; transform: translateX(-6px); transition: opacity 0.45s ease 0.55s, transform 0.45s ease 0.55s; }
+  .ft-tok-av { background: var(--pale); color: var(--ink); }
+  .ft-tok-sp { background: var(--indigo); color: #e6f4f6; }
+  .ft-rest { font-size: 0.86rem; color: var(--muted); opacity: 0; transition: opacity 0.6s ease 1s; padding-left: 0.1rem; }
+  .ft-lab { grid-column: 1 / -1; font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif; font-size: 0.74rem; color: var(--muted); opacity: 0; transition: opacity 0.6s ease 1.2s; }
+  .ft-lab b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .is-on .ft-p { stroke-dashoffset: 0; }
+  .is-on .ft-tok { opacity: 1; transform: none; }
+  .is-on .ft-rest { opacity: 0.6; }
+  .is-on .ft-lab { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .ft-p, .ft-tok, .ft-rest, .ft-lab { transition: none; } }
+</style>

@@ -1,0 +1,72 @@
+---
+---
+
+<div class="sc" data-sc>
+  <div class="sc-steps" role="group" aria-label="Grading rule">
+    <button type="button" class="sc-btn" data-step="0" aria-pressed="true">daily total</button>
+    <button type="button" class="sc-btn" data-step="1" aria-pressed="false">strict schedule</button>
+  </div>
+  <div class="sc-grid">
+    <span class="sc-who">Label</span>
+    <span class="sc-dose"><b>400 mg</b> twice daily</span>
+    <span class="sc-calc"><span class="sc-tot">800 mg a day</span> <span class="sc-n">in 2 doses</span></span>
+    <span class="sc-who">Model</span>
+    <span class="sc-dose"><b>800 mg</b> once daily</span>
+    <span class="sc-calc"><span class="sc-tot">800 mg a day</span> <span class="sc-n">in 1 dose</span></span>
+  </div>
+  <p class="sc-verdict"><span class="sc-ok">graded right</span><span class="sc-bad">graded wrong schedule</span></p>
+  <p class="sc-rate">Qwen3-8B error rate <b class="sc-num" aria-live="polite">50.7%</b> <span class="sc-of">1,213 of 2,391</span></p>
+  <p class="sc-note">An illustrative regimen. Requiring the schedule to match the label found 143 such answers.</p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-sc]").forEach((el) => {
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const num = el.querySelector<HTMLElement>(".sc-num")!, of = el.querySelector<HTMLElement>(".sc-of")!;
+    const btns = [...el.querySelectorAll<HTMLButtonElement>("[data-step]")];
+    let raf = 0;
+    const count = (a: number, b: number) => {
+      cancelAnimationFrame(raf);
+      if (still) { num.textContent = b.toFixed(1) + "%"; return; }
+      const t0 = performance.now();
+      const tick = (t: number) => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); num.textContent = (a + (b - a) * e).toFixed(1) + "%"; if (p < 1) raf = requestAnimationFrame(tick); };
+      raf = requestAnimationFrame(tick);
+    };
+    const set = (s: number) => {
+      const was = el.classList.contains("is-strict");
+      el.classList.toggle("is-strict", s === 1);
+      btns.forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.step) === s)));
+      of.textContent = s ? "1,356 of 2,391" : "1,213 of 2,391";
+      if (was !== (s === 1)) count(s ? 50.7 : 56.7, s ? 56.7 : 50.7);
+    };
+    btns.forEach((b) => b.addEventListener("click", () => set(Number(b.dataset.step))));
+    if (!still) new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { setTimeout(() => set(1), 1800); io.disconnect(); } }, { threshold: 0.8 }).observe(el);
+  });
+</script>
+
+<style>
+  .sc { --ink: #232c54; --muted: #5a6472; --teal: #0f8794; --danger: #b4532a; margin: 1.75rem auto; max-width: 30rem; font-size: 0.88rem; }
+  .sc-steps { display: flex; gap: 1rem; margin-bottom: 0.7rem; }
+  .sc-btn { font: 500 11px/1.2 "Montserrat", ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.02em; color: var(--ink); background: none; border: 0; padding: 4px 1px; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 4px; text-decoration-color: var(--muted); }
+  .sc-btn[aria-pressed="true"] { font-weight: 600; text-decoration-style: solid; text-decoration-color: currentColor; }
+  .sc-btn:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
+  .sc-grid { display: grid; grid-template-columns: auto auto 1fr; gap: 0.35rem 1.1rem; align-items: baseline; font-family: "DM Mono", ui-monospace, monospace; font-size: 0.82rem; color: var(--ink); }
+  .sc-who { font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .sc-dose b { font-weight: 500; }
+  .sc-calc { color: var(--muted); }
+  .sc-calc > span { padding: 0.08rem 0.25rem; border-radius: 3px; transition: background-color 0.5s ease, color 0.5s ease; }
+  .sc-tot { background: rgb(15 155 168 / 0.14); color: var(--ink); }
+  .is-strict .sc-tot { background: transparent; color: var(--muted); }
+  .is-strict .sc-n { background: rgb(180 83 42 / 0.14); color: var(--ink); }
+  .sc-verdict { position: relative; display: grid; margin: 0.8rem 0 0 !important; font-size: 0.8rem !important; font-weight: 600; }
+  .sc-verdict > span { grid-area: 1 / 1; transition: opacity 0.5s ease; }
+  .sc-ok { color: var(--teal); }
+  .sc-bad { color: var(--danger); opacity: 0; }
+  .is-strict .sc-ok { opacity: 0; }
+  .is-strict .sc-bad { opacity: 1; }
+  .sc-rate { margin: 0.35rem 0 0 !important; font-size: 0.8rem !important; color: var(--muted); }
+  .sc-rate b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sc-of { margin-left: 0.4rem; font-variant-numeric: tabular-nums; }
+  .sc-note { margin: 0.3rem 0 0 !important; font-size: 0.72rem !important; line-height: 1.4 !important; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .sc-calc > span, .sc-verdict > span { transition: none; } }
+</style>

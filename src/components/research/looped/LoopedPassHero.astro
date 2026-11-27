@@ -1,205 +1,202 @@
 ---
-const summary =
-  "Diagram of a looped language model running its middle layers three times per token, with toggles showing how the apparent Pass 3 error-probe gain shrinks when restricted to numeric doses, and how dosing errors climb from 1-step to 3-step clinical rules.";
+import data from "../../../data/research/looped-model-dose-errors/pass-scores.json";
+
+const { about, ...payload } = data;
+const summary = "Three stacked planes stand for Pass 1, 2 and 3 of the same shared middle layers (6 to 17) of Inkling 2 Mini. Each dot is one question, placed left to right by the internal probe's risk score after that pass, terracotta when the final answer was wrong. Only Pass 3 feeds the output layers, which pick the first token: a bare space before a dose, or AV for AVOID. On the 64 anticoagulant questions whose label says avoid, the probe scores 0.299, 0.473 and 0.947 across the passes. On the 1,940 questions where the model should dose and did, it scores 0.675, 0.664 and 0.692.";
 ---
 
-<figure class="lp-hero" data-lph>
-  <div class="lph-tabs" role="tablist" aria-label="View">
-    <button type="button" class="lph-tab" role="tab" aria-selected="true" data-mode="numeric">
-      Numeric doses only (n = 1,940)
-    </button>
-    <button type="button" class="lph-tab" role="tab" aria-selected="false" data-mode="all">
-      All questions (n = 2,391)
-    </button>
-    <button type="button" class="lph-tab" role="tab" aria-selected="false" data-mode="hops">
-      Error rate by rule steps
-    </button>
+<figure class="lp" data-lp>
+  <div class="lp-controls" role="group" aria-label="Which questions">
+    <button type="button" class="lp-btn" data-set="anticoag_avoid" aria-pressed="true">anticoagulants, label says avoid</button>
+    <button type="button" class="lp-btn" data-set="numeric" aria-pressed="false">numeric doses only</button>
   </div>
-
-  <div class="lph-stage" role="img" aria-label={summary}>
-    <!-- Architecture + pass probe readout -->
-    <div data-pane="passes">
-      <svg class="lph-svg" viewBox="0 0 520 225" width="520" height="225" aria-hidden="true">
-        <defs>
-          <marker id="lph-arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-            <path d="M 0 1 L 8 5 L 0 9 z" fill="#232c54" />
-          </marker>
-          <marker id="lph-arr-teal" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-            <path d="M 0 1 L 8 5 L 0 9 z" fill="#0f8794" />
-          </marker>
-        </defs>
-
-        <!-- Prelude block -->
-        <rect x="14" y="54" width="84" height="58" rx="8" fill="#ffffff" stroke="#c5cbd3" stroke-width="1.2" />
-        <text x="56" y="79" text-anchor="middle" class="lph-box-t">Entry</text>
-        <text x="56" y="96" text-anchor="middle" class="lph-box-s">layers 0–5</text>
-
-        <line x1="98" y1="83" x2="128" y2="83" stroke="#232c54" stroke-width="1.4" marker-end="url(#lph-arr)" />
-
-        <!-- Shared looped middle block -->
-        <rect x="132" y="42" width="224" height="82" rx="10" fill="#eef4f8" stroke="#0f8794" stroke-width="1.6" />
-        <text x="244" y="64" text-anchor="middle" class="lph-box-t">Shared middle layers (6–17)</text>
-        <text x="244" y="80" text-anchor="middle" class="lph-box-s">same weights run 3 times per token</text>
-
-        <!-- Loopback arc above -->
-        <path d="M 326 42 C 326 12, 162 12, 162 40" fill="none" stroke="#0f8794" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#lph-arr-teal)" />
-        <text x="244" y="13" text-anchor="middle" class="lph-loop-lbl">loops back for pass 2 &amp; pass 3</text>
-
-        <!-- 3 pass readout pills inside block -->
-        <g>
-          <rect x="145" y="92" width="60" height="24" rx="5" fill="#ffffff" stroke="#cbd5e1" />
-          <text x="175" y="108" text-anchor="middle" class="lph-p-val" data-p="1">0.675</text>
-          <rect x="214" y="92" width="60" height="24" rx="5" fill="#ffffff" stroke="#cbd5e1" />
-          <text x="244" y="108" text-anchor="middle" class="lph-p-val" data-p="2">0.664</text>
-          <rect x="283" y="92" width="60" height="24" rx="5" fill="#232c54" />
-          <text x="313" y="108" text-anchor="middle" class="lph-p-val lph-p-val--inv" data-p="3">0.692</text>
-        </g>
-        <text x="175" y="138" text-anchor="middle" class="lph-tick">Pass 1</text>
-        <text x="244" y="138" text-anchor="middle" class="lph-tick">Pass 2</text>
-        <text x="313" y="138" text-anchor="middle" class="lph-tick">Pass 3</text>
-
-        <line x1="356" y1="83" x2="386" y2="83" stroke="#232c54" stroke-width="1.4" marker-end="url(#lph-arr)" />
-
-        <!-- Coda + first token -->
-        <rect x="390" y="54" width="116" height="58" rx="8" fill="#ffffff" stroke="#232c54" stroke-width="1.2" />
-        <text x="448" y="76" text-anchor="middle" class="lph-box-t">Output layers</text>
-        <text x="448" y="93" text-anchor="middle" class="lph-box-s">18–23 → " " vs " AV"</text>
-
-        <!-- Bottom comparison strip -->
-        <rect x="14" y="156" width="492" height="56" rx="8" fill="#ffffff" stroke="#e3e8ef" />
-        <text x="32" y="178" class="lph-stat-k">Pass 3 minus Pass 1</text>
-        <text x="32" y="198" class="lph-stat-v" data-diff>+0.017 (not above zero, p = 0.653)</text>
-        <line x1="318" y1="166" x2="318" y2="202" stroke="#e3e8ef" />
-        <text x="334" y="178" class="lph-stat-k">Self-check P(No)</text>
-        <text x="334" y="198" class="lph-stat-v lph-stat-v--teal" data-pno>0.689 (leads Pass 3)</text>
-      </svg>
-    </div>
-
-    <!-- Hop complexity bars -->
-    <div data-pane="hops" hidden>
-      <svg class="lph-svg" viewBox="0 0 520 225" width="520" height="225" aria-hidden="true">
-        <line x1="160" y1="184" x2="475" y2="184" stroke="#c5cbd3" stroke-width="1" />
-        <text x="160" y="202" text-anchor="middle" class="lph-tick">0%</text>
-        <text x="317" y="202" text-anchor="middle" class="lph-tick">50%</text>
-        <text x="475" y="202" text-anchor="middle" class="lph-tick">100%</text>
-        <text x="317" y="219" text-anchor="middle" class="lph-tick">Inkling 2 Mini dosing error rate (lower is better)</text>
-
-        <!-- 1-hop: 18.7% (n=1,050) -->
-        <text x="150" y="52" text-anchor="end" class="lph-box-t">1-step lookup</text>
-        <text x="150" y="66" text-anchor="end" class="lph-box-s">standard adult dose (n=1,050)</text>
-        <rect x="160" y="40" width="59" height="26" rx="4" fill="#0f8794" />
-        <text x="227" y="58" class="lph-stat-v">18.7%</text>
-
-        <!-- 2-hop: 44.0% (n=1,305) -->
-        <text x="150" y="106" text-anchor="end" class="lph-box-t">2-step rule</text>
-        <text x="150" y="120" text-anchor="end" class="lph-box-s">+ 1 modifier, e.g. kidney (n=1,305)</text>
-        <rect x="160" y="94" width="139" height="26" rx="4" fill="#232c54" />
-        <text x="307" y="112" class="lph-stat-v">44.0%</text>
-
-        <!-- 3-hop: 61.1% (n=36) -->
-        <text x="150" y="160" text-anchor="end" class="lph-box-t">3-step rule</text>
-        <text x="150" y="174" text-anchor="end" class="lph-box-s">2+ modifiers at once (n=36)</text>
-        <rect x="160" y="148" width="192" height="26" rx="4" fill="#b4532a" />
-        <text x="360" y="166" class="lph-stat-v lph-stat-v--danger">61.1%</text>
-      </svg>
-    </div>
+  <div class="lp-stage">
+    <canvas class="lp-canvas" role="img" aria-label={summary}></canvas>
   </div>
-
-  <figcaption class="lph-cap" data-cap aria-live="polite">
-    Inside numeric dose questions, the apparent Pass 3 probe gain shrinks to <strong>+0.017</strong> (p = 0.653), and stratified by rule type the model's own self-check (<strong>0.689</strong>) leads Pass 3 (<strong>0.655</strong>).
-  </figcaption>
+  <p class="lp-line" aria-live="polite"></p>
+  <p class="lp-foot">Each plane is one pass through the shared layers 6 to 17 of Inkling 2 Mini; the number beside it is the probe's score after that pass. Dot positions are the real probe scores, as ranks within each set of questions, from probes tested on drug classes held out of training. Drag to turn.</p>
+  <script type="application/json" data-lp-data set:html={JSON.stringify(payload)} />
 </figure>
 
-<style>
-  .lp-hero {
-    --ink: #232c54;
-    --muted: #5a6472;
-    --teal: #0f8794;
-    --danger: #b4532a;
-    --line: #e3e8ef;
-    background: #f6f8fa;
-    border: 1px solid var(--line);
-    border-radius: 1rem;
-    padding: 1.15rem 1.25rem 1rem;
-    font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  }
-  .lph-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.1rem;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 0.65rem;
-    margin-bottom: 0.75rem;
-  }
-  .lph-tab {
-    background: none;
-    border: 0;
-    padding: 0.15rem 0;
-    font: 600 0.76rem/1.3 inherit;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-  }
-  .lph-tab[aria-selected="true"] {
-    color: var(--ink);
-    border-bottom-color: var(--ink);
-  }
-  .lph-svg { display: block; width: 100%; height: auto; }
-  .lph-box-t { fill: var(--ink); font-size: 11.5px; font-weight: 600; }
-  .lph-box-s { fill: var(--muted); font-size: 9.5px; }
-  .lph-loop-lbl { fill: var(--teal); font-size: 10px; font-weight: 600; }
-  .lph-tick { fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
-  .lph-p-val { fill: var(--ink); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .lph-p-val--inv { fill: #ffffff; }
-  .lph-stat-k { fill: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-  .lph-stat-v { fill: var(--ink); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .lph-stat-v--teal { fill: var(--teal); }
-  .lph-stat-v--danger { fill: var(--danger); }
-  .lph-cap { margin: 0.65rem 0 0; font-size: 0.8rem; line-height: 1.48; color: var(--muted); }
-  .lph-cap strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+<style is:global>
+  .lp { --bg: #ffffff; --ink: #232c54; --indigo: #3f518f; --muted: #5a6472; --danger: #b4532a; --teal: #0f9ba8; --pale: #8ccfdb; --font: "Montserrat", ui-sans-serif, system-ui, sans-serif; --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace; margin: 0; }
+  .lp-controls { display: flex; flex-wrap: wrap; gap: 0.15rem 1rem; margin-bottom: 0.4rem; }
+  .lp .lp-btn { font: 500 11px/1.2 var(--font); letter-spacing: 0.02em; color: var(--ink); background: none; border: 0; padding: 4px 1px; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 4px; text-decoration-color: var(--muted); }
+  .lp .lp-btn[aria-pressed="true"] { font-weight: 600; text-decoration-style: solid; text-decoration-color: currentColor; }
+  .lp .lp-btn:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
+  .lp-stage { position: relative; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+  .lp-canvas { display: block; width: 100%; cursor: grab; }
+  .prose-page .lp .lp-line, .lp .lp-line { margin: 0.5rem 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--muted); min-height: 4.5em; }
+  .lp .lp-line strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .prose-page .lp .lp-foot, .lp .lp-foot { margin: 0.4rem 0 0; font-size: 0.72rem; line-height: 1.4; color: var(--muted); }
 </style>
 
 <script>
-  document.querySelectorAll<HTMLElement>("[data-lph]").forEach((root) => {
-    const MODES = {
-      numeric: {
-        p1: "0.675", p2: "0.664", p3: "0.692",
-        diff: "+0.017 (not above zero, p = 0.653)",
-        pno: "0.689 (stratified; beats Pass 3)",
-        cap: 'Inside numeric dose questions (n = 1,940), the apparent Pass 3 probe gain shrinks to <strong>+0.017</strong> (p = 0.653), and stratified by rule type the self-check (<strong>0.689</strong>) leads Pass 3 (<strong>0.655</strong>).',
-      },
-      all: {
-        p1: "0.692", p2: "0.706", p3: "0.738",
-        diff: "+0.046 (q = 0.087; driven by AVOID split)",
-        pno: "0.712 (dragged down by false refusals)",
-        cap: 'Across all 2,391 questions, Pass 3 scored <strong>0.738</strong> vs Pass 1 <strong>0.692</strong>, mainly because Pass 3 feeds the output layers where the model chooses between a space (" ") for a dose and " AV" for AVOID.',
-      },
-      hops: {
-        cap: 'Errors rise steeply as clinical rules require combining more patient facts at once: <strong>18.7%</strong> for standard adult lookups, <strong>44.0%</strong> with one modifier, and <strong>61.1%</strong> with two or more modifiers.',
-      },
-    };
-    const tabs = root.querySelectorAll<HTMLButtonElement>(".lph-tab");
-    const panePasses = root.querySelector<HTMLElement>('[data-pane="passes"]')!;
-    const paneHops = root.querySelector<HTMLElement>('[data-pane="hops"]')!;
-    const cap = root.querySelector<HTMLElement>("[data-cap]")!;
+  // @ts-nocheck
+  document.querySelectorAll("[data-lp]").forEach((fig) => {
 
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => {
-        const m = tab.dataset.mode as keyof typeof MODES;
-        tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
-        const isHops = m === "hops";
-        panePasses.hidden = isHops;
-        paneHops.hidden = !isHops;
-        if (!isHops) {
-          const d = MODES[m];
-          root.querySelector('[data-p="1"]')!.textContent = d.p1;
-          root.querySelector('[data-p="2"]')!.textContent = d.p2;
-          root.querySelector('[data-p="3"]')!.textContent = d.p3;
-          root.querySelector("[data-diff]")!.textContent = d.diff;
-          root.querySelector("[data-pno]")!.textContent = d.pno;
-        }
-        cap.innerHTML = MODES[m].cap;
-      });
-    });
+const D = JSON.parse(fig.querySelector("[data-lp-data]").textContent);
+const stage = fig.querySelector(".lp-stage"), canvas = fig.querySelector(".lp-canvas"), ctx = canvas.getContext("2d");
+const line = fig.querySelector(".lp-line"), btns = [...fig.querySelectorAll("[data-set]")];
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LINES = {
+  anticoag_avoid: "Each dot is one of the 64 anticoagulant questions whose label says avoid; the <strong>35</strong> terracotta dots are the ones where the model gave a dose anyway. After Pass 1 the probe ranks them backwards (<strong>0.299</strong>), after Pass 2 it scores <strong>0.473</strong>, and after Pass 3 <strong>0.947</strong>. Pass 3 is the only pass that feeds the output layers, where the model commits to a bare space or to AV.",
+  numeric: "Each dot is one of the 1,940 questions where the model should give a dose and did; the <strong>463</strong> terracotta dots are wrong doses. Here the three passes score <strong>0.675</strong>, <strong>0.664</strong> and <strong>0.692</strong>, a Pass 3 gain of only <strong>+0.017</strong> (p = 0.653).",
+};
+const EXIT = { anticoag_avoid: [35, 29], numeric: [1940, 0] };
+const DEEP = 0.26, TILT = 0.34, YAW0 = -0.28, CYCLE = 7.5;
+let set = "anticoag_avoid", fade = 1, prev = null;
+let W = 0, H = 0, dpr = 1, phone = false, cx = 0, scale = 1, yP = [0, 0, 0], yExit = 0, tile = {};
+let yaw = YAW0, yawTo = YAW0, sway = 0, co = 1, si = 0, drag = false, lastX = 0, inside = false, clock = 0;
+const col = {}, drops = [];
+
+const hash = (i, k) => { const h = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return h - Math.floor(h); };
+function build(name) {
+  const s = D[name], n = s.y.length;
+  return s.y.map((y, i) => ({ y, z: (hash(i, name.length) * 2 - 1) * DEEP * 0.82, r: [s.p1[i], s.p2[i], s.p3[i]] }));
+}
+const sets = { anticoag_avoid: build("anticoag_avoid"), numeric: build("numeric") };
+
+const css = (n) => getComputedStyle(fig).getPropertyValue(n).trim();
+const rgba = (hex, a) => { const v = parseInt(hex.slice(1), 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const sm = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+const PX = (x, z) => cx + (x * co - z * si) * scale, PY = (k, x, z) => yP[k] + (x * si + z * co) * scale * TILT;
+const xOf = (r) => -0.94 + 1.88 * r;
+
+function layout() {
+  W = stage.clientWidth; phone = W < 520;
+  const left = phone ? 50 : 64, right = phone ? 44 : 56;
+  cx = left + (W - left - right) / 2; scale = (W - left - right) / 2 / 1.08;
+  const half = (Math.sin(0.6) + DEEP) * scale * TILT, gap = Math.max(2 * half * 0.78, phone ? 58 : 74);
+  yP = [22 + half, 22 + half + gap, 22 + half + 2 * gap];
+  yExit = yP[2] + half + (phone ? 46 : 54);
+  tile = { h: phone ? 22 : 26, y: yExit + 12 };
+  H = Math.round(tile.y + tile.h + 30);
+  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.height = H + "px";
+  draw();
+}
+
+function plane(k, glow) {
+  ctx.beginPath();
+  [[-1, -DEEP], [1, -DEEP], [1, DEEP], [-1, DEEP]].forEach(([x, z], i) => (i ? ctx.lineTo(PX(x, z), PY(k, x, z)) : ctx.moveTo(PX(x, z), PY(k, x, z))));
+  ctx.closePath();
+  ctx.fillStyle = rgba(col.teal, 0.035 + 0.06 * glow); ctx.fill();
+  ctx.strokeStyle = rgba(col.ink, 0.22 + 0.25 * glow); ctx.lineWidth = 0.8; ctx.stroke();
+}
+function tileAt(x, text, label, count, on, color) {
+  const w = phone ? 46 : 56, h = tile.h, y = tile.y;
+  ctx.globalAlpha = on ? 1 : 0.35;
+  ctx.fillStyle = color; ctx.fillRect(x - w / 2, y, w, h);
+  ctx.font = `500 ${phone ? 12 : 13}px ${css("--mono")}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = color === col.indigo ? "#e6f4f6" : col.ink; ctx.fillText(text, x, y + h / 2 + 0.5);
+  ctx.font = `500 10.5px ${css("--font")}`; ctx.textBaseline = "alphabetic"; ctx.fillStyle = col.ink;
+  ctx.fillText(label + "  " + count, x, y + h + 15);
+  ctx.globalAlpha = 1;
+}
+
+function dotsFor(list, alpha, big) {
+  const r = big ? 2.6 : 1.15;
+  // threads: each question from one pass to the next
+  const step = big ? 1 : 9;
+  ctx.lineWidth = big ? 0.7 : 0.5;
+  for (let i = 0; i < list.length; i += step) { const q = list[i], c = q.y ? col.danger : col.teal;
+    ctx.strokeStyle = rgba(c, (big ? 0.2 : 0.07) * alpha); ctx.beginPath();
+    for (let k = 0; k < 3; k++) { const x = xOf(q.r[k]); k ? ctx.lineTo(PX(x, q.z), PY(k, x, q.z)) : ctx.moveTo(PX(x, q.z), PY(k, x, q.z)); }
+    ctx.stroke(); }
+  for (let k = 0; k < 3; k++) for (const q of list) {
+    const x = xOf(q.r[k]);
+    ctx.beginPath(); ctx.arc(PX(x, q.z), PY(k, x, q.z), r, 0, 6.2832);
+    ctx.fillStyle = rgba(q.y ? col.danger : col.teal, (big ? 0.9 : 0.5) * alpha); ctx.fill();
+  }
+}
+
+function draw() {
+  for (const n of ["bg", "ink", "indigo", "muted", "danger", "teal", "pale"]) col[n] = css("--" + n);
+  const font = css("--font");
+  co = Math.cos(yaw); si = Math.sin(yaw);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const u = still ? 0.9 : (clock % CYCLE) / CYCLE;
+  const glow = [0, 1, 2].map((k) => still ? 0 : Math.max(0, 1 - Math.abs(u * 4.2 - k - 0.4) * 1.6));
+  const front = co >= 0 ? DEEP : -DEEP;
+
+  for (let k = 0; k < 3; k++) plane(k, glow[k]);
+
+  // the stem: only Pass 3 continues to the output layers
+  const sx = PX(0, 0), sTop = PY(2, 0, front) + 2, sBot = yExit - 14;
+  ctx.strokeStyle = rgba(col.ink, 0.6); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(sx, PY(2, 0, 0)); ctx.lineTo(sx, sBot); ctx.stroke();
+  const tx = phone ? 60 : 78;
+  ctx.beginPath(); ctx.moveTo(sx, sBot); ctx.lineTo(sx - tx, tile.y - 2); ctx.moveTo(sx, sBot); ctx.lineTo(sx + tx, tile.y - 2); ctx.strokeStyle = rgba(col.ink, 0.35); ctx.lineWidth = 0.9; ctx.stroke();
+  ctx.font = `500 10.5px ${font}`; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillStyle = col.muted;
+  ctx.fillText(phone ? "layers 18 to 23" : "layers 18 to 23, then the first token", sx + 8, (sTop + sBot) / 2 + 6);
+
+  if (prev && fade < 1) dotsFor(sets[prev], 1 - fade, prev === "anticoag_avoid");
+  dotsFor(sets[set], fade, set === "anticoag_avoid");
+
+  // drops: a few Pass 3 answers fall through the stem to their first token
+  for (let i = drops.length - 1; i >= 0; i--) {
+    const d = drops[i], t = (clock - d.t0) / 1.6;
+    if (t >= 1) { drops.splice(i, 1); continue; }
+    const x0 = PX(xOf(d.q.r[2]), d.q.z), y0 = PY(2, xOf(d.q.r[2]), d.q.z), x2 = sx + (d.q.y || set === "numeric" ? tx : -tx);
+    let x, y;
+    if (t < 0.45) { const a = sm(t / 0.45); x = x0 + (sx - x0) * a; y = y0 + (sBot - y0) * a; }
+    else { const a = sm((t - 0.45) / 0.55); x = sx + (x2 - sx) * a; y = sBot + (tile.y + tile.h / 2 - sBot) * a; }
+    ctx.beginPath(); ctx.arc(x, y, 2.4, 0, 6.2832); ctx.fillStyle = rgba(d.q.y ? col.danger : col.teal, 1 - Math.max(0, t - 0.85) / 0.15); ctx.fill();
+  }
+
+  const [nDose, nAv] = EXIT[set];
+  tileAt(sx + tx, "\u2423", "dose", nDose.toLocaleString("en-US"), nDose > 0, col.indigo);
+  tileAt(sx - tx, "\u2423AV", "AVOID", String(nAv), nAv > 0, col.pale);
+
+  // labels: pass names on the left, the probe score on the right
+  const sc = D.auroc[set];
+  for (let k = 0; k < 3; k++) {
+    const y = PY(k, -1, 0);
+    ctx.textBaseline = "middle"; ctx.textAlign = "left"; ctx.font = `600 11px ${font}`; ctx.fillStyle = col.ink;
+    ctx.fillText("pass " + (k + 1), 2, yP[k]);
+    ctx.textAlign = "right"; ctx.font = `600 12px ${font}`;
+    ctx.fillText(sc[k].toFixed(3), W - 2, yP[k]);
+  }
+  ctx.font = `400 10px ${font}`; ctx.fillStyle = col.muted; ctx.textBaseline = "alphabetic";
+  ctx.textAlign = "left"; ctx.fillText("looks right", PX(-1, -front) + 2, PY(0, -1, -front) - 7);
+  ctx.textAlign = "right"; ctx.fillText("looks wrong", PX(1, -front) - 2, PY(0, 1, -front) - 7);
+}
+
+function choose(name) {
+  if (name === set) return;
+  prev = set; set = name; fade = still ? 1 : 0; drops.length = 0;
+  btns.forEach((b) => b.setAttribute("aria-pressed", b.dataset.set === set));
+  line.innerHTML = LINES[set];
+  if (still) draw();
+}
+btns.forEach((b) => b.addEventListener("click", () => choose(b.dataset.set)));
+
+const pos = (e) => { const r = canvas.getBoundingClientRect(); return e.clientX - r.left; };
+canvas.addEventListener("pointerenter", () => { inside = true; });
+canvas.addEventListener("pointerdown", (e) => { drag = true; lastX = pos(e); canvas.style.cursor = "grabbing"; });
+canvas.addEventListener("pointermove", (e) => { if (!drag) return; const x = pos(e); yawTo = clamp(yawTo + (x - lastX) * 0.006, -0.6, 0.6); lastX = x; if (still) { yaw = yawTo; draw(); } });
+const end = () => { drag = false; canvas.style.cursor = "grab"; };
+canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
+canvas.addEventListener("pointerleave", () => { end(); inside = false; });
+
+let last = 0, lastPhase = 0;
+function frame(now) {
+  const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now; clock += dt;
+  fade = Math.min(1, fade + dt / 0.7);
+  const ph = (clock % CYCLE) / CYCLE;
+  if (lastPhase < 0.72 && ph >= 0.72) { const list = sets[set], m = set === "numeric" ? 6 : 4;
+    for (let i = 0; i < m; i++) drops.push({ q: list[Math.floor(Math.random() * list.length)], t0: clock + i * 0.22 }); }
+  lastPhase = ph;
+  if (!inside && !drag) sway += dt;
+  yaw += (yawTo + 0.09 * Math.sin(sway * 0.33) - yaw) * 0.1;
+  draw();
+  if (visible) requestAnimationFrame(frame); else { running = false; last = 0; }
+}
+let visible = false, running = false;
+new ResizeObserver(layout).observe(stage);
+line.innerHTML = LINES[set]; layout();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); if (visible && !running && !still) { running = true; requestAnimationFrame(frame); } }).observe(stage);
   });
 </script>

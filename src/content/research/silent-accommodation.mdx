@@ -11,6 +11,7 @@ hero: true
 
 import PostHero from "../../components/research/PostHero.astro";
 import CueScaleHero from "../../components/research/silent-accommodation/CueScaleHero.astro";
+import SentenceSwap from "../../components/research/silent-accommodation/SentenceSwap.astro";
 import "../../styles/research-atlas.css";
 
 <PostHero post={props.post} headings={props.headings} titleBreakAfter="model">
@@ -20,6 +21,8 @@ import "../../styles/research-atlas.css";
 Real patients rarely describe symptoms in a vacuum. Especially in rural and underserved communities, people add context about their lives: they have no insurance, they live 85 miles from the nearest hospital, they do not want to question their doctor, or they feel fine and do not want to go in. In an earlier pilot on `Qwen3.5-4B`, adding one sentence about lacking insurance lowered how often the model opened with "call EMS" on an initial set of 16 emergencies, though that effect did not repeat on 32 new scenarios and a neutral sentence about reaching care changed replies by a similar amount.
 
 That mixed result left a sharper question. When we hold prompt length strictly identical by pairing every patient-circumstance sentence with a neutral sentence of the exact same token count, do language models systematically back off from emergency 911 advice or stop-medication warnings? Does that habit grow stronger or weaker as models get larger, from 1.7 billion to 35 billion parameters? And when a model downgrades a recommendation, does its written reasoning admit why, or does it quietly rationalize a softer answer on clinical grounds?
+
+<SentenceSwap />
 
 This study tests open-weight models on controlled synthetic clinical scenarios. It does not evaluate any deployed clinical tool and should not guide patient care.
 
