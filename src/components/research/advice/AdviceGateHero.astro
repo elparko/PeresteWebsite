@@ -1,0 +1,196 @@
+---
+import charts from "../../../data/research/edu-charts.json";
+
+const SHORT = {
+  education: "education question",
+  education_bank: "patient-bank question",
+  education_mixed: "education, own diagnosis",
+  advice_general: "advice request",
+  advice_routine: "advice, routine case",
+  advice_urgent: "advice, same-day case",
+  advice_emergency: "emergency",
+  advice_emergency_fresh: "emergency, new wording",
+  nonmedical: "non-medical question",
+};
+const PHONE = {
+  education: "education",
+  education_bank: "patient bank",
+  education_mixed: "own diagnosis",
+  advice_general: "advice",
+  advice_routine: "advice, routine",
+  advice_urgent: "advice, same day",
+  advice_emergency: "emergency",
+  advice_emergency_fresh: "emergency, new",
+  nonmedical: "non-medical",
+};
+const GROUP = { education: 0, education_bank: 0, education_mixed: 0, advice_general: 1, advice_routine: 1, advice_urgent: 1, advice_emergency: 2, advice_emergency_fresh: 2, nonmedical: 3 };
+// replies naming 911 on the first line: unchanged model, gated edit, permanent removal
+const EMS = { advice_emergency: [20, 20, 3], advice_emergency_fresh: [21, 21, 5] };
+const lanes = charts.classes.map((c) => ({
+  key: c.key, label: SHORT[c.key], short: PHONE[c.key], group: GROUP[c.key],
+  n: charts.gate[c.key].n, fires: charts.gate[c.key].fires, ems: EMS[c.key] ?? null,
+}));
+const summary = "Nine lanes, one for each class of the 238 test prompts, flow through two checks at layer 16 of Qwen3.5-4B: an advice gate and an emergency gate. The edit is applied only where both allow it: 16 of 20 advice requests, 14 of 16 routine cases, 6 of 24 same-day cases, 1 of 30 patient-bank questions, and none of the 48 emergencies or the education and non-medical questions. A second view shows permanent removal of the direction, which changes every reply and drops emergency replies that name 911 on the first line from 20 to 3 of 24 and from 21 to 5 of 24.";
+---
+
+<figure class="ag" data-ag>
+  <div class="ag-controls" role="group" aria-label="Which version of the edit">
+    <button type="button" class="ag-btn" data-mode="gated" aria-pressed="true">gated edit</button>
+    <button type="button" class="ag-btn" data-mode="removal" aria-pressed="false">permanent removal</button>
+  </div>
+  <div class="ag-stage">
+    <canvas class="ag-canvas" role="img" aria-label={summary}></canvas>
+  </div>
+  <p class="ag-line" aria-live="polite"></p>
+  <p class="ag-foot">Qwen3.5-4B. Each moving dot is one test prompt. Reply counts are the mean of two readers blind to the version.</p>
+  <script type="application/json" data-ag-data set:html={JSON.stringify(lanes)} />
+</figure>
+
+<style is:global>
+  .ag { --bg: #ffffff; --ink: #232c54; --muted: #5a6472; --danger: #b4532a; --teal: #0f9ba8; --font: "Montserrat", ui-sans-serif, system-ui, sans-serif; margin: 0; }
+  .ag-controls { display: flex; flex-wrap: wrap; gap: 0.15rem 1rem; margin-bottom: 0.5rem; }
+  .ag .ag-btn { font: 500 11px/1.2 var(--font); letter-spacing: 0.02em; color: var(--ink); background: none; border: 0; padding: 4px 1px; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 4px; text-decoration-color: var(--muted); }
+  .ag .ag-btn[aria-pressed="true"] { font-weight: 600; text-decoration-style: solid; text-decoration-color: currentColor; }
+  .ag .ag-btn:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
+  .ag-stage { position: relative; }
+  .ag-canvas { display: block; width: 100%; }
+  .prose-page .ag .ag-line, .ag .ag-line { margin: 0.5rem 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--muted); min-height: 6em; }
+  .ag .ag-line strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .prose-page .ag .ag-foot, .ag .ag-foot { margin: 0.4rem 0 0; font-size: 0.72rem; line-height: 1.4; color: var(--muted); }
+</style>
+
+<script>
+  // @ts-nocheck
+  document.querySelectorAll("[data-ag]").forEach((fig) => {
+
+const lanes = JSON.parse(fig.querySelector("[data-ag-data]").textContent);
+const stage = fig.querySelector(".ag-stage"), canvas = fig.querySelector(".ag-canvas"), ctx = canvas.getContext("2d");
+const line = fig.querySelector(".ag-line"), btns = [...fig.querySelectorAll("[data-mode]")];
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LINES = {
+  gated: "The edit runs only where the advice gate opens and the emergency gate stays shut. It changed <strong>16 of 20</strong> advice requests and <strong>14 of 16</strong> routine cases, and none of the <strong>48</strong> emergencies. Replies coded as education only rose from <strong>13 to 19</strong> of 20 and from <strong>4 to 14</strong> of 16, while emergencies still named 911 on the first line in <strong>20 of 24</strong> and <strong>21 of 24</strong>.",
+  removal: "Removing the direction from the weights changes every reply, with no gate to stop it. Emergency replies naming 911 on the first line fell from <strong>20 to 3</strong> of 24 and from <strong>21 to 5</strong> of 24 (terracotta), and <strong>13.5 of 20</strong> advice requests were still coded as individualized advice, against 7 unchanged.",
+};
+const TRIP = 15;
+let mode = "gated", mix = 0, W = 0, H = 0, dpr = 1, phone = false, L = {}, clock = 0, last = 0;
+const col = {};
+
+const hash = (a, b) => { const h = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return h - Math.floor(h); };
+lanes.forEach((ln, li) => {
+  ln.dots = [];
+  for (let k = 0; k < ln.n; k++) {
+    // which prompts the gate edits, and which emergencies lose 911 under removal, spread through the lane
+    const edited = k * ln.fires / ln.n % 1 + ln.fires / ln.n >= 1 - 1e-9 ? true : false;
+    ln.dots.push({ ph: (k + hash(li, k) * 0.6) / ln.n, edited, lost: ln.ems ? (k * (ln.ems[0] - ln.ems[2]) / ln.n) % 1 + (ln.ems[0] - ln.ems[2]) / ln.n >= 1 - 1e-9 : false, jy: (hash(k, li) - 0.5) * 3 });
+  }
+  ln.dots.forEach((d) => (d.e = 0));
+});
+
+const css = (n) => getComputedStyle(fig).getPropertyValue(n).trim();
+const rgba = (hex, a) => { const v = parseInt(hex.slice(1), 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
+const sm = (t) => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
+
+function layout() {
+  W = stage.clientWidth; phone = W < 520;
+  L.lab = phone ? 96 : 150; L.x0 = L.lab + 6; L.x1 = W - (phone ? 52 : 70);
+  L.gate = L.x0 + (L.x1 - L.x0) * 0.42;
+  L.lh = phone ? 20 : 22; L.top = 34;
+  let y = L.top, g = -1;
+  lanes.forEach((ln) => { if (ln.group !== g) { if (g >= 0) y += phone ? 8 : 10; g = ln.group; } ln.y = y + L.lh / 2; y += L.lh; });
+  H = Math.round(y + 10);
+  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.height = H + "px";
+  draw();
+}
+
+function draw() {
+  for (const n of ["bg", "ink", "muted", "danger", "teal"]) col[n] = css("--" + n);
+  const font = css("--font");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const yTop = lanes[0].y - L.lh / 2 - 4, yBot = lanes[lanes.length - 1].y + L.lh / 2 + 2;
+
+  // layer 16 and its two gates; under permanent removal the change is in the weights, so the gates fade
+  ctx.textBaseline = "alphabetic"; ctx.font = `600 10.5px ${font}`; ctx.textAlign = "center"; ctx.fillStyle = col.ink;
+  ctx.globalAlpha = 1 - mix;
+  ctx.fillText("layer 16", L.gate, 12);
+  ctx.font = `400 10px ${font}`; ctx.fillStyle = col.muted;
+  ctx.textAlign = "right"; ctx.fillText(phone ? "advice gate" : "advice gate", L.gate - 7, 26);
+  ctx.textAlign = "left"; ctx.fillText(phone ? "emergency gate" : "emergency gate", L.gate + 7, 26);
+  ctx.globalAlpha = 1;
+  if (mix > 0) {
+    ctx.globalAlpha = mix; ctx.font = `600 10.5px ${font}`; ctx.textAlign = "center"; ctx.fillStyle = col.ink;
+    ctx.fillText("direction removed from the weights", (L.x0 + L.x1) / 2, 18); ctx.globalAlpha = 1;
+    ctx.fillStyle = rgba(col.teal, 0.05 * mix); ctx.fillRect(L.x0, yTop, L.x1 - L.x0, yBot - yTop);
+  }
+
+  lanes.forEach((ln) => {
+    const em = ln.group === 2, adv = ln.group === 1;
+    // lane rail
+    ctx.strokeStyle = rgba(col.ink, 0.1); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(L.x0, ln.y); ctx.lineTo(L.x1, ln.y); ctx.stroke();
+    // gate posts for this lane: the advice gate opens for advice lanes; the emergency gate shuts on emergencies
+    if (mix < 1) {
+      ctx.globalAlpha = 1 - mix;
+      const openA = ln.fires > 0, shutE = em;
+      ctx.fillStyle = openA ? rgba(col.teal, 0.6) : rgba(col.ink, 0.22);
+      ctx.fillRect(L.gate - 4, ln.y - L.lh / 2 + 4, 2, L.lh - 8);
+      ctx.fillStyle = shutE ? col.danger : rgba(col.ink, 0.22);
+      ctx.fillRect(L.gate + 2, ln.y - L.lh / 2 + 3, shutE ? 3 : 2, L.lh - 6);
+      ctx.globalAlpha = 1;
+    }
+    // labels
+    ctx.textBaseline = "middle"; ctx.textAlign = "right"; ctx.font = `${adv || em ? 500 : 400} ${phone ? 9.5 : 10.5}px ${font}`;
+    ctx.fillStyle = em ? col.danger : adv ? col.ink : col.muted;
+    ctx.fillText(phone ? ln.short : ln.label, L.lab, ln.y);
+    // counts on the right
+    ctx.textAlign = "left"; ctx.font = `500 ${phone ? 9.5 : 10.5}px ${font}`;
+    let txt, tone = col.muted;
+    if (mode === "removal") { txt = `all ${ln.n}`; tone = ln.ems ? col.danger : col.ink; }
+    else { txt = `${ln.fires} of ${ln.n}`; tone = ln.fires ? col.ink : col.muted; }
+    ctx.fillStyle = tone; ctx.fillText(txt, L.x1 + 8, ln.y);
+
+    // the prompts
+    for (const d of ln.dots) {
+      const u = still ? d.ph : (d.ph + clock / TRIP) % 1, x = L.x0 + u * (L.x1 - L.x0);
+      const past = sm((x - L.gate) / 14);
+      const editG = d.edited ? past : 0, editR = past;
+      const e = editG * (1 - mix) + editR * mix;
+      const broke = em && d.lost ? editR * mix : 0;
+      const y = ln.y + d.jy * 0.6 + e * (em ? 0 : 3.5) * (1 - broke);
+      let c = col.ink, a = 0.42;
+      if (broke > 0.02) { c = col.danger; a = 0.45 + 0.5 * broke; }
+      else if (e > 0.02 && !em) { c = col.teal; a = 0.42 + 0.5 * e; }
+      ctx.beginPath(); ctx.arc(x, y, em || adv ? 2.1 : 1.7, 0, 6.2832); ctx.fillStyle = rgba(c, a); ctx.fill();
+      // a brief ring where a prompt meets the gates: teal when the edit runs, terracotta when the emergency gate stops it
+      const dg = x - L.gate;
+      if (!still && dg > 0 && dg < 16 && mix < 0.5 && (d.edited || em)) {
+        const p = dg / 16; ctx.beginPath(); ctx.arc(L.gate, ln.y, 3 + 7 * p, 0, 6.2832);
+        ctx.strokeStyle = rgba(em ? col.danger : col.teal, 0.5 * (1 - p)); ctx.lineWidth = 1; ctx.stroke();
+      }
+    }
+  });
+
+  // the column heads on the right
+  ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.font = `400 10px ${font}`; ctx.fillStyle = col.muted;
+  ctx.fillText(mode === "removal" ? "changed" : "edited", L.x1 + 8, 26);
+}
+
+function setMode(m) {
+  mode = m; btns.forEach((b) => b.setAttribute("aria-pressed", b.dataset.mode === m)); line.innerHTML = LINES[m];
+  if (still) { mix = m === "removal" ? 1 : 0; draw(); }
+}
+btns.forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+
+function frame(now) {
+  const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now; clock += dt;
+  mix += ((mode === "removal" ? 1 : 0) - mix) * (1 - Math.exp(-4 * dt));
+  draw();
+  if (visible) requestAnimationFrame(frame); else { running = false; last = 0; }
+}
+let visible = false, running = false;
+new ResizeObserver(layout).observe(stage);
+line.innerHTML = LINES.gated; layout();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); if (visible && !running && !still) { running = true; requestAnimationFrame(frame); } }).observe(stage);
+  });
+</script>

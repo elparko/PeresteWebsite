@@ -4,6 +4,7 @@ description: "An interpretability study of whether a chat model's internal state
 date: 2026-11-04
 author: "Parker Smith"
 tag: "Study"
+hero: true
 ---
 
 import GateChart from "../../components/research/GateChart.astro";
@@ -12,6 +13,12 @@ import EmergencyChart from "../../components/research/EmergencyChart.astro";
 import RedTeamChart from "../../components/research/RedTeamChart.astro";
 import ReplyViewer from "../../components/research/ReplyViewer.astro";
 import RegisterPair from "../../components/research/RegisterPair.astro";
+import PostHero from "../../components/research/PostHero.astro";
+import AdviceGateHero from "../../components/research/advice/AdviceGateHero.astro";
+
+<PostHero post={props.post} headings={props.headings} titleBreakAfter="education">
+<AdviceGateHero />
+</PostHero>
 
 An effective educational AI in healthcare explains a patient's condition and records in plain words, leaves diagnosis and treatment decisions to the care team, and routes urgent symptoms to a person. For such a system, the boundary between medical education and medical advice is a design requirement rather than a matter of tone. General-purpose chat models are not built around that boundary. When a patient describes symptoms and asks what to do, the model used in this study, Qwen3.5-4B, usually answers with an individualized assessment: what the symptoms probably represent, what to take, and how quickly to act.
 
