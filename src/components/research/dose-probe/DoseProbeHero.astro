@@ -1,24 +1,18 @@
 ---
-const summary = "A field of 986 high-harm dosing errors made by Qwen3-8B: 439 overdoses, 204 missed contraindications and 143 wrong schedules, with 200 wrongly refused drugs set apart. At a 20% review budget, the self-check flags 28.1% of high-harm errors and none of the wrongly refused drugs. An internal probe read after the answer flags 30.1% and 25.5% of the wrongly refused drugs; combined with the self-check it flags 30.5% and 14.5%. A fourth view shows 185 dosing rules, of which the base model already knew 124.";
-const data = {
-  main: 786,
-  wa: 200,
-  monitors: {
-    self: { main: 277, wa: 0 },
-    probe: { main: 246, wa: 51 },
-    combo: { main: 272, wa: 29 },
-  },
-  families: [
-    ["liver", 36, 33],
-    ["drug interaction", 30, 24],
-    ["kidney dose", 89, 51],
-    ["kidney avoid", 30, 16],
-  ],
-};
+import data from "../../../data/research/dose-error-probe/review-flags.json";
+
+const { about, ...flags } = data;
+const families = [
+  ["liver", 36, 33],
+  ["drug interaction", 30, 24],
+  ["kidney dose", 89, 51],
+  ["kidney avoid", 30, 16],
+];
+const summary = "All 2,391 answers Qwen3-8B gave, one dot each, grouped on a floor by outcome: 1,035 correct, 370 underdoses or unreadable, 439 overdoses, 204 missed contraindications, 143 wrong schedules and 200 wrongly refused drugs. Each check sends its riskiest 478 answers, 20% of all, up to a review shelf. The self-check sends 277 high-harm errors and none of the wrongly refused drugs. The internal probe sends 297, including 51 wrongly refused drugs. The two combined send 301, including 29. A fourth view shows the 185 dosing rules, of which the base model already knew 124.";
 ---
 
 <figure class="bm" data-bm>
-  <div class="bm-controls" role="group" aria-label="Which check sweeps the errors">
+  <div class="bm-controls" role="group" aria-label="Which check chooses the answers to review">
     <button type="button" class="bm-btn" data-k="self" aria-pressed="false">self-check</button>
     <button type="button" class="bm-btn" data-k="probe" aria-pressed="false">internal probe</button>
     <button type="button" class="bm-btn" data-k="combo" aria-pressed="false">probe + self-check</button>
@@ -28,8 +22,8 @@ const data = {
     <canvas class="bm-canvas" role="img" aria-label={summary}></canvas>
   </div>
   <p class="bm-line" aria-live="polite"></p>
-  <p class="bm-foot">Qwen3-8B, 2,391 questions, strict schedule grading. Lit dots show how many errors each check flags when a reviewer reads the riskiest 20% of answers, not which ones.</p>
-  <script type="application/json" data-bm-data set:html={JSON.stringify(data)} />
+  <p class="bm-foot">Qwen3-8B, 2,391 answers graded on the strict schedule. Each dot is one answer; the raised dots are the actual answers each check ranked riskiest.</p>
+  <script type="application/json" data-bm-data set:html={JSON.stringify({ ...flags, families })} />
 </figure>
 
 <style is:global>
@@ -41,7 +35,7 @@ const data = {
   .bm .bm-quiet { color: var(--muted); margin-left: auto; }
   .bm .bm-quiet[aria-pressed="true"] { color: var(--ink); }
   .bm-stage { position: relative; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
-  .bm-canvas { display: block; width: 100%; cursor: grab; }
+  .bm-canvas { display: block; width: 100%; cursor: default; }
   .prose-page .bm .bm-line, .bm .bm-line { margin: 0.5rem 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--muted); min-height: 4.5em; }
   .bm .bm-line strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
   .prose-page .bm .bm-foot, .bm .bm-foot { margin: 0.4rem 0 0; font-size: 0.72rem; line-height: 1.4; color: var(--muted); }
@@ -55,167 +49,190 @@ const D = JSON.parse(fig.querySelector("[data-bm-data]").textContent);
 const stage = fig.querySelector(".bm-stage"), canvas = fig.querySelector(".bm-canvas"), ctx = canvas.getContext("2d");
 const line = fig.querySelector(".bm-line"), btns = [...fig.querySelectorAll("[data-k]")];
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const BIT = { self: 1, probe: 2, combo: 4 };
+const ZONES = [
+  { c: "o", name: "correct", short: "correct", harm: false },
+  { c: "u", name: "underdose or unreadable", short: "under", harm: false },
+  { c: "v", name: "overdose", short: "over", harm: true },
+  { c: "f", name: "missed contraindication", short: "missed", harm: true },
+  { c: "s", name: "wrong schedule", short: "schedule", harm: true },
+  { c: "w", name: "wrongly refused", short: "refused", harm: true, wa: true },
+];
 const LINES = {
-  rest: "<strong>986</strong> high-harm errors from 2,391 answers: 439 overdoses, 204 missed contraindications and 143 wrong schedules, with the <strong>200</strong> drugs the model wrongly refused set apart. Choose a check to sweep the field.",
-  self: "Asking the model to check its own answer flags <strong>28.1%</strong> of high-harm errors and <strong>0 of 200</strong> wrongly refused drugs. On those refusals its score is <strong>0.399</strong>, worse than a coin flip.",
-  probe: "An internal probe read after the answer flags <strong>30.1%</strong> of high-harm errors and <strong>25.5%</strong> of wrongly refused drugs. On the refusals it scores <strong>0.743</strong>.",
-  combo: "Probe and self-check together flag <strong>30.5%</strong> of high-harm errors, the most of any check, and <strong>14.5%</strong> of wrongly refused drugs. Overall score <strong>0.753</strong>, the highest.",
+  rest: "Every answer the model gave, grouped by outcome. <strong>986</strong> are high-harm errors, including <strong>200</strong> drugs it wrongly refused. A reviewer can read the riskiest 20%, <strong>478</strong> answers. Choose a check to see which ones it sends.",
+  self: "The self-check sends <strong>277</strong> high-harm errors to review (<strong>28.1%</strong>) and <strong>94</strong> correct answers. It sends <strong>none</strong> of the 200 wrongly refused drugs: on those refusals it scores <strong>0.399</strong>, worse than a coin flip.",
+  probe: "The internal probe, read after the answer, sends <strong>297</strong> high-harm errors (<strong>30.1%</strong>), including <strong>51</strong> of the 200 wrongly refused drugs, which it scores <strong>0.743</strong>. It sends only 14 of 143 wrong schedules, against 55 for the self-check.",
+  combo: "Probe and self-check together send <strong>301</strong> high-harm errors (<strong>30.5%</strong>), the most of any check, and <strong>29</strong> wrongly refused drugs. Overall score <strong>0.753</strong>, the highest.",
   base: "Asked closed-book, the base model before chat tuning already favored the adjusted regimen for <strong>124 of 185</strong> rules (67.0%): 33 of 36 liver rules, 24 of 30 drug interactions, 51 of 89 kidney dose reductions and 16 of 30 kidney contraindications.",
 };
-const SWEEP = 2400, MORPH = 900, DEEP = 0.42, TILT = 0.42, YAW0 = -0.22;
-let state = "rest", sweepT0 = -1e9, morph = 0, morphTo = 0;
-let W = 0, H = 0, dpr = 1, cx = 0, scale = 1, yPlane = 0, phone = false, pills = [], famRows = [];
+const ROWS = 26, GAP = 2.2, DEEP0 = 0.26, TILT = 0.5, YAW0 = -0.2, SWEEP = 1800, CYCLE = 6500;
+let state = "rest", sweepT0 = -1e9, morph = 0, morphTo = 0, auto = !still, nextAt = 0, autoI = 0;
+let W = 0, H = 0, dpr = 1, cx = 0, scale = 1, yFloor = 0, lift = 70, phone = false, famRows = [], DEEP = DEEP0;
 let yaw = YAW0, yawTo = YAW0, sway = 0, co = 1, si = 0, drag = false, lastX = 0, inside = false;
 const col = {};
 
-let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+// lay out every answer in its zone: columns of ROWS dots, zones side by side
 const dots = [];
-function grid(n, xa, xb, cols, rows, wa) {
-  const cells = [];
-  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) cells.push([i, j]);
-  for (let k = cells.length - 1; k > 0; k--) { const r = Math.floor(rnd() * (k + 1)); [cells[k], cells[r]] = [cells[r], cells[k]]; }
-  const dx = (xb - xa) / cols, dz = (2 * DEEP) / rows;
-  for (let k = 0; k < n; k++) { const [i, j] = cells[k];
-    dots.push({ wx: xa + (i + 0.5 + (rnd() - 0.5) * 0.6) * dx, wz: -DEEP + (j + 0.5 + (rnd() - 0.5) * 0.6) * dz, wa, u: rnd(), lit: 0, sx: 0, sy: 0 }); }
-}
-grid(D.main, -1, 0.4, 36, 22, false);
-grid(D.wa, 0.56, 1, 10, 20, true);
-const rankIn = (wa) => { const g = dots.filter((d) => d.wa === wa).sort((a, b) => a.u - b.u); g.forEach((d, i) => (d.rank = i)); };
-rankIn(false); rankIn(true);
-const caught = (d, k) => { const m = D.monitors[k]; return !!m && d.rank < (d.wa ? m.wa : m.main); };
-let pillIdx = 0;
-D.families.forEach((f, fi) => { for (let i = 0; i < f[1]; i++) { const d = dots[Math.floor((pillIdx * 5.3) % D.main)]; pillIdx++; pills.push({ d, fi, i, known: i < f[2] }); } });
-pills.forEach((p) => (p.d.pill = p));
+const byZone = ZONES.map((z) => []);
+for (let i = 0; i < D.cats.length; i++) { const zi = ZONES.findIndex((z) => z.c === D.cats[i]); byZone[zi].push(i); }
+const cols = byZone.map((a) => Math.ceil(a.length / ROWS));
+const totalCols = cols.reduce((a, b) => a + b, 0) + GAP * (ZONES.length - 1);
+const dx = 2 / totalCols; DEEP = (ROWS * dx) / 2;
+let c0 = 0;
+ZONES.forEach((z, zi) => {
+  z.x0 = -1 + c0 * dx; z.x1 = z.x0 + cols[zi] * dx; z.n = byZone[zi].length;
+  const h = (k) => { const v = Math.sin(k * 12.9898 + zi * 78.233) * 43758.5453; return v - Math.floor(v); };
+  byZone[zi].forEach((i, k) => {
+    const cc = Math.floor(k / ROWS), rr = k % ROWS;
+    dots.push({ i, z: zi, wx: z.x0 + (cc + 0.5 + (h(k) - 0.5) * 0.35) * dx, wz: -DEEP + (rr + 0.5 + (h(k + 7) - 0.5) * 0.35) * dx, f: +D.flags[i], up: 0, ph: h(k + 3) * 6.283 });
+  });
+  c0 += cols[zi] + GAP;
+});
+const pills = [];
+D.families.forEach((f, fi) => { for (let i = 0; i < f[1]; i++) { const d = dots[Math.floor(((pills.length + 0.5) * dots.length) / 185)]; const p = { d, fi, i, known: i < f[2] }; d.pill = p; pills.push(p); } });
 
 const css = (n) => getComputedStyle(fig).getPropertyValue(n).trim();
 const rgba = (hex, a) => { const v = parseInt(hex.slice(1), 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
 const ease = (p) => 1 - Math.pow(1 - Math.min(1, Math.max(0, p)), 3);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-const PX = (x, z) => cx + (x * co - z * si) * scale, PY = (x, z) => yPlane + (x * si + z * co) * scale * TILT;
+const PX = (x, z) => cx + (x * co - z * si) * scale, PY = (x, z, h) => yFloor + (x * si + z * co) * scale * TILT - (h || 0);
 
 function layout() {
   W = stage.clientWidth; phone = W < 520;
-  cx = W / 2; scale = (W - 12) / 2 / 1.06;
-  const pad = (Math.sin(0.6) + DEEP) * scale * TILT;
-  yPlane = 26 + pad;
-  const fieldH = yPlane + pad + 40;
-  // the rule pills: one row of pills per family, wrapping on a narrow screen
+  cx = W / 2; scale = (W - 8) / 2 / 1.05; lift = phone ? 56 : 74;
+  const pad = (Math.sin(0.45) + DEEP) * scale * TILT;
+  yFloor = 30 + lift + pad;
+  const fieldH = yFloor + pad + (phone ? 74 : 82);
   const pw = phone ? 4 : 5, gap = phone ? 2.5 : 3, ph = phone ? 11 : 13, lab = phone ? 0 : 150;
   const per = Math.max(10, Math.floor((W - lab - 4) / (pw + gap)));
-  let y = 30; famRows = [];
+  let y = 0; famRows = [];
   D.families.forEach((f, fi) => {
     if (phone) y += 16;
-    famRows.push({ f, y, x: phone ? 0 : 0 });
+    famRows.push({ f, y });
     pills.filter((p) => p.fi === fi).forEach((p) => { const r = Math.floor(p.i / per), c = p.i % per; p.px = lab + c * (pw + gap) + pw / 2; p.py = y + r * (ph + 5) + ph / 2; });
-    y += (Math.ceil(f[1] / per)) * (ph + 5) + (phone ? 10 : 16);
+    y += Math.ceil(f[1] / per) * (ph + 5) + (phone ? 10 : 16);
   });
   famRows.pw = pw; famRows.ph = ph;
-  H = Math.round(Math.max(fieldH, y + 6));
-  yPlane = Math.max(yPlane, (H - 30) / 2);
-  const off = Math.max(0, (H - y) / 2 - 10);
+  H = Math.round(Math.max(fieldH, y + 20));
+  const off = (H - y) / 2;
   pills.forEach((p) => (p.py += off)); famRows.forEach((r) => (r.y += off));
   dpr = Math.min(2.5, window.devicePixelRatio || 1);
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.height = H + "px";
   draw(performance.now());
 }
 
-function quad(xa, xb) { ctx.beginPath(); [[xa, -DEEP], [xb, -DEEP], [xb, DEEP], [xa, DEEP]].forEach(([x, z], i) => (i ? ctx.lineTo(PX(x, z), PY(x, z)) : ctx.moveTo(PX(x, z), PY(x, z)))); ctx.closePath(); }
+function quad(xa, xb, h) { ctx.beginPath(); [[xa, -DEEP], [xb, -DEEP], [xb, DEEP], [xa, DEEP]].forEach(([x, z], i) => (i ? ctx.lineTo(PX(x, z), PY(x, z, h)) : ctx.moveTo(PX(x, z), PY(x, z, h)))); ctx.closePath(); }
 
 function draw(now) {
   for (const n of ["bg", "ink", "muted", "danger", "teal"]) col[n] = css("--" + n);
   const font = css("--font");
   co = Math.cos(yaw); si = Math.sin(yaw);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-  const b = still ? morphTo : ease(morph);
-  const k = state;
-  const sp = still ? 2 : (now - sweepT0) / SWEEP, sx = -1.08 + 2.16 * sp;
+  const b = still ? morphTo : ease(morph), a = 1 - b;
+  const bit = BIT[state] || 0, sp = still ? 2 : (now - sweepT0) / SWEEP, sx = -1.05 + 2.1 * sp;
+  const front = co >= 0 ? DEEP : -DEEP, t = now / 1000;
 
-  // the two regions of the field, set on one tilted plane
-  ctx.globalAlpha = 1 - b;
-  quad(-1.03, 0.43); ctx.strokeStyle = rgba(col.ink, 0.16); ctx.lineWidth = 0.8; ctx.stroke();
-  quad(0.53, 1.03); ctx.setLineDash([2, 3]); ctx.strokeStyle = rgba(col.danger, 0.45); ctx.stroke(); ctx.setLineDash([]);
-  ctx.globalAlpha = 1;
-
-  const front = co >= 0 ? DEEP : -DEEP;
-  for (const d of dots) {
-    const on = D.monitors[k] && caught(d, k) && (sp > 1 || sx > d.wx);
-    d.lit += ((on ? 1 : 0) - d.lit) * (still ? 1 : 0.14);
-    const fx = PX(d.wx, d.wz), fy = PY(d.wx, d.wz), depth = (d.wx * si + d.wz * co) / (1 + DEEP);
-    const r = 1.45 + 0.45 * depth;
-    if (d.pill && b > 0) {
-      const p = d.pill, x = fx + (p.px - fx) * b, y = fy + (p.py - fy) * b;
-      const w = 2 * r + (famRows.pw - 2 * r) * b, h = 2 * r + (famRows.ph - 2 * r) * b;
-      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w / 2, y - h / 2, w, h, Math.min(w, h) / 2) : ctx.rect(x - w / 2, y - h / 2, w, h);
-      if (p.known && b > 0.5) { ctx.fillStyle = rgba(col.teal, 0.25 + 0.7 * b); ctx.fill(); }
-      else { ctx.fillStyle = rgba(col.ink, 0.12 * (1 - b)); ctx.fill(); ctx.strokeStyle = rgba(col.ink, 0.3 * b); ctx.lineWidth = 0.8; ctx.stroke(); }
-      continue;
-    }
-    if (b >= 1) continue;
-    ctx.globalAlpha = 1 - b;
-    ctx.beginPath(); ctx.arc(fx, fy, r + 0.5 * d.lit, 0, 6.2832);
-    if (d.lit > 0.02) { ctx.fillStyle = rgba(col.teal, 0.25 + 0.75 * d.lit); ctx.fill(); }
-    else if (d.wa) { ctx.strokeStyle = rgba(col.danger, 0.7); ctx.lineWidth = 0.9; ctx.stroke(); }
-    else { ctx.fillStyle = rgba(col.ink, 0.22); ctx.fill(); }
+  if (a > 0) {
+    ctx.globalAlpha = a;
+    // the floor: one outline per zone
+    ZONES.forEach((z) => { quad(z.x0 - dx * 0.4, z.x1 + dx * 0.4, 0); if (z.wa) { ctx.setLineDash([2, 3]); ctx.strokeStyle = rgba(col.danger, 0.5); } else ctx.strokeStyle = rgba(col.ink, z.harm ? 0.3 : 0.14); ctx.lineWidth = 0.8; ctx.stroke(); ctx.setLineDash([]); });
+    // the review shelf
+    const shelfOn = dots.some((d) => d.up > 0.05);
+    quad(-1.02, 1.02, lift); ctx.fillStyle = rgba(col.teal, shelfOn ? 0.05 : 0.02); ctx.fill(); ctx.strokeStyle = rgba(col.ink, shelfOn ? 0.28 : 0.12); ctx.lineWidth = 0.8; ctx.stroke();
     ctx.globalAlpha = 1;
   }
 
-  // the sweep: a reviewer's lens moving across the plane; the self-check goes pale over the refusals
-  if (D.monitors[k] && sp > 0 && sp < 1.05 && b < 0.05) {
-    const x = clamp(sx, -1.03, 1.03), blind = k === "self" && x > 0.5;
-    const c = k === "self" ? col.ink : col.teal;
-    ctx.beginPath(); ctx.moveTo(PX(x, -DEEP - 0.04), PY(x, -DEEP - 0.04)); ctx.lineTo(PX(x, DEEP + 0.04), PY(x, DEEP + 0.04));
-    ctx.strokeStyle = rgba(c, blind ? 0.14 : 0.85); ctx.lineWidth = 1.4; ctx.stroke();
-    for (let g = 1; g <= 6; g++) { const xg = x - g * 0.012; if (xg < -1.03) break;
-      ctx.beginPath(); ctx.moveTo(PX(xg, -DEEP), PY(xg, -DEEP)); ctx.lineTo(PX(xg, DEEP), PY(xg, DEEP)); ctx.strokeStyle = rgba(c, (blind ? 0.03 : 0.12) * (1 - g / 7)); ctx.lineWidth = 1; ctx.stroke(); }
+  // floor dots first, then stems and raised dots on top
+  const raised = [];
+  for (const d of dots) {
+    const on = bit && (d.f & bit) && (sp > 1 || sx > d.wx);
+    d.up += ((on ? 1 : 0) - d.up) * (still ? 1 : 0.09);
+    const z = ZONES[d.z], fx = PX(d.wx, d.wz), fy = PY(d.wx, d.wz, 0);
+    if (d.pill && b > 0) {
+      const p = d.pill, x = fx + (p.px - fx) * b, y = fy + (p.py - fy) * b, w = 2.4 + (famRows.pw - 2.4) * b, h = 2.4 + (famRows.ph - 2.4) * b;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w / 2, y - h / 2, w, h, Math.min(w, h) / 2) : ctx.rect(x - w / 2, y - h / 2, w, h);
+      if (p.known && b > 0.5) { ctx.fillStyle = rgba(col.teal, 0.25 + 0.7 * b); ctx.fill(); }
+      else { ctx.fillStyle = rgba(col.ink, 0.12 * a); ctx.fill(); ctx.strokeStyle = rgba(col.ink, 0.3 * b); ctx.lineWidth = 0.8; ctx.stroke(); }
+      continue;
+    }
+    if (a <= 0) continue;
+    if (d.up > 0.02) { raised.push(d); continue; }
+    ctx.globalAlpha = a;
+    if (z.wa) { ctx.beginPath(); ctx.arc(fx, fy, 1.5, 0, 6.2832); ctx.strokeStyle = rgba(col.danger, 0.75); ctx.lineWidth = 0.8; ctx.stroke(); }
+    else { ctx.fillStyle = rgba(z.harm ? col.danger : col.ink, z.harm ? 0.42 : 0.2); ctx.fillRect(fx - 1.1, fy - 1.1, 2.2, 2.2); }
+  }
+  raised.sort((p, q) => PY(p.wx, p.wz) - PY(q.wx, q.wz));
+  for (const d of raised) {
+    const z = ZONES[d.z], h = ease(d.up) * (lift + (still ? 0 : 1.6 * Math.sin(t * 1.3 + d.ph))), x = PX(d.wx, d.wz), y0 = PY(d.wx, d.wz, 0), y1 = y0 - h;
+    const c = z.harm ? col.teal : col.ink;
+    ctx.globalAlpha = a;
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.strokeStyle = rgba(c, 0.16); ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y1, z.harm ? 1.9 : 1.6, 0, 6.2832); ctx.fillStyle = rgba(c, z.harm ? 0.95 : 0.55); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // the sweep: a thin wall of light crossing the floor as the check ranks each answer
+  if (bit && sp > 0 && sp < 1.05 && b < 0.05) {
+    const x = clamp(sx, -1.02, 1.02);
+    ctx.beginPath(); ctx.moveTo(PX(x, -DEEP), PY(x, -DEEP, 0)); ctx.lineTo(PX(x, DEEP), PY(x, DEEP, 0)); ctx.lineTo(PX(x, DEEP), PY(x, DEEP, lift)); ctx.lineTo(PX(x, -DEEP), PY(x, -DEEP, lift)); ctx.closePath();
+    ctx.fillStyle = rgba(col.teal, 0.07); ctx.fill(); ctx.strokeStyle = rgba(col.teal, 0.5); ctx.lineWidth = 0.8; ctx.stroke();
   }
 
-  // labels at the front edge of each region
-  if (b < 0.6) {
-    ctx.globalAlpha = 1 - b / 0.6;
-    ctx.textBaseline = "alphabetic"; ctx.font = `500 11px ${font}`;
-    const lx = (x) => PX(x, front), ly = (x) => PY(x, front) + 22;
-    ctx.textAlign = "left"; ctx.fillStyle = col.ink;
-    ctx.fillText(phone ? "786 other errors" : "786 overdoses, missed contraindications, wrong schedules", Math.max(2, lx(-1)), ly(-1));
-    ctx.textAlign = "right"; ctx.fillStyle = col.danger;
-    ctx.fillText("200 wrongly refused", Math.min(W - 2, lx(1)), ly(1) + (phone ? 0 : 0));
+  if (a > 0.05) {
+    ctx.globalAlpha = Math.min(1, a * 1.4); ctx.textBaseline = "alphabetic";
+    // shelf label
+    ctx.font = `500 10.5px ${font}`; ctx.textAlign = "left"; ctx.fillStyle = col.muted;
+    const sl = PY(-1, -DEEP, lift) < PY(-1, DEEP, lift) ? -DEEP : DEEP;
+    const shelfText = phone ? "sent to a reviewer, 478 answers" : "sent to a reviewer: the riskiest 478 answers (20%)";
+    ctx.lineWidth = 4; ctx.strokeStyle = col.bg; ctx.lineJoin = "round";
+    ctx.strokeText(shelfText, Math.max(2, PX(-1, sl)), PY(-1, sl, lift) - 14); ctx.fillText(shelfText, Math.max(2, PX(-1, sl)), PY(-1, sl, lift) - 14);
+    // zone labels along the front edge, in two tiers so narrow zones do not collide
+    const TIER = [0, 1, 0, 2, 1, 0];
+    ZONES.forEach((z, zi) => {
+      const label = phone ? z.short : z.name;
+      ctx.font = `500 ${phone ? 9.5 : 10.5}px ${font}`;
+      const hw = ctx.measureText(label).width / 2 + 2, xm = (z.x0 + z.x1) / 2, X = clamp(PX(xm, front), hw, W - hw), Y = PY(xm, front, 0) + 16 + TIER[zi] * 25;
+      const sent = bit ? dots.filter((d) => d.z === zi && d.up > 0.5).length : null;
+      ctx.textAlign = "center"; ctx.fillStyle = z.wa ? col.danger : z.harm ? col.ink : col.muted;
+      ctx.fillText(label, X, Y);
+      ctx.font = `400 ${phone ? 9 : 10}px ${font}`; ctx.fillStyle = col.muted;
+      ctx.fillText(sent === null ? z.n.toLocaleString("en-US") : `${sent} of ${z.n.toLocaleString("en-US")}`, X, Y + 11);
+    });
     ctx.globalAlpha = 1;
   }
   if (b > 0.4) {
-    ctx.globalAlpha = (b - 0.4) / 0.6; ctx.textBaseline = "alphabetic"; ctx.font = `500 11px ${font}`; ctx.textAlign = "left";
+    ctx.globalAlpha = (b - 0.4) / 0.6; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
     famRows.forEach(({ f, y }) => {
       const ty = phone ? y - 6 : y + famRows.ph / 2 + 4;
-      ctx.fillStyle = col.ink; ctx.fillText(f[0], 0, ty);
+      ctx.font = `500 11px ${font}`; ctx.fillStyle = col.ink; ctx.fillText(f[0], 0, ty);
       const w = ctx.measureText(f[0]).width; ctx.fillStyle = col.muted; ctx.font = `400 10.5px ${font}`;
-      ctx.fillText(`${f[2]} of ${f[1]}`, w + 8, ty); ctx.font = `500 11px ${font}`;
+      ctx.fillText(`${f[2]} of ${f[1]}`, w + 8, ty);
     });
     ctx.globalAlpha = 1;
   }
 }
 
-function setState(next) {
-  if (next === state) next = "rest";
+function setState(next, fromUser) {
+  if (fromUser) auto = false;
+  if (next === state && fromUser) next = "rest";
   state = next; sweepT0 = performance.now(); morphTo = state === "base" ? 1 : 0;
   btns.forEach((b) => b.setAttribute("aria-pressed", b.dataset.k === state));
   line.innerHTML = LINES[state];
-  if (still) { dots.forEach((d) => (d.lit = 0)); draw(performance.now()); }
+  if (still) draw(performance.now());
 }
-btns.forEach((b) => b.addEventListener("click", () => setState(b.dataset.k)));
+btns.forEach((b) => b.addEventListener("click", () => setState(b.dataset.k, true)));
 
 const pos = (e) => { const r = canvas.getBoundingClientRect(); return e.clientX - r.left; };
-canvas.addEventListener("pointerenter", () => { inside = true; });
-canvas.addEventListener("pointerdown", (e) => { drag = true; lastX = pos(e); canvas.style.cursor = "grabbing"; });
-canvas.addEventListener("pointermove", (e) => { if (!drag || morphTo) return; const x = pos(e); yawTo = clamp(yawTo + (x - lastX) * 0.006, -0.6, 0.6); lastX = x; if (still) { yaw = yawTo; draw(performance.now()); } });
-const end = () => { drag = false; canvas.style.cursor = "grab"; };
-canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
-canvas.addEventListener("pointerleave", () => { end(); inside = false; });
 
+const ORDER = ["self", "probe", "combo"];
 let last = 0;
 function frame(now) {
   const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;
-  morph += (morphTo - morph) * (1 - Math.exp(-dt * 1000 / MORPH * 3));
+  if (auto && now > nextAt) { if (nextAt) { setState(ORDER[autoI % 3]); autoI++; } nextAt = now + (nextAt ? CYCLE : 2200); }
+  morph += (morphTo - morph) * (1 - Math.exp(-dt * 3.3));
   if (Math.abs(morphTo - morph) < 0.002) morph = morphTo;
   if (!inside && !drag) sway += dt;
-  yaw += (yawTo + 0.08 * Math.sin(sway * 0.35) - yaw) * 0.1;
+  yaw = YAW0;
   draw(now);
   if (visible) requestAnimationFrame(frame); else { running = false; last = 0; }
 }
